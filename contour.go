@@ -45,10 +45,16 @@ type Config struct {
 	Settings 	map[string]*setting
 }
 
-// NewConfig returns a *Config to the caller
-func NewConfig() *Config {
-	AppConfig = &Config{Settings: map[string]*setting{}}
+// GetAppConfig returns the AppConfig to the caller. Any contour function
+// called uses this config.
+func GetAppConfig() *Config {
 	return AppConfig
+}
+
+// NewConfig returns a *Config to the caller. Any config created by NewConfig()
+// is independent of the AppConfig
+func NewConfig() *Config {
+	return &Config{Settings: map[string]*setting{}}
 }
 
 func (c *Config) GetCode() string {
