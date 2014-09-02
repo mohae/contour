@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
+	utils "github.com/mohae/utilitybelt"
 )
 
 // Environment Variable constants for common environment variables.
@@ -38,9 +39,9 @@ var AppConfig *Config = &Config{Settings: map[string]*setting{}}
 //
 type Config struct {
 
-	// appCode is the shortcode for the application. It is mostly used to
+	// code is the shortcode for this configuration. It is mostly used to
 	// prefix environment variables, when used.
-	appCode 	string
+	code 	string
 	Settings 	map[string]*setting
 }
 
@@ -50,26 +51,26 @@ func NewConfig() *Config {
 	return AppConfig
 }
 
-func (c *Config) GetAppCode() string {
-	return c.appCode
+func (c *Config) GetCode() string {
+	return c.code
 }
 
 // SetAppCode set's the appcode. This can only be done once. If it is already
 // set, it will return an error.
-func (c *Config) SetAppCode(s string) error {
-	if c.appCode != "" {
+func (c *Config) SetCode(s string) error {
+	if c.code != "" {
 		return errors.New("appCode is already set. AppCode is idempotent. Once set, it cannot be altered")
 	}
 
-	c.appCode = s
+	c.code = s
 
 	return nil
 }
 
 // setting holds the information for a configuration setting.
 type setting struct {
-	// ShortCode of the setting
-	ShortCode string
+	// Code of the setting
+	Code string
 
 	// Type is the datatype for the setting
 	Type string
@@ -245,12 +246,14 @@ func SetBoolFlag(k, v string, b bool) {
 		// override it
 		AppConfig.Settings[k].Value = b
 		AppConfig.Settings[k].IsFlag = true
-		AppConfig.Settings[k].ShortCode = v
+		AppConfig.Settings[k].Code = v
 		return
 	}
 	
 	// otherwise add it
-	AppConfig.Settings[k] = &setting{Value: b, ShortCode: v, IsFlag: true}
+	bs := utils.BoolToString(b)
+	os.Setenv(AppConfig.GetCode() + k, bs)
+	AppConfig.Settings[k] = &setting{Value: b, Code: v, IsFlag: true}
 }
 
 // resetAppConfig resets the application's configuration struct to empty.

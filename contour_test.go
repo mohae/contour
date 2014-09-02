@@ -337,7 +337,7 @@ func TestSetIdempotentString(t *testing.T) {
 	}{
 		{name: "test empty idempotent", key: "rock", value: "roll", expected:
 			&setting{
-				ShortCode: "",
+				Code: "",
 				Type: "string",
 				Value: "roll",
 				IsFlag: false,
