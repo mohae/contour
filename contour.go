@@ -43,6 +43,11 @@ func SetConfigFile(name string) error {
 		return errors.New("filename expected, none received")
 	}
 
+	err := setConfigFormat()
+	if err != nil {
+		return err
+	}
+
 	configFilename = name
 
 	return nil
