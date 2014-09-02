@@ -1,8 +1,8 @@
 package contour
 
 import (
-	"bytes"
 	"testing"
+	"os"
 
 	"github.com/mohae/customjson"
 	. "github.com/smartystreets/goconvey/convey"
@@ -76,28 +76,137 @@ var jsonResults = map[string]interface {}{
 	},
 }
 
-func TestSetAppCode(t *testing.T) {
+func TestGetConfigFormat(t *testing.T) {
+	Convey("Given a GetconfigFormatTest", t, func() {
 
-	Convey("Given an excuse to use this convey", t, func() {
+		Convey("Given an empty config format environment variable", func() {
+			os.Setenv(EnvConfigFormat, "")
+			Convey("Given an empty configfilename", func() {
+				os.Setenv(EnvConfigFilename, "")
+				
+				Convey("Getting the config format", func() {
+					_, err := getConfigFormat()
 
-		Convey("calling SetAppCode with an empty value", func() {
-			err := SetAppCode("")
+					Convey("Should result in an error", func() {
+						So(err.Error(), ShouldEqual, "unable to determine config format, filename not set")
+					}) 
 
-			Convey("Should result in an error", func() {
-				So(err.Error(), ShouldEqual, "code expected, none received")
+				})
+
+			})
+
+			Convey("Given a filename without an extension", func() {
+				os.Setenv(EnvConfigFilename, "config")
+				
+				Convey("Getting the config format", func() {
+					_, err := getConfigFormat()
+
+					Convey("Should result in an error", func() {
+						So(err.Error(), ShouldEqual, "unable to determine config format, the configuration file config doesn't have an extension")
+					}) 
+
+				})
+
+			})
+
+			Convey("Given a filename with an invalid format extension", func() {
+				os.Setenv(EnvConfigFormat, "config.bmp")
+				
+				Convey("Getting the config format", func() {
+					_, err := getConfigFormat()
+
+					Convey("Should result in an error", func() {
+						So(err.Error(), ShouldEqual, "unable to determine config format, the configuration file config doesn't have an extension")
+					}) 
+
+				})
+
+			})
+
+			Convey("Given a filename with a json extension", func() {				
+
+				Convey("Getting the config format", func() {
+					os.Setenv(EnvConfigFormat, "json")
+					res, err := getConfigFormat()
+
+					Convey("Should not error", func() {
+						So(err, ShouldBeNil)
+					}) 
+
+					Convey("Should result in getting json as an extension", func() {
+						So(res, ShouldEqual, "json")
+					})
+
+				})
+
+			})
+
+			Convey("Given a filename with a json extension", func() {
+				
+				Convey("Getting the config format", func() {
+					os.Setenv(EnvConfigFormat, "toml")
+					res, err := getConfigFormat()
+
+					Convey("Should not error", func() {
+						So(err, ShouldBeNil)
+					}) 
+
+					Convey("Should result in getting json as an extension", func() {
+						So(res, ShouldEqual, "toml")
+					})
+
+				})
+
+			})
+		})
+
+		Convey("Given setting the environment variable with json", func() {
+			os.Setenv(EnvConfigFormat, "json")
+			
+			Convey("Calling getConfigFormat", func() {
+				res, err := getConfigFormat()
+				
+				Convey("Should not error", func() {
+					So(err, ShouldBeNil)
+				})
+
+				Convey("and the format should equal json", func() {
+					So(res, ShouldEqual, "json")
+				})
+
 			})
 
 		})
-		
-		Convey("calling SetAppCode with a value", func() {
-			err := SetAppCode("sup")
+
+
+		Convey("Given setting the environment variable with toml", func() {
+			os.Setenv(EnvConfigFormat, "toml")
 			
-			Convey("Should not result in an error", func() {
-				So(err, ShouldBeNil)
+			Convey("Calling getConfigFormat", func() {
+				res, err := getConfigFormat()
+				
+				Convey("Should not error", func() {
+					So(err, ShouldBeNil)
+				})
+
+				Convey("and the format should equal toml", func() {
+					So(res, ShouldEqual, "toml")
+				})
+
 			})
 
-			Convey("Should result in the appCode being set", func() {
-				So(appCode, ShouldEqual, "sup")
+		})
+
+		Convey("Given setting the environment variable with an unsupported format", func() {
+			os.Setenv(EnvConfigFormat, "png")
+			
+			Convey("Calling getConfigFormat", func() {
+				_, err := getConfigFormat()
+				
+				Convey("Should error", func() {
+					So(err.Error(), ShouldEqual, "unable to determine config format, the configuration file config doesn't have an extension")
+				})
+
 			})
 
 		})
@@ -106,36 +215,38 @@ func TestSetAppCode(t *testing.T) {
 
 }
 
-func TestSetConfigFile(t *testing.T) {
-        
-        Convey("Given an excuse to use this convey", t, func() {
-                
-                Convey("calling SetConfigFile with an empty value", func() {
-                        err := SetConfigFile("")
-                        
-                        Convey("Should result in an error", func() {
-                                So(err.Error(), ShouldEqual, "filename expected, none received")
-                        })
+func TestIsSupportedFormat(t *testing.T) {
+	Convey("Given some supported format tests", t, func() {
+		
+		Convey("Checking to see if json is supported", func() {
+			is := isSupportedFormat("json") 
+			
+			Convey("Should result in true", func() {
+				So(is, ShouldEqual, true)
+			})
+		})
 
-                })      
+		Convey("Checking to see if toml is supported", func() {
+			is := isSupportedFormat("toml") 
+			
+			Convey("Should result in true", func() {
+				So(is, ShouldEqual, true)
+			})
+		})
 
-                Convey("calling SetConfigFile with a value", func() {
-                        err := SetConfigFile("sup")
-                        
-                        Convey("Should not result in an error", func() {
-                                So(err, ShouldBeNil)
-                        })
+		Convey("Checking to see if tnt is supported", func() {
+			is := isSupportedFormat("tnt")  
+			
+			Convey("Should result in false", func() {
+				So(is, ShouldEqual, false)
+			})
+		})
 
-                        Convey("Should result in the configFilename being set", func() {
-                                So(configFilename, ShouldEqual, "sup")
-                        })
-
-                })
-
-        })
+	})	
 
 }
 
+/*
 func TestSetConfigFormat(t *testing.T) {
         
         Convey("Given an excuse to use this convey", t, func() {
@@ -384,3 +495,6 @@ func TestMarshalFormatReader(t *testing.T) {
 	})
 
 }
+
+*/
+

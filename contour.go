@@ -7,124 +7,144 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/BurntSushi/toml"
 )
 
-// appCode is your short code for your application, if you use one. This is 
-// used to prefix the environment variable name. This can be left empty.
-var appCode string
-
-// configFilename is the name of the configuration file.
-var configFilename string
-
-// configFormat is the format for the configuration file
-var configFormat string
+// Environment Variable constants for common environment variables.
+// Or you can supply your own values. Contour automatically downcases
+// environment variables for consistency across formats.
+var (
+	EnvConfigFilename string = "configfilename"
+	EnvConfigFormat string = "configformat"
+	EnvLogFilename string = "logfilename"
+	EnvLogging string = "logging"
+)
 
 // configFile holds the contents of the configuration file
 var configFile map[string]interface{} = make(map[string]interface{})
 
+// config holds the current application configuration
+var AppConfig *Config
 
-// setAppCode sets the application code.
-func SetAppCode(code string) error {
-	if code == "" {
-		return errors.New("code expected, none received")
-	}
-	
-	appCode = code
-
-	return nil
+// Config is a group of settings and holds all of the application setting
+// information. Even though contour automatically uses environment variables,
+// unless its told to ignore them, it still needs to maintain state 
+// information about each setting so it knows how to handle attempst to update.
+// TODO: 
+//	* support ignoring environment variables
+//
+type Config struct {
+	Settings map[string]*setting
 }
 
-// setConfigFile sets the configuration filename
-func SetConfigFile(name string) error {
-	if name == "" {
-		return errors.New("filename expected, none received")
-	}
-
-	err := setConfigFormat()
-	if err != nil {
-		return err
-	}
-
-	configFilename = name
-
-	return nil
+// NewConfig returns a *Config to the caller
+func NewConfig() *Config {
+	AppConfig = &Config{Settings: map[string]*setting{}}
+	return AppConfig
 }
 
-// SetConfigFormat exposes the configFormat variable. Use this to explicitely
-// set the format type. setConfigFormat will not override this value.
-// The set format must be a supported config file format.
-func SetConfigFormat(s string) error {
-	if s == "" {
-		return errors.New("config format was expected, none received")
-	}
+// setting holds the information for a configuration setting.
+type setting struct {
+	// ShortCode of the setting
+	ShortCode string
 
-	err := isSupportedFormat(s)
-	if err != nil {
-		return err
-	}
+	// Type is the datatype for the setting
+	Type string
 
-	configFormat = s
+	// The current value of the setting
+	Value interface{}
 
-	return nil
+	// IsFlag:  whether or not this is a flag.
+	IsFlag bool
+
+	// IsIdempotent: whether or not this value can be overwritten once set.
+	IsIdempotent bool
+
+	// SourceIsEnv: whether or not the original source of this setting was
+	// its environment variables, vs. flags or config, etc. This is tracked
+	// because it has implications on override behavior.
+	SourceIsEnv bool
+
+	// IsCore: whether or not this is considered a core setting. Core 
+	// settings if for things like application name, where you don't want
+	// anything else overwriting that value, once set, and you want to be
+	// able to overwrite any existing ENV value if contour hasn't already
+	// set it. Once set, IsIdempotent is also true.
+	IsCore bool
 }
 
-// setConfigFormat parses the configFilename to determine the format being
-// used. If the format cannot be determined, or is not supported, an error
-// is returned
-func setConfigFormat() error {
+
+// getConfigFormat gets the configured config filename and returns the format
+// it is in, if it is a supported format; otherwise an error.
+func getConfigFormat() (string, error) {
 	// If the format is already set, we don't override the setting.
 	// A nil is returned because this is not an error.
-	if configFormat != "" {
-		return nil
+	format := os.Getenv(EnvConfigFormat)
+	if format != "" {
+		// See if the set format is supported, if it is, 
+		if isSupportedFormat(format) {
+			return format, nil
+		}
 	}	
 	
-	parts := strings.Split(configFilename, ".")
+	// Format is either unknown, or not supported; try to resolve it.
+	fname := os.Getenv(EnvConfigFilename)
+	if fname == "" {
+		return "", errors.New("unable to determine config format, filename not set")
+	}
+		
+	parts := strings.Split(fname, ".")
 
+	// case 0 has already been evaluated
 	switch len(parts) {
-	case 0:
-		return errors.New("unable to determine config format, filename not set")
-	case 1:
-		return errors.New("unable to determine config format, the configuration file " + configFilename + " doesn't have an extension")
+	case 1: 
+		return "", errors.New("unable to determine config format, the configuration file " + fname + " doesn't have an extension")
 	case 2:
-		configFormat = parts[1]
+		format = parts[1]
 	default:
 		// assume its the last part
-		configFormat = parts[len(parts) - 1]
+		format = parts[len(parts) - 1]
 	}
 
-	return nil
+	if isSupportedFormat(format) {
+		return "", errors.New(format + " is an unsupported format for configuration files")
+	}
+
+	return format, nil
 
 }
 
 // isSupportedFormat checks to see if the passed string represents a supported
-// config format. If it is, it returns a nil, otherwise an error.
-func isSupportedFormat(s string) error {
+// config format.
+func isSupportedFormat(s string) bool {
         switch s {
-        case "json", "toml":
-                configFormat = s
+        case "json":
+                return true
+	case "toml":
+                return true
         default:
-                err := errors.New(s + " is not a supported configuration format")
-                return  err
+                return  false
         }
 
-        return nil
+        return false
 }
 
 // LoadConfigFile() is the entry point for reading the configuration file.
 func LoadConfigFile() error {
-	if configFilename == "" {
+	n := os.Getenv(EnvConfigFilename)
+	if n == "" {
 		return errors.New("config filename not set")
 	}
 
-	fBytes, err := readConfigFile()
+	fBytes, err := readConfigFile(n)
 	if err != nil {
 		return err
 	}
 
-	err = MarshalFormatReader(configFormat,bytes.NewReader(fBytes)) 
+	err = MarshalFormatReader(os.Getenv(EnvConfigFormat),bytes.NewReader(fBytes)) 
 	if err != nil {
 		return err
 	}
@@ -133,8 +153,8 @@ func LoadConfigFile() error {
 }
 
 // readConfigFile reads the configFile
-func readConfigFile() ([]byte, error) {
-	cfg, err := ioutil.ReadFile(configFilename)
+func readConfigFile(n string) ([]byte, error) {
+	cfg, err := ioutil.ReadFile(n)
 	if err != nil {
 		return nil, err
 	}
@@ -163,3 +183,63 @@ func MarshalFormatReader(t string, r io.Reader) error {
 	}
 	return nil
 }
+
+// SetIdempotentString sets the value of idempotent configuration settings
+// that are strings.
+func SetIdempotentString(k, v string) {
+	// see if the key already exists, if it does, it can't be set
+	_, ok := AppConfig.Settings[k]
+	if ok {
+		return
+	}
+
+	AppConfig.Settings[k] = &setting{Type: "string",  Value: v, IsIdempotent: true}
+}
+
+// SetIdemString is a convenience function that wraps SetIdempotentString()
+func SetIdemString(k, v string) {
+	SetIdempotentString(k, v)
+}
+
+// SetBoolFlag sets the value of a configuration setting that is also a flag.
+func SetBoolFlag(k, v string, b bool) {
+	// see if the key exists
+	_, ok := AppConfig.Settings[k]
+	if ok {
+		// see if it can be overridden
+		if AppConfig.Settings[k].IsIdempotent || AppConfig.Settings[k].SourceIsEnv {
+			return
+		}
+
+		// override it
+		AppConfig.Settings[k].Value = b
+		AppConfig.Settings[k].IsFlag = true
+		AppConfig.Settings[k].ShortCode = v
+		return
+	}
+	
+	// otherwise add it
+	AppConfig.Settings[k] = &setting{Value: b, ShortCode: v, IsFlag: true}
+}
+
+
+			
+/*
+func Get(k string) interface{} {
+
+}
+
+func GetBool(k string) bool {
+
+}
+
+func GetInt(k string) int {
+
+}
+
+// GetInterface is a convenience wrapper function to Get
+func GetInterface(k string) interface{} {
+	return Get(k)
+}
+
+*/
