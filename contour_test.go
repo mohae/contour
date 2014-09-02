@@ -3,8 +3,12 @@ package contour
 import (
 	"bytes"
 	"testing"
+
+	"github.com/mohae/customjson"
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+var toString = customjson.NewMarshalString()
 
 var tomlExample = []byte(`
 appVar1 = true
@@ -34,7 +38,7 @@ var jsonExample = []byte(`
 		"less",
 		"sass",
 		"scss"
-	]
+	],
 	"logging": {
 		"logging": true,
 		"logconfig": "test/test.toml",
@@ -43,6 +47,34 @@ var jsonExample = []byte(`
 	}
 }
 `)
+
+var tomlResults = map[string]interface {}{
+	"appVar1":true,
+  	"appVar2":false,
+	"appVar3":42,
+	"appVar4":"zip",
+	"appVar5":[]string{"less","sass","scss"},
+	"logging":map[string]interface{}{
+		"Logging":true,
+		"LogConfig":"test/test.toml",
+		"LogFileLevel":"debug",
+		"LogStdoutLevel":"error",
+	},
+}
+
+var jsonResults = map[string]interface {}{
+	"appVar1":true,
+  	"appVar2":false,
+	"appVar3":42,
+	"appVar4":"zip",
+	"appVar5":[]string{"less","sass","scss"},
+	"logging":map[string]interface{}{
+		"logging":true,
+		"logconfig":"test/test.toml",
+		"logfilelevel":"debug",
+		"logstdoutlevel":"error",
+	},
+}
 
 func TestSetAppCode(t *testing.T) {
 
@@ -316,11 +348,33 @@ func TestMarshalFormatReader(t *testing.T) {
 				err := MarshalFormatReader("json", r)
 
 				Convey("Should not error", func() {
-					So(err, ShouldNotBeNil)
+					So(err, ShouldBeNil)
 				})
 
-				Convey("Should containt", func() {
-					So(configFile, ShouldResemble, appCode)
+				Convey("Should equal our expectations", func() {
+					So(toString.Get(configFile), ShouldEqual, toString.Get(jsonResults))
+				})
+
+			})
+
+		})
+
+	})
+
+	Convey("Given an TOML config", t, func() {
+
+		Convey("Given a []byte", func() {
+
+			Convey("marshalling it should result in", func() {
+				r := bytes.NewReader(tomlExample)
+				err := MarshalFormatReader("toml", r)
+
+				Convey("Should not error", func() {
+					So(err, ShouldBeNil)
+				})
+
+				Convey("Should equal our expectations", func() {
+					So(toString.Get(configFile), ShouldEqual, toString.Get(tomlResults))
 				})
 
 			})
