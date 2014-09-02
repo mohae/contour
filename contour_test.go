@@ -1,10 +1,48 @@
 package contour
 
 import (
+	"bytes"
 	"testing"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+var tomlExample = []byte(`
+appVar1 = true
+appVar2 = false
+appVar3 = 42
+appVar4 = "zip"
+appVar5 = [
+	"less",
+	"sass",
+	"scss"
+]
+
+[logging]
+Logging = true
+LogConfig = "test/test.toml"
+LogFileLevel = "debug"
+LogStdoutLevel = "error"
+`)
+
+var jsonExample = []byte(`
+{
+	"appVar1": true,
+	"appVar2": false,
+	"appVar3": 42,
+	"appVar4": "zip",
+	"appVar5": [
+		"less",
+		"sass",
+		"scss"
+	]
+	"logging": {
+		"logging": true,
+		"logconfig": "test/test.toml",
+		"logfilelevel": "debug",
+		"logstdoutlevel": "error"
+	}
+}
+`)
 
 func TestSetAppCode(t *testing.T) {
 
@@ -267,4 +305,28 @@ func TestIsSupportedFormat(t *testing.T) {
 
 }
 
+func TestMarshalFormatReader(t *testing.T) {
 
+	Convey("Given an JSON config", t, func() {
+
+		Convey("Given a []byte", func() {
+
+			Convey("marshalling it should result in", func() {
+				r := bytes.NewReader(jsonExample)
+				err := MarshalFormatReader("json", r)
+
+				Convey("Should not error", func() {
+					So(err, ShouldNotBeNil)
+				})
+
+				Convey("Should containt", func() {
+					So(configFile, ShouldResemble, appCode)
+				})
+
+			})
+
+		})
+
+	})
+
+}

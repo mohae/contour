@@ -2,14 +2,14 @@
 package contour
 
 import (
-	_ "bytes"
-	_ "encoding/json"
+	"bytes"
+	"encoding/json"
 	"errors"
-	_ "io"
-	_ "io/ioutil"
+	"io"
+	"io/ioutil"
 	"strings"
 
-	_"github.com/BurntSushi/toml"
+	"github.com/BurntSushi/toml"
 )
 
 // appCode is your short code for your application, if you use one. This is 
@@ -22,10 +22,9 @@ var configFilename string
 // configFormat is the format for the configuration file
 var configFormat string
 
-// Error constants for some of the more common errors and error fragments.
-const (
+// configFile holds the contents of the configuration file
+var configFile map[string]interface{} = make(map[string]interface{})
 
-)
 
 // setAppCode sets the application code.
 func SetAppCode(code string) error {
@@ -107,4 +106,55 @@ func isSupportedFormat(s string) error {
         }
 
         return nil
+}
+
+// LoadConfigFile() is the entry point for reading the configuration file.
+func LoadConfigFile() error {
+	if configFilename == "" {
+		return errors.New("config filename not set")
+	}
+
+	fBytes, err := readConfigFile()
+	if err != nil {
+		return err
+	}
+
+	err = MarshalFormatReader(configFormat,bytes.NewReader(fBytes)) 
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// readConfigFile reads the configFile
+func readConfigFile() ([]byte, error) {
+	cfg, err := ioutil.ReadFile(configFilename)
+	if err != nil {
+		return nil, err
+	}
+
+	return cfg, nil
+}
+
+// MarshalFormatReader 
+func MarshalFormatReader(t string, r io.Reader) error {
+	b := new(bytes.Buffer)
+	b.ReadFrom(r)
+
+	switch t{
+	case "json":
+		err := json.Unmarshal(b.Bytes(), &configFile)
+		if err != nil {
+			return err
+		}
+
+	case "toml":
+		_, err := toml.Decode(b.String(), &configFile)
+		if err != nil {
+			return err
+		}
+
+	}
+	return nil
 }
