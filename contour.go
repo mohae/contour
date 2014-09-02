@@ -27,7 +27,7 @@ var (
 var configFile map[string]interface{} = make(map[string]interface{})
 
 // config holds the current application configuration
-var AppConfig *Config
+var AppConfig *Config = &Config{Settings: map[string]*setting{}}
 
 // Config is a group of settings and holds all of the application setting
 // information. Even though contour automatically uses environment variables,
@@ -37,13 +37,33 @@ var AppConfig *Config
 //	* support ignoring environment variables
 //
 type Config struct {
-	Settings map[string]*setting
+
+	// appCode is the shortcode for the application. It is mostly used to
+	// prefix environment variables, when used.
+	appCode 	string
+	Settings 	map[string]*setting
 }
 
 // NewConfig returns a *Config to the caller
 func NewConfig() *Config {
 	AppConfig = &Config{Settings: map[string]*setting{}}
 	return AppConfig
+}
+
+func (c *Config) GetAppCode() string {
+	return c.appCode
+}
+
+// SetAppCode set's the appcode. This can only be done once. If it is already
+// set, it will return an error.
+func (c *Config) SetAppCode(s string) error {
+	if c.appCode != "" {
+		return errors.New("appCode is already set. AppCode is idempotent. Once set, it cannot be altered")
+	}
+
+	c.appCode = s
+
+	return nil
 }
 
 // setting holds the information for a configuration setting.
@@ -75,7 +95,6 @@ type setting struct {
 	// set it. Once set, IsIdempotent is also true.
 	IsCore bool
 }
-
 
 // getConfigFormat gets the configured config filename and returns the format
 // it is in, if it is a supported format; otherwise an error.
@@ -136,7 +155,11 @@ func isSupportedFormat(s string) bool {
 func LoadConfigFile() error {
 	n := os.Getenv(EnvConfigFilename)
 	if n == "" {
-		return errors.New("config filename not set")
+		// This isn't an error as config file is allowed to not exist
+		// TODO:
+		//	Possible add a ConfigFileRequired flag
+		//	Add logging support
+		return nil
 	}
 
 	fBytes, err := readConfigFile(n)
@@ -186,14 +209,22 @@ func MarshalFormatReader(t string, r io.Reader) error {
 
 // SetIdempotentString sets the value of idempotent configuration settings
 // that are strings.
-func SetIdempotentString(k, v string) {
+func SetIdempotentString(k, v string) error {
 	// see if the key already exists, if it does, it can't be set
 	_, ok := AppConfig.Settings[k]
 	if ok {
-		return
+		return nil
+	}
+
+	// Set the environment variable for it
+	err := os.Setenv(k, v)
+	if err != nil {
+		return err
 	}
 
 	AppConfig.Settings[k] = &setting{Type: "string",  Value: v, IsIdempotent: true}
+
+	return nil
 }
 
 // SetIdemString is a convenience function that wraps SetIdempotentString()
@@ -222,6 +253,11 @@ func SetBoolFlag(k, v string, b bool) {
 	AppConfig.Settings[k] = &setting{Value: b, ShortCode: v, IsFlag: true}
 }
 
+// resetAppConfig resets the application's configuration struct to empty.
+// This does not affect their respective environment variables
+func resetAppConfig() {
+	AppConfig = &Config{Settings: map[string]*setting{}}
+}
 
 			
 /*

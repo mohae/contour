@@ -1,6 +1,7 @@
 package contour
 
 import (
+	"bytes"
 	"testing"
 	"os"
 
@@ -246,205 +247,35 @@ func TestIsSupportedFormat(t *testing.T) {
 
 }
 
-/*
-func TestSetConfigFormat(t *testing.T) {
-        
-        Convey("Given an excuse to use this convey", t, func() {
-                
-                Convey("calling SetConfigFormat with an empty value", func() {
-                        err := SetConfigFormat("")
-                        
-                        Convey("Should result in an error", func() {
-                                So(err.Error(), ShouldEqual, "config format was expected, none received")
-                        })
 
-                })      
+// Only testing failure for now
+func TestLoadConfigFile(t *testing.T) {
+	Convey("Given an unset config filename", t, func() {
 
-                Convey("calling SetConfigFormat with json", func() {
-			configFormat = ""
-                        err := SetConfigFormat("json")
-                        
-                        Convey("Should not result in an error", func() {
-                                So(err, ShouldBeNil)
-                        })
-
-                        Convey("Should result in the configFormat being set", func() {
-                                So(configFormat, ShouldEqual, "json")
-                        })
-
-                })
-
-                Convey("calling SetConfigFormat with toml", func() {
-			configFormat = ""
-                        err := SetConfigFormat("toml")
-                        
-                        Convey("Should not result in an error", func() {
-                                So(err, ShouldBeNil)
-                        })
-
-                        Convey("Should result in the configFormat being set", func() {
-                                So(configFormat, ShouldEqual, "toml")
-                        })
-
-                })
-
-                Convey("calling SetConfigFormat with an invalid format: jso", func() {
-			configFormat = ""
-                        err := SetConfigFormat("jso")
-                        
-                        Convey("Should result in an error", func() {
-                                So(err.Error(), ShouldEqual, "jso is not a supported configuration format")
-                        })
-
-                        Convey("Should result in the configFormat not being set", func() {
-                                So(configFormat, ShouldEqual, "")
-                        })
-
-                })
-
-        })
-
-}
-
-func TestsetConfigFormat(t *testing.T) {
-        
-        Convey("Given an excuse to use this convey", t, func() {
-                
-                Convey("calling setConfigFormat with the name not set", func() {
-                        err := setConfigFormat()
-                        
-                        Convey("Should result in an error", func() {
-                                So(err.Error(), ShouldEqual, "unable to determine config format, filename not set")
-                        })
-
-                })      
-
-		Convey("setting the configFilename to a name without an extension", func() {
-			configFilename = "config"
-	
-	                Convey("calling setConfigFormat", func() {
-        	                err := setConfigFormat()
-                        
-	        	        Convey("Should result in an error", func() {
-	                                So(err.Error(), ShouldEqual, "unable to determine config format, the configuration file config doesn't have an extension")
-	                        })
-
-        	        })
-
+		Convey("loading the config file", func() {		
+			os.Setenv(EnvConfigFilename, "")
+			err := LoadConfigFile()
+			
+			Convey("Should not result in an error", func() {
+				So(err, ShouldBeNil)
+			})
+		
 		})
 
-		Convey("setting configFilename with config.toml", func() {
-			configFilename = "config.toml"
+	})
 
-		        Convey("calling setConfigFormat", func() {
-		                err := setConfigFormat()
-		                
-		                Convey("Should not result in an error", func() {
-		                        So(err, ShouldBeNil)
-		                })
-
-		                Convey("Should result in the configFormat being set", func() {
-		                        So(configFormat, ShouldEqual, "toml")
-		                })
-
-		        })
+	Convey("Given an invalid config filename", t, func() {
+		os.Setenv(EnvConfigFilename, "holygrail")
+		Convey("loading the config file", func() {		
+			err := LoadConfigFile()
+			
+			Convey("Should result in an error", func() {
+				So(err.Error(), ShouldEqual, "open holygrail: no such file or directory")
+			})
+		
 		})
 
-		Convey("setting configFilename with config.json", func() {
-			configFilename = "config.json"
-
-		        Convey("calling setConfigFormat", func() {
-		                err := setConfigFormat()
-		                
-		                Convey("Should not result in an error", func() {
-		                        So(err, ShouldBeNil)
-		                })
-
-		                Convey("Should result in the configFormat being set", func() {
-		                        So(configFormat, ShouldEqual, "json")
-		                })
-
-		        })
-		})
-
-		Convey("setting configFilename with config.jso", func() {
-			configFilename = "config.jso"
-
-		        Convey("calling setConfigFormat", func() {
-		                err := setConfigFormat()
-		                
-		                Convey("Should result in an error", func() {
-		                        So(err, ShouldEqual, "jso is not a supported configuration format")
-		                })
-
-		                Convey("Should result in the configFormat not being set", func() {
-		                        So(configFormat, ShouldEqual, "")
-		                })
-
-		        })
-
-		})
-
-        })
-
-}
-
-func TestIsSupportedFormat(t *testing.T) {
-        
-        Convey("Given an excuse to use this convey", t, func() {
-                
-                Convey("calling isSupportedFormat with an empty value", func() {
-                        err := isSupportedFormat("")
-                        
-                        Convey("Should result in an error", func() {
-                                So(err.Error(), ShouldEqual, " is not a supported configuration format")
-                        })
-
-                })      
-
-                Convey("calling isSupportedFormat with json", func() {
-			configFormat = ""
-                        err := isSupportedFormat("json")
-                        
-                        Convey("Should not result in an error", func() {
-                                So(err, ShouldBeNil)
-                        })
-
-                        Convey("Should result in the configFormat being set", func() {
-                                So(configFormat, ShouldEqual, "json")
-                        })
-
-                })
-
-                Convey("calling isSupportedFormat with toml", func() {
-			configFormat = ""
-                        err := isSupportedFormat("toml")
-                        
-                        Convey("Should not result in an error", func() {
-                                So(err, ShouldBeNil)
-                        })
-
-                        Convey("Should result in the configFormat being set", func() {
-                                So(configFormat, ShouldEqual, "toml")
-                        })
-
-                })
-
-                Convey("calling isSupportedFormat with an invalid format: jso", func() {
-			configFormat = ""
-                        err := isSupportedFormat("jso")
-                        
-                        Convey("Should result in an error", func() {
-                                So(err.Error(), ShouldEqual, "jso is not a supported configuration format")
-                        })
-
-                        Convey("Should result in the configFormat being set", func() {
-                                So(configFormat, ShouldEqual, "")
-                        })
-
-                })
-
-        })
+	})
 
 }
 
@@ -496,5 +327,81 @@ func TestMarshalFormatReader(t *testing.T) {
 
 }
 
-*/
+// Since SetIdemString wraps SetIdempotentString, it is called instead-2for1!
+func TestSetIdempotentString(t *testing.T) {
+	tests := []struct{
+		name string
+		key string
+		value string
+		expected *setting
+	}{
+		{name: "test empty idempotent", key: "rock", value: "roll", expected:
+			&setting{
+				ShortCode: "",
+				Type: "string",
+				Value: "roll",
+				IsFlag: false,
+				IsIdempotent: true,
+				SourceIsEnv: false,
+				IsCore:	false,
+			},
+		},
+	}
 
+
+	Convey("Given a range of tests", t, func() {
+
+		for _, test := range tests {
+
+			Convey("setting them should not error", func() {
+				err := SetIdempotentString(test.key, test.value)
+				So(err, ShouldBeNil)
+
+				Convey("and getting it should result it", func() {
+					res := os.Getenv(test.key)
+					So(res, ShouldEqual, test.value)
+				})
+
+				Convey("and the AppConfig settings for it", func() {
+					So(AppConfig.Settings[test.key], ShouldResemble, test.expected)
+				})
+				
+			})
+
+		}
+
+	})
+
+}
+
+/*
+func TestSetBoolFlag(t *testing.T) {
+	tests := []struct{
+		name string
+		key string
+		value string
+		b bool
+		expected setting
+	}{
+		{name: "setboolflag", key: "bool-t-true", value: "t", b: true, expected: setting{}},
+		{name: "setboolflag", key: "bool-t-false", value: "t", b: false, expected: setting{}},
+		{name: "setboolflag", key: "bool-true", value: "", b: true, expected: setting{}},
+		{name: "setboolflag", key: "bool-false", value: "", b: false, expected: setting{}},
+	}
+
+
+	for _, test := range tests {
+
+		Convey("Setting a bool flag", t, func() {
+			SetBoolFlag(test.key, test.value, test.b)
+		
+			Convey("Should result in the setting be set", func() {
+				So(AppConfig.Settings[test.key], ShouldResemble, test.expected)
+			})
+
+		})
+
+	}
+
+}
+*/
