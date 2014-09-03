@@ -164,10 +164,32 @@ func isSupportedFormat(s string) bool {
         return false
 }
 
-// SetConfigFromFile populates configFile from the configured config file.
+// SetFromEnv updates the configuration from the environment variable values.
+// A setting is only updated if it IsUpdateable.
+func SetFromEnv() {
+	for k, _ := range AppConfig.Settings {
+		// See if k exists as an env variable
+		v := os.Getenv(k)
+		if v == "" {
+			continue
+		}
+
+		// Only core and idempotent are updateable
+		if !CanSetUsingEnv(k) {
+			continue
+		}
+
+		// Gotten this far, set it
+		AppConfig.Settings[k].Value = v
+		AppConfig.Settings[k].SourceIsEnv = true
+	}
+	
+}
+
+// SetFromConfigFile populates configFile from the configured config file.
 // The config file entries are then processed, updating their associated
-// settings
-func SetConfigFromFile() error {
+// settings. A setting is only updated if it IsUpdateable.
+func SetFromConfigFile() error {
 	// ConfigFile should be set and its format type should be known.
 	err := LoadConfigFile()
 	if err != nil {
@@ -409,6 +431,17 @@ func IsOverrideable(k string) bool {
 	return true	
 }
 
+// CanSetUsingEnv checks to see if the setting is settable using an env
+// variable.
+func CanSetUsingEnv(k string) bool {
+	// If something is flagged as idempotent, it can't be set be changed.
+	// Same with core settings.
+	if AppConfig.Settings[k].IsIdempotent || AppConfig.Settings[k].IsCore {
+		return false
+	}
+
+	return true
+}
 
 // AddCommandAlias adds an alias for a command. The first time a command is 
 // added, it's added as an alias of itself too.
