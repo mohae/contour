@@ -36,6 +36,10 @@ var configFile map[string]interface{} = make(map[string]interface{})
 // config holds the current application configuration
 var AppConfig *Config = &Config{Settings: map[string]*setting{}}
 
+const (
+	SettingNotFoundErr = " setting was not found"
+)
+
 // Config is a group of settings and holds all of the application setting
 // information. Even though contour automatically uses environment variables,
 // unless its told to ignore them, it still needs to maintain state 
@@ -494,23 +498,47 @@ func resetAppConfig() {
 	AppConfig = &Config{Settings: map[string]*setting{}}
 }
 
-			
-/*
-func Get(k string) interface{} {
+func Get(k string) (interface{}, error) {
+	_, ok := AppConfig.Settings[k]
+	if !ok {
+		return nil, notFoundErr(k)
+	}
 
+	return AppConfig.Settings[k].Value, nil
 }
 
-func GetBool(k string) bool {
-
+func GetBool(k string) (bool, error) {
+	_, ok := AppConfig.Settings[k]
+	if !ok {
+		return false, notFoundErr(k)
+	}
+	
+	return AppConfig.Settings[k].Value.(bool), nil
 }
 
-func GetInt(k string) int {
+func GetInt(k string) (int, error) {
+	_, ok := AppConfig.Settings[k]
+	if !ok {
+		return 0, notFoundErr(k)
+	}
 
+	return AppConfig.Settings[k].Value.(int), nil
+}
+
+func GetString(k string) (string, error) {
+	_, ok := AppConfig.Settings[k]
+	if !ok {
+		return "", notFoundErr(k)
+	}
+
+	return AppConfig.Settings[k].Value.(string), nil
 }
 
 // GetInterface is a convenience wrapper function to Get
-func GetInterface(k string) interface{} {
+func GetInterface(k string) (interface{}, error) {
 	return Get(k)
 }
 
-*/
+func notFoundErr(k string) error {
+	return errors.New(k + " not found")
+}
