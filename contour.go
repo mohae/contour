@@ -24,6 +24,12 @@ var (
 	EnvLogging string = "logging"
 )
 
+// settingAlias are aliases to settings, each setting is its own alias.
+var settingAlias map[string]string = make(map[string]string)
+
+// commandAlias are aliases to commands, each command is its own alias.
+var commandAlias map[string]string = make(map[string]string)
+
 // configFile holds the contents of the configuration file
 var configFile map[string]interface{} = make(map[string]interface{})
 
@@ -401,6 +407,51 @@ func IsOverrideable(k string) bool {
 	}
 	
 	return true	
+}
+
+
+// AddCommandAlias adds an alias for a command. The first time a command is 
+// added, it's added as an alias of itself too.
+func AddCommandAlias(command, alias string) error {
+	// see if an alias already exists
+	v, ok := commandAlias[alias]
+	if ok {
+		err := errors.New(alias + " is an alias of the command " + v + " cannot make it an alias of " + command)
+		return err
+	}
+
+	// see if the command already has aliases
+	v, ok = commandAlias[command]
+	if !ok {
+		// Add it as an alias of itself first
+		commandAlias[command] = command
+	}
+
+	commandAlias[alias] = command
+
+	return nil
+}
+
+// AddSettingAlias adds an alias for a setting. The first time a setting is
+// added, it's added as an alias of itself too.
+func AddSettingAlias(setting, alias string) error {
+	// see if an alias already exists
+	v, ok := settingAlias[alias]
+	if ok {
+		err := errors.New(alias + " is an alias of the setting " + v + " cannot make it an alias of " + setting)
+		return err
+	}
+
+	// see if the setting already has aliases
+	v, ok = settingAlias[setting]
+	if !ok {
+		// Add it as an alias of itself first
+		settingAlias[setting] = setting
+	}
+
+	settingAlias[alias] = setting
+
+	return nil
 }
 
 // Set
