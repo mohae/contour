@@ -314,6 +314,7 @@ func SetBoolFlag(k, f string, v bool) {
 		}
 
 		// replace current settings with new
+		AppConfig.Settings[k].Type = "bool"
 		AppConfig.Settings[k].Value = v
 		AppConfig.Settings[k].IsFlag = true
 		AppConfig.Settings[k].Code = f
@@ -323,7 +324,7 @@ func SetBoolFlag(k, f string, v bool) {
 	// otherwise add it
 	s := utils.BoolToString(v)
 	os.Setenv(AppConfig.GetCode() + k, s)
-	AppConfig.Settings[k] = &setting{Value: v, Code: f, IsFlag: true}
+	AppConfig.Settings[k] = &setting{Type: "bool", Value: v, Code: f, IsFlag: true}
 }
 
 // SetStringFlag sets the value of a configuration setting that is also a flag.
@@ -337,6 +338,7 @@ func SetStringFlag(k, f string, v string) {
 		}
 
 		// replace current settings with new
+		AppConfig.Settings[k].Type = "string"
 		AppConfig.Settings[k].Value = v
 		AppConfig.Settings[k].IsFlag = true
 		AppConfig.Settings[k].Code = f
@@ -345,7 +347,7 @@ func SetStringFlag(k, f string, v string) {
 	
 	// otherwise add it
 	os.Setenv(AppConfig.GetCode() + k, v)
-	AppConfig.Settings[k] = &setting{Value: v, Code: f, IsFlag: true}
+	AppConfig.Settings[k] = &setting{Type: "string", Value: v, Code: f, IsFlag: true}
 }
 
 // Update updates the passed key with the passed value.
