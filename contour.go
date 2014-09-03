@@ -158,6 +158,38 @@ func isSupportedFormat(s string) bool {
         return false
 }
 
+// SetConfigFromFile populates configFile from the configured config file.
+// The config file entries are then processed, updating their associated
+// settings
+func SetConfigFromFile() error {
+	// ConfigFile should be set and its format type should be known.
+	err := LoadConfigFile()
+	if err != nil {
+		return err
+	}
+
+	// ProcessConfigFile, setting what's appropriate.
+	for k, v := range configFile {
+		// Find the key in the settings
+		_, ok := AppConfig.Settings[k]
+		if !ok {
+			// skip settings that don't already exist
+			continue
+		}
+
+		// Skip if IsIdempotent, IsCore, SourceIsEnv since they aren't
+		// overridable by ConfigFile.
+		if !IsUpdateable(k) {
+			continue
+		}
+
+		// Update the setting with file's
+		Update(k, v) 
+	}
+
+	return nil
+}
+
 // LoadConfigFile() is the entry point for reading the configuration file.
 func LoadConfigFile() error {
 	n := os.Getenv(EnvConfigFilename)
@@ -240,28 +272,138 @@ func SetIdemString(k, v string) {
 }
 
 // SetBoolFlag sets the value of a configuration setting that is also a flag.
-func SetBoolFlag(k, v string, b bool) {
+func SetBoolFlag(k, f string, v bool) {
 	// see if the key exists
 	_, ok := AppConfig.Settings[k]
 	if ok {
-		// see if it can be overridden
+		// see if it can be set
 		if AppConfig.Settings[k].IsIdempotent || AppConfig.Settings[k].SourceIsEnv {
 			return
 		}
 
-		// override it
-		AppConfig.Settings[k].Value = b
+		// replace current settings with new
+		AppConfig.Settings[k].Value = v
 		AppConfig.Settings[k].IsFlag = true
-		AppConfig.Settings[k].Code = v
+		AppConfig.Settings[k].Code = f
 		return
 	}
 	
 	// otherwise add it
-	bs := utils.BoolToString(b)
-	os.Setenv(AppConfig.GetCode() + k, bs)
-	AppConfig.Settings[k] = &setting{Value: b, Code: v, IsFlag: true}
+	s := utils.BoolToString(v)
+	os.Setenv(AppConfig.GetCode() + k, s)
+	AppConfig.Settings[k] = &setting{Value: v, Code: f, IsFlag: true}
 }
 
+// SetStringFlag sets the value of a configuration setting that is also a flag.
+func SetStringFlag(k, f string, v string) {
+	// see if the key exists
+	_, ok := AppConfig.Settings[k]
+	if ok {
+		// see if it can be set
+		if AppConfig.Settings[k].IsIdempotent || AppConfig.Settings[k].SourceIsEnv || AppConfig.Settings[k].IsCore {
+			return
+		}
+
+		// replace current settings with new
+		AppConfig.Settings[k].Value = v
+		AppConfig.Settings[k].IsFlag = true
+		AppConfig.Settings[k].Code = f
+		return
+	}
+	
+	// otherwise add it
+	os.Setenv(AppConfig.GetCode() + k, v)
+	AppConfig.Settings[k] = &setting{Value: v, Code: f, IsFlag: true}
+}
+
+// Update updates the passed key with the passed value.
+func Update(k string, v interface{}) error {
+	if !IsUpdateable(k) {
+		return nil
+	}
+
+	err := os.Setenv(AppConfig.GetCode() + k, v.(string))
+	if err != nil {
+		return err
+	}
+
+	set(k, v)
+
+	return nil
+}	
+
+
+func set(k string, v interface{}) {
+	// Cast according to type for this key
+	switch AppConfig.Settings[k].Type {
+	case "string":
+		AppConfig.Settings[k].Value = v.(string)
+			
+	case "bool":
+		AppConfig.Settings[k].Value = v.(bool)
+
+	case "int", "int8", "int16", "int32", "int64":
+		AppConfig.Settings[k].Value = v.(int)
+
+	default:
+		AppConfig.Settings[k].Value = v
+	}
+}
+
+// IsUpdateable checks to see if the passed setting key is updateable.
+func IsUpdateable(k string) bool {
+	// See if the key exists, if it doesn't already exist, it can't be
+	// updated.
+	_, ok := AppConfig.Settings[k]
+	if !ok {
+		return false
+	}
+
+	// See if there are any settings that prevent it from being updated.
+	if AppConfig.Settings[k].IsIdempotent || AppConfig.Settings[k].SourceIsEnv || AppConfig.Settings[k].IsCore {
+		return false
+	}
+	
+	return true
+}
+
+// Override overrides the setting, if it is overrideable. This is used to
+// override any environment variable that had pre-existing values.
+func Override(k string, v interface{}) error {
+	if !IsOverrideable(k) {
+		return nil
+	}
+	
+	err := os.Setenv(AppConfig.GetCode() + k, v.(string))
+	if err != nil {
+		return err
+	}
+
+	// Set the new value
+	set(k, v)
+
+	return nil
+}
+
+// IsOverrideable() checks to see if the setting can be overridden. Overrides 
+// only come from args and flags. ConfigFile settings must be updated instead.
+func IsOverrideable(k string) bool {
+	// See if the key exists, if it doesn't already exist, it can't be
+	// overridden
+	_, ok := AppConfig.Settings[k]
+	if !ok {
+		return false
+	}
+
+	// See if there are any settings that prevent it from being overridden.
+	if AppConfig.Settings[k].IsIdempotent || AppConfig.Settings[k].IsCore {
+		return false
+	}
+	
+	return true	
+}
+
+// Set
 // resetAppConfig resets the application's configuration struct to empty.
 // This does not affect their respective environment variables
 func resetAppConfig() {
