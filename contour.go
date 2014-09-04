@@ -85,26 +85,19 @@ func (c *Config) SetCode(s string) error {
 
 // setting holds the information for a configuration setting.
 type setting struct {
-	// The current value of the setting
-	Value interface{}
-
 	// Type is the datatype for the setting
 	Type string
+
+	// The current value of the setting
+	Value interface{}
 
 	// Code of the setting
 	Code string
 
-	// IsFlag:  whether or not this is a flag.
-	IsFlag bool
-
-	// IsRO: Read Only, whether or not this value can be overwritten once
-	// set.
-	IsRO bool
-
-	// IsEnv: whether or not the original source of this setting was its
-	// environment variables, vs. flags or config, etc. This is tracked
-	// because it has implications on override behavior.
-	IsEnv bool
+	// Immutable: Once the Value has been set, it cannot be changed. This
+	// allows for registering a setting without a value, so it can be
+	// updated later--becoming immutable in the process.
+	Immutable bool
 
 	// IsCore: whether or not this is considered a core setting. Core 
 	// settings if for things like application name, where you don't want
@@ -112,15 +105,41 @@ type setting struct {
 	// able to overwrite any existing ENV value if contour hasn't already
 	// set it. Once set, IsIdempotent is also true.
 	IsCore bool
+
+	// IsEnv: whether or not the original source of this setting was its
+	// environment variables, vs. flags or config, etc. This is tracked
+	// because it has implications on override behavior.
+	IsEnv bool
+
+	// IsFlag:  whether or not this is a flag.
+	IsFlag bool
 }
 
-// SetConfigFilename set's the configuration file's name. The name is parsed
-// for a valid extension--one that is a supported format--and saves that
-// value too. If it cannot be determined, the extension info is not set.
+// SetConfig goes through the initialized settings and updates the updateable
+// settings if a new, valid value is found. This applies to, in order: Env
+// variables and config files. For any that are not found, or that are 
+// immutable, once set, the original initialization values are used. 
+//
+// The merged configuration settings are then  written to their respective
+// environment variables. At this point, only args, or in application setting
+// changes, can change the non-immutable settings.
+func SetConfig() error {
+	// Goes through all the initialized, non-core settings and sees if
+	// their env variables are already set.
+	getEnvs()
+
+	// Goes through all initialized
+	err := setFromConfigFile()
+	return err
+}
+
+// RegisterConfigFilename set's the configuration file's name. The name is
+// parsed for a valid extension--one that is a supported format--and saves
+// that value too. If it cannot be determined, the extension info is not set.
 // These are considered core values and cannot be changed from command-line
 // and configuration files. (IsCore == true).
-func SetConfigFilename(k, v string) error {
-	fmt.Println("SetConfigFilename", k, v)
+func RegisterConfigFilename(k, v string) error {
+	fmt.Println("RegisterConfigFilename", k, v)
 	if v == "" {
 		return errors.New("A config filename was expected, none received")
 	}
@@ -129,24 +148,22 @@ func SetConfigFilename(k, v string) error {
 		return errors.New("A key for the config filename setting was expected, none received")
 	}
 
-	err  := SetCoreString(k, v)
-	if err != nil {
-		fmt.Println(err.Error())
-		return err
-	}
-
+	RegisterCoreString(k, v)
+	
+	// Register it first. If a valid config format isn't found, an error 
+	// will be returned, so registering it afterwords would mean the
+	// setting would not exist.
+	RegisterImmutableString(EnvConfigFormat, "")
 	f, err := getConfigFormat(v)
 	if err != nil {	
 		fmt.Println(err.Error())
 		return err
 	}
 
-	fmt.Println("\tformat", f)
-	// set the format
-	err = SetROString(EnvConfigFormat, f)
-	if err != nil {	
-		return err
-	}
+	// Now we can update the format, since it wasn't set before, it can be
+	// set now before it becomes read only.
+	SetImmutableString(EnvConfigFormat, f)
+
 
 	return nil
 	
@@ -192,9 +209,9 @@ func isSupportedFormat(s string) bool {
         return false
 }
 
-// SetFromEnv updates the configuration from the environment variable values.
+// getEnvs updates the configuration from the environment variable values.
 // A setting is only updated if it IsUpdateable.
-func SetFromEnv() {
+func getEnvs() {
 	for k, _ := range AppConfig.Settings {
 		// See if k exists as an env variable
 		v := os.Getenv(k)
@@ -202,25 +219,32 @@ func SetFromEnv() {
 			continue
 		}
 
-		// Only core and idempotent are updateable
-		if !CanSetUsingEnv(k) {
+		// Core is not updateable
+		if AppConfig.Settings[k].IsCore {
 			continue
+		}
+
+		// If its readonly, see if its set. If it isn't it can be.
+		if AppConfig.Settings[k].Immutable {
+			if AppConfig.Settings[k].Value != nil {
+				continue
+			}
 		}
 
 		// Gotten this far, set it
 		fmt.Println("SetFromEnv", k, v)
 		AppConfig.Settings[k].Value = v
-		AppConfig.Settings[k].SetFromEnv = true
+		AppConfig.Settings[k].IsEnv = true
 	}
 	
 }
 
-// SetFromConfigFile populates configFile from the configured config file.
+// setFromConfigFile populates configFile from the configured config file.
 // The config file entries are then processed, updating their associated
 // settings. A setting is only updated if it IsUpdateable.
-func SetFromConfigFile() error {
+func setFromConfigFile() error {
 	// ConfigFile should be set and its format type should be known.
-	err := LoadConfigFile()
+	err := loadConfigFile()
 	if err != nil {
 		fmt.Println(err.Error())
 		return err
@@ -236,9 +260,9 @@ func SetFromConfigFile() error {
 			continue
 		}
 
-		// Skip if IsIdempotent, IsCore, SourceIsEnv since they aren't
-		// overridable by ConfigFile.
-		if !IsUpdateable(k) {
+		// Skip if Immutable, IsCore, IsEnv since they aren't 
+		//overridable by ConfigFile.
+		if !CanUpdate(k) {
 			fmt.Println("notupdateable")
 			continue
 		}
@@ -252,8 +276,8 @@ func SetFromConfigFile() error {
 	return nil
 }
 
-// LoadConfigFile() is the entry point for reading the configuration file.
-func LoadConfigFile() error {
+// loadConfigFile() is the entry point for reading the configuration file.
+func loadConfigFile() error {
 	n := os.Getenv(EnvConfigFilename)
 	fmt.Println("LoadConfigFile ", n)
 	if n == "" {
@@ -314,32 +338,9 @@ func MarshalFormatReader(t string, r io.Reader) error {
 	return nil
 }
 
-// SetStringFlag sets the value of a configuration setting that is also a flag.
-func SetStringFlag(k, f string, v string) {
-	// see if the key exists
-	_, ok := AppConfig.Settings[k]
-	if ok {
-		// see if it can be set
-		if AppConfig.Settings[k].IsIdempotent || AppConfig.Settings[k].SetFromEnv || AppConfig.Settings[k].IsCore {
-			return
-		}
-
-		// replace current settings with new
-		AppConfig.Settings[k].Type = "string"
-		AppConfig.Settings[k].Value = v
-		AppConfig.Settings[k].IsFlag = true
-		AppConfig.Settings[k].Code = f
-		return
-	}
-	
-	// otherwise add it
-	os.Setenv(AppConfig.GetCode() + k, v)
-	AppConfig.Settings[k] = &setting{Type: "string", Value: v, Code: f, IsFlag: true}
-}
-
 // Update updates the passed key with the passed value.
 func Update(k string, v interface{}) error {
-	if !IsUpdateable(k) {
+	if !CanUpdate(k) {
 		return nil
 	}
 
@@ -353,7 +354,7 @@ func Update(k string, v interface{}) error {
 	return nil
 }	
 
-
+// TODO WHY?
 func set(k string, v interface{}) {
 	// Cast according to type for this key
 	switch AppConfig.Settings[k].Type {
@@ -371,8 +372,8 @@ func set(k string, v interface{}) {
 	}
 }
 
-// IsUpdateable checks to see if the passed setting key is updateable.
-func IsUpdateable(k string) bool {
+// CanUpdate checks to see if the passed setting key is updateable.
+func CanUpdate(k string) bool {
 	// See if the key exists, if it doesn't already exist, it can't be
 	// updated.
 	_, ok := AppConfig.Settings[k]
@@ -382,7 +383,7 @@ func IsUpdateable(k string) bool {
 	}
 
 	// See if there are any settings that prevent it from being updated.
-	if AppConfig.Settings[k].IsIdempotent || AppConfig.Settings[k].SetFromEnv || AppConfig.Settings[k].IsCore {
+	if AppConfig.Settings[k].Immutable || AppConfig.Settings[k].IsEnv || AppConfig.Settings[k].IsCore {
 		return false
 	}
 	
@@ -392,7 +393,7 @@ func IsUpdateable(k string) bool {
 // Override overrides the setting, if it is overrideable. This is used to
 // override any environment variable that had pre-existing values.
 func Override(k string, v interface{}) error {
-	if !IsOverrideable(k) {
+	if !CanOverride(k) {
 		return nil
 	}
 	
@@ -407,9 +408,9 @@ func Override(k string, v interface{}) error {
 	return nil
 }
 
-// IsOverrideable() checks to see if the setting can be overridden. Overrides 
+// CanOverride() checks to see if the setting can be overridden. Overrides 
 // only come from args and flags. ConfigFile settings must be updated instead.
-func IsOverrideable(k string) bool {
+func CanOverride(k string) bool {
 	// See if the key exists, if it doesn't already exist, it can't be
 	// overridden
 	_, ok := AppConfig.Settings[k]
@@ -418,23 +419,11 @@ func IsOverrideable(k string) bool {
 	}
 
 	// See if there are any settings that prevent it from being overridden.
-	if AppConfig.Settings[k].IsIdempotent || AppConfig.Settings[k].IsCore {
+	if AppConfig.Settings[k].Immutable || AppConfig.Settings[k].IsCore {
 		return false
 	}
 	
 	return true	
-}
-
-// CanSetUsingEnv checks to see if the setting is settable using an env
-// variable.
-func CanSetUsingEnv(k string) bool {
-	// If something is flagged as idempotent, it can't be set be changed.
-	// Same with core settings.
-	if AppConfig.Settings[k].IsIdempotent || AppConfig.Settings[k].IsCore {
-		return false
-	}
-
-	return true
 }
 
 // AddCommandAlias adds an alias for a command. The first time a command is 

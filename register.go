@@ -11,151 +11,175 @@ package contour
 
 // RegisterSetting checks to see if the entry already exists and adds the
 // new setting if it does not.
-func RegisterSetting(k string, v interface{}, Type, Code, string, IsFlag, IsRO, IsEnv, IsCore bool) error {
+func RegisterSetting( Type string, k string, v interface{}, Code string, Immutable, IsCore, IsEnv, IsFlag bool) {
+	var update bool
 	_, ok := AppConfig.Settings[k]
 	if ok {
-		return
+
+		// Core settings can't be re-registered.
+		if AppConfig.Settings[k].IsCore {
+			return
+		}
+	
+		// Read-only settings that have bee set can't be re-registered.
+		if AppConfig.Settings[k].Immutable {
+
+			if AppConfig.Settings[k].Value != nil {
+				return
+			}
+
+			update = true
+			
+		}
+
 	}
 
-	AppConfig.Settings[k] = &setting{Value: v, Type: Type, Code: Code, IsFlag: IsFlag, IsRO: IsRO, IsEnv: IsEnv, IsCore: IsCore}
+	if update {
+		AppConfig.Settings[k].Type = Type
+		AppConfig.Settings[k].Value = v
+		AppConfig.Settings[k].Code = Code
+		AppConfig.Settings[k].Immutable = Immutable
+		AppConfig.Settings[k].IsCore = IsCore
+		AppConfig.Settings[k].IsEnv = IsEnv
+		AppConfig.Settings[k].IsFlag = IsFlag
+		return  
+	}
+
+	AppConfig.Settings[k] = &setting{
+		Type: Type,
+		Value: v,
+		Code: Code,
+		Immutable: Immutable,
+		IsCore: IsCore,
+		IsEnv: IsEnv,
+		IsFlag: IsFlag}
 }
 	
 // RegisterCoreBool adds the information to the AppsConfig struct, but does not
 // save it to its environment variable
 func RegisterCoreBool(k string, v bool) {
-	return RegisterSetting(k, v, "bool", "",false, true, false, true)
+	RegisterSetting("bool", k, v, "", true, true, false, false)
+	return
 }
 
 // RegisterCoreInt adds the information to the AppsConfig struct, but does not
 // save it to its environment variable
 func RegisterCoreInt(k string, v int) {
-	return RegisterSetting(k, v, "int", "", false, true, false, true)
+	RegisterSetting("int", k, v, "", true, true, false, false)
+	return
 }
 
 // RegisterCoreString adds the information to the AppsConfig struct, but does not
 // save it to its environment variable
 func RegisterCoreString(k, v string) {
-	return RegisterSetting(k, v, "string", "", false, true, false, true)
+	RegisterSetting("string", k, v, "", true, true, false, false)
+	return
 }
 
 // RegisterCoreFlagBool adds the information to the AppsConfig struct, but does not
 // save it to its environment variable
 func RegisterCoreFlagBool(k string, v bool, f string) {
-	return RegisterSetting(k, v, "bool", f, true, true, false, true)
+	RegisterSetting("bool", k, v, f, true, true, false, true)
+	return
 }
 
 // RegisterCoreInt adds the information to the AppsConfig struct, but does not
 // save it to its environment variable
 func RegisterCoreFlagInt(k string, v int, f string) {
-	return RegisterSetting(k, v, "int", f, true, true, false, true)
+	RegisterSetting("int", k, v, f, true, true, false, true)
+	return
 }
 
 // RegisterCoreString adds the information to the AppsConfig struct, but does not
 // save it to its environment variable
 func RegisterCoreFlagString(k, v, f string) {
-	return RegisterSetting(k, v, "string", f, true, true, false, true)
+	RegisterSetting("string", k, v, f, true, true, false, true)
+	return
 }
 
 
-// RegisterROBool adds the information to the AppsConfig struct, but does not
+// RegisterImmutableBool adds the information to the AppsConfig struct, but
+// does not save it to its environment variable.
+func RegisterImmutableBool(k string, v bool) {
+	RegisterSetting("bool", k, v, "", true,  false, false, false)
+	return
+}
+
+// RegisterImmutableInt adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func RegisterROBool(k string, v bool) {
-	return RegisterSetting(k, v, "bool", "", false, true, false, false)
+func RegisterImmutableInt(k string, v int) {
+	RegisterSetting("int", k, v, "", true,  false, false, false)
+	return
 }
 
-// RegisterReadOnlyBool is an alias for RegisterROBool
-func RegisterReadOnlyBool(k string, v bool) {
-	return RegisterROBool(k, v)
-}
-
-// RegisterROInt adds the information to the AppsConfig struct, but does not
-// save it to its environment variable.
-func RegisterROInt(k string, v int) {
-	return RegisterSetting(k, v, "int", "", false, true, false, false)
-}
-
-// RegisterReadOnlyInt is an alias for RegisterROInt
-func RegisterReadOnlyInt(k string, v int) {
-	return RegisterROInt(k, v)
-}
 
 // RegisterROString adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func RegisterROString(k, v string) error {
- 	return RegisterSetting(k, v, "string", "", false, true, false, false)
+func RegisterImmutableString(k, v string) {
+ 	RegisterSetting("string", k, v, "", true,  false, false, false)
+	return
 }
 
-// RegisterReadOnlyString is an alias for RegisterROString
-func RegisterReadOnlyString(k, v string) {
-	return RegisterROString(k, v)
-}
-
-// RegisterROFlagBool adds the information to the AppsConfig struct, but does not
+// RegisterImmutableFlagBool adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func RegisterROFlagBool(k string, v bool, f string) {
-	return RegisterSetting(k, v, "bool", f, true, true, false, false)
+func RegisterImmutableFlagBool(k string, v bool, f string) {
+	RegisterSetting("bool", k, v, f, true, false, false, true)
+	return
 }
 
-// RegisterReadOnlyFlagBool is an alias for RegisterROBool
-func RegisterReadOnlyFlagBool(k string, v bool, f string) {
-	return RegisterROFlagBool(k, v, f)
-}
-
-// RegisterROFlagInt adds the information to the AppsConfig struct, but does not
+// RegisterImmutableFlagInt adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func RegisterROFlagInt(k string, v int, f string) {
-	return RegisterSetting(k, v, "int", f, true, true, false, false)
+func RegisterImmutableFlagInt(k string, v int, f string) {
+	RegisterSetting("int", k, v, f, true, false, false, true)
+	return
 }
 
-// RegisterReadOnlyFlagInt is an alias for RegisterROInt
-func RegisterReadOnlyFlagInt(k string, v int, f string) {
-	return RegisterROInt(k, v. f)
-}
-
-// RegisterROFlagString adds the information to the AppsConfig struct, but does not
+// RegisterImmutableFlagString adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func RegisterROFlagString(k, v, f string) error {
- 	return RegisterSetting(k, v, "string", f, true, true, false, false)
-}
-
-// RegisterReadOnlyFlagString is an alias for RegisterROString
-func RegisterReadOnlyFlagString(k, v, f string) {
-	return RegisterROString(k, v, f)
+func RegisterImmutableFlagString(k, v, f string) {
+ 	RegisterSetting("string", k, v, f, true, false, false, true)
+	return
 }
 
 // RegisterBool adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func RegisterBool(k string, v bool) error {
-	return RegisterSetting(k, v, "", true, false, false, false)
+func RegisterBool(k string, v bool) {
+	RegisterSetting("bool", k, v, "", false, false, false, false)
+	return
 }
 
 // RegisterInt adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func RegisterInt(k string, v int) error {
-	return RegisterSetting(k, v, "", true, false, false, false)
+func RegisterInt(k string, v int) {
+	RegisterSetting("int", k, v, "", false, false, false, false)
+	return
 }
 
 // RegisterString adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func RegisterString(k, v string) error {
-	return RegisterSetting(k, v, "", true, false, false, false)
+func RegisterString(k, v string) {
+	RegisterSetting("string", k, v, "", false, false, false, false)
+	return
 }
 
-// RegisterFlagBool adds the information to the AppsConfig struct, but does not
+// RegisterBoolFlag adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func RegisterFlagBool(k string, v bool, f string) error {
-	return RegisterSetting(k, v, "bool", f, true, false, false, false)
+func RegisterBoolFlag(k string, v bool, f string) {
+	RegisterSetting("bool", k, v, f, false, false, false, true)
+	return
 }
 
-// RegisterFlagInt adds the information to the AppsConfig struct, but does not
+// RegisterIntFlag adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func RegisterFlagInt(k string, v int, f string) error {
-	return RegisterSetting(k, v, "int", f, true, false, false, false)
+func RegisterIntFlag(k string, v int, f string) {
+	RegisterSetting("int", k, v, f, false, false, false, true)
+	return
 }
 
-// RegisterFlagString adds the information to the AppsConfig struct, but does not
+// RegisterStringFlag adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func RegisterFlagString(k, v, f string) error {
-	return RegisterSetting(k, v, f, true, false, false, false)
+func RegisterStringFlag(k, v, f string) {
+	RegisterSetting(k, v, "string", f, false, false, false, true)
+	return
 }
 
