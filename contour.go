@@ -128,9 +128,26 @@ func SetConfig() error {
 	// their env variables are already set.
 	getEnvs()
 
-	// Goes through all initialized
-	err := setFromConfigFile()
-	return err
+	// Set all the environment variables. This is the application settings
+	// merged with any already existing environment variable values.
+	err := setEnvs()
+	if err != nil {
+		return err
+	}
+
+	// Load the Config file.
+	err := loadConfigFile()
+	if err != nil {
+		return err
+	}
+	
+	//  Save the config file settings to their env variables, if allowed.
+	err := setEnvFromConfigFile()
+	if err != nil  {
+		return err
+	}
+
+	return nil
 }
 
 // RegisterConfigFilename set's the configuration file's name. The name is
@@ -239,18 +256,12 @@ func getEnvs() {
 	
 }
 
-// setFromConfigFile populates configFile from the configured config file.
-// The config file entries are then processed, updating their associated
-// settings. A setting is only updated if it IsUpdateable.
-func setFromConfigFile() error {
-	// ConfigFile should be set and its format type should be known.
-	err := loadConfigFile()
-	if err != nil {
-		fmt.Println(err.Error())
-		return err
-	}
+// setEnvFromConfigFile goes through all the settings in the configFile and
+// checks to see if the setting is updateable; saving those that are to their
+// environment variable.
+func setEnvFromConfigFile() error {
+	var err error
 
-	// ProcessConfigFile, setting what's appropriate.
 	for k, v := range configFile {
 		// Find the key in the settings
 		_, ok := AppConfig.Settings[k]
@@ -270,7 +281,21 @@ func setFromConfigFile() error {
 		fmt.Println("SetFromConfigFile", k, v)
 
 		// Update the setting with file's
-		Update(k, v) 
+		switch AppConfig.Settings[k].Type {
+		case "string":
+			err = SetString(k,v)	
+		case "bool":
+			err = SetBool(k,v)	
+		case "int":
+			err = Setint(k,v)	
+		default:
+			return errors.New(k + "'s datatype, " + AppConfig.Settings[k].Type + ", is not supported")
+		}
+
+		if err != nil {
+			return err
+		}
+
 	}
 
 	return nil
@@ -278,7 +303,7 @@ func setFromConfigFile() error {
 
 // loadConfigFile() is the entry point for reading the configuration file.
 func loadConfigFile() error {
-	n := os.Getenv(EnvConfigFilename)
+	n := AppConfig.S
 	fmt.Println("LoadConfigFile ", n)
 	if n == "" {
 		// This isn't an error as config file is allowed to not exist
@@ -336,40 +361,6 @@ func MarshalFormatReader(t string, r io.Reader) error {
 
 	}
 	return nil
-}
-
-// Update updates the passed key with the passed value.
-func Update(k string, v interface{}) error {
-	if !CanUpdate(k) {
-		return nil
-	}
-
-	err := os.Setenv(AppConfig.GetCode() + k, v.(string))
-	if err != nil {
-		return err
-	}
-
-	set(k, v)
-
-	return nil
-}	
-
-// TODO WHY?
-func set(k string, v interface{}) {
-	// Cast according to type for this key
-	switch AppConfig.Settings[k].Type {
-	case "string":
-		AppConfig.Settings[k].Value = v.(string)
-			
-	case "bool":
-		AppConfig.Settings[k].Value = v.(bool)
-
-	case "int", "int8", "int16", "int32", "int64":
-		AppConfig.Settings[k].Value = v.(int)
-
-	default:
-		AppConfig.Settings[k].Value = v
-	}
 }
 
 // CanUpdate checks to see if the passed setting key is updateable.

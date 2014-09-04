@@ -32,87 +32,77 @@ func SetSetting(Type, k string, v interface{}, Code string, Immutable, IsCore, I
 	
 
 
-// SetImmutableBool adds the information to the AppsConfig struct, but does not
-// save it to its environment variable.
-func SetImmutableBool(k string, v bool) {
-	SetSetting("bool", k, v, "", true, false, false, false)
-	return 
-}
-
-// SetImmutableInt adds the information to the AppsConfig struct, but does not
-// save it to its environment variable.
-func SetImmutableInt(k string, v int) {
-	SetSetting("int", k, v, "", true, false, false, false)
-	return 
-}
-
-// SetImmutableString adds the information to the AppsConfig struct, but does not
-// save it to its environment variable.
-func SetImmutableString(k, v string) {
- 	SetSetting("string", k, v, "", true, false, false, false)
-	return 
-}
-
-// SetImmutableFlagBool adds the information to the AppsConfig struct, but does not
-// save it to its environment variable.
-func SetImmutableFlagBool(k string, v bool, f string) {
-	SetSetting("bool", k, v, f, true, false, false, true)
-	return 
-}
-
-// SetImmutableFlagInt adds the information to the AppsConfig struct, but does not
-// save it to its environment variable.
-func SetImmutableFlagInt(k string, v int, f string) {
-	SetSetting("int", k, v, f, true, false, false, true)
-	return 
-}
-
-// SetImmutableFlagString adds the information to the AppsConfig struct, but does not
-// save it to its environment variable.
-func SetImmutableFlagString(k, v, f string) {
- 	SetSetting("string", k, v, f, true, false, false, true)
-	return 
-}
-
 // SetBool adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func SetBool(k string, v bool) {
-	SetSetting("bool", k, v, "", false, false, false, false)
-	return 
+func SetBool(k string, v bool) error {
+	err := SetSetting("bool", k, v, "", false, false, false, false)
+	if err != nil {
+		return err
+	}
+
+	s := utils.BoolToString(v)
+	err = os.Setenv(k,s)
+	return err 
 }
 
 // SetInt adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func SetInt(k string, v int) {
-	SetSetting("int", k, v, "", false, false, false, false)
-	return 
+func SetInt(k string, v int) error {
+	err := SetSetting("int", k, v, "", false, false, false, false)
+	if err != nil {
+		return err
+	}
+
+	err = os.Setenv(k,string(v))
+	return err 
 }
 
 // SetString adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func SetString(k, v string) {
-	SetSetting("string", k, v, "", false, false, false, false)
-	return 
+func SetString(k, v string) error {
+	err := SetSetting("string", k, v, "", false, false, false, false)
+	if err != nil {
+		return err
+	}
+
+	err = os.Setenv(k,v)
+	return err 
 }
 
 // SetFlagBool adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func SetFlagBool(k string, v bool, f string) {
-	SetSetting("bool", k, v, f, false, false, false, true)
-	return 
+func SetFlagBool(k string, v bool, f string) error {
+	err := SetSetting("bool", k, v, f, false, false, false, true)
+	if err != nil {
+		return err
+	}
+
+	s := utils.BoolToString(v)
+	err = os.Setenv(k,s)
+	return err 
 }
 
 // SetFlagInt adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func SetFlagInt(k string, v int, f string) {
-	SetSetting("int", k, v, f, false, false, false, true)
-	return 
+func SetFlagInt(k string, v int, f string) error {
+	err := SetSetting("int", k, v, f, false, false, false, true)
+	if err != nil {
+		return err
+	}
+
+	err = os.Setenv(k,string(v))
+	return err 
 }
 
 // SetFlagString adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func SetFlagString(k, v, f string) {
-	SetSetting("string", k, v, f, false, false, false, true)
-	return 
+func SetFlagString(k, v, f string) error {
+	err := SetSetting("string", k, v, f, false, false, false, true)
+	if err != nil {
+		return err
+	}
+
+	err = os.Setenv(k,v)
+	return err 
 }
 
