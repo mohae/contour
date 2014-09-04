@@ -5,13 +5,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	utils "github.com/mohae/utilitybelt"
 )
 
 // Environment Variable constants for common environment variables.
@@ -19,7 +19,7 @@ import (
 // environment variables for consistency across formats.
 var (
 	EnvConfigFilename string = "configfilename"
-	EnvConfigFormat string = "configformat"
+	EnvConfigFormat string = "logconfigformat"
 	EnvLogFilename string = "logfilename"
 	EnvLogging string = "logging"
 )
@@ -85,25 +85,26 @@ func (c *Config) SetCode(s string) error {
 
 // setting holds the information for a configuration setting.
 type setting struct {
-	// Code of the setting
-	Code string
+	// The current value of the setting
+	Value interface{}
 
 	// Type is the datatype for the setting
 	Type string
 
-	// The current value of the setting
-	Value interface{}
+	// Code of the setting
+	Code string
 
 	// IsFlag:  whether or not this is a flag.
 	IsFlag bool
 
-	// IsIdempotent: whether or not this value can be overwritten once set.
-	IsIdempotent bool
+	// IsRO: Read Only, whether or not this value can be overwritten once
+	// set.
+	IsRO bool
 
-	// SourceIsEnv: whether or not the original source of this setting was
-	// its environment variables, vs. flags or config, etc. This is tracked
+	// IsEnv: whether or not the original source of this setting was its
+	// environment variables, vs. flags or config, etc. This is tracked
 	// because it has implications on override behavior.
-	SourceIsEnv bool
+	IsEnv bool
 
 	// IsCore: whether or not this is considered a core setting. Core 
 	// settings if for things like application name, where you don't want
@@ -113,31 +114,54 @@ type setting struct {
 	IsCore bool
 }
 
+// SetConfigFilename set's the configuration file's name. The name is parsed
+// for a valid extension--one that is a supported format--and saves that
+// value too. If it cannot be determined, the extension info is not set.
+// These are considered core values and cannot be changed from command-line
+// and configuration files. (IsCore == true).
+func SetConfigFilename(k, v string) error {
+	fmt.Println("SetConfigFilename", k, v)
+	if v == "" {
+		return errors.New("A config filename was expected, none received")
+	}
+
+	if k == "" {
+		return errors.New("A key for the config filename setting was expected, none received")
+	}
+
+	err  := SetCoreString(k, v)
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
+	}
+
+	f, err := getConfigFormat(v)
+	if err != nil {	
+		fmt.Println(err.Error())
+		return err
+	}
+
+	fmt.Println("\tformat", f)
+	// set the format
+	err = SetROString(EnvConfigFormat, f)
+	if err != nil {	
+		return err
+	}
+
+	return nil
+	
+}
+
 // getConfigFormat gets the configured config filename and returns the format
 // it is in, if it is a supported format; otherwise an error.
-func getConfigFormat() (string, error) {
-	// If the format is already set, we don't override the setting.
-	// A nil is returned because this is not an error.
-	format := os.Getenv(EnvConfigFormat)
-	if format != "" {
-		// See if the set format is supported, if it is, 
-		if isSupportedFormat(format) {
-			return format, nil
-		}
-	}	
-	
-	// Format is either unknown, or not supported; try to resolve it.
-	fname := os.Getenv(EnvConfigFilename)
-	if fname == "" {
-		return "", errors.New("unable to determine config format, filename not set")
-	}
-		
-	parts := strings.Split(fname, ".")
+func getConfigFormat(s string) (string, error) {
+	parts := strings.Split(s, ".")
+	format := ""
 
 	// case 0 has already been evaluated
 	switch len(parts) {
 	case 1: 
-		return "", errors.New("unable to determine config format, the configuration file " + fname + " doesn't have an extension")
+		return "", errors.New("unable to determine config format, the configuration file " + s + " doesn't have an extension")
 	case 2:
 		format = parts[1]
 	default:
@@ -145,7 +169,7 @@ func getConfigFormat() (string, error) {
 		format = parts[len(parts) - 1]
 	}
 
-	if isSupportedFormat(format) {
+	if !isSupportedFormat(format) {
 		return "", errors.New(format + " is an unsupported format for configuration files")
 	}
 
@@ -184,8 +208,9 @@ func SetFromEnv() {
 		}
 
 		// Gotten this far, set it
+		fmt.Println("SetFromEnv", k, v)
 		AppConfig.Settings[k].Value = v
-		AppConfig.Settings[k].SourceIsEnv = true
+		AppConfig.Settings[k].SetFromEnv = true
 	}
 	
 }
@@ -197,6 +222,7 @@ func SetFromConfigFile() error {
 	// ConfigFile should be set and its format type should be known.
 	err := LoadConfigFile()
 	if err != nil {
+		fmt.Println(err.Error())
 		return err
 	}
 
@@ -206,14 +232,18 @@ func SetFromConfigFile() error {
 		_, ok := AppConfig.Settings[k]
 		if !ok {
 			// skip settings that don't already exist
+			fmt.Println("skipped")
 			continue
 		}
 
 		// Skip if IsIdempotent, IsCore, SourceIsEnv since they aren't
 		// overridable by ConfigFile.
 		if !IsUpdateable(k) {
+			fmt.Println("notupdateable")
 			continue
 		}
+
+		fmt.Println("SetFromConfigFile", k, v)
 
 		// Update the setting with file's
 		Update(k, v) 
@@ -225,6 +255,7 @@ func SetFromConfigFile() error {
 // LoadConfigFile() is the entry point for reading the configuration file.
 func LoadConfigFile() error {
 	n := os.Getenv(EnvConfigFilename)
+	fmt.Println("LoadConfigFile ", n)
 	if n == "" {
 		// This isn't an error as config file is allowed to not exist
 		// TODO:
@@ -233,6 +264,7 @@ func LoadConfigFile() error {
 		return nil
 	}
 
+
 	fBytes, err := readConfigFile(n)
 	if err != nil {
 		return err
@@ -240,9 +272,13 @@ func LoadConfigFile() error {
 
 	err = MarshalFormatReader(os.Getenv(EnvConfigFormat),bytes.NewReader(fBytes)) 
 	if err != nil {
+		fmt.Println(err.Error())
 		return err
 	}
 
+	fmt.Println( configFile)
+	fmt.Println(os.Getenv(EnvConfigFormat))
+	fmt.Println("exit LoadConfigFile")
 	return nil
 }
 
@@ -278,62 +314,13 @@ func MarshalFormatReader(t string, r io.Reader) error {
 	return nil
 }
 
-// SetIdempotentString sets the value of idempotent configuration settings
-// that are strings.
-func SetIdempotentString(k, v string) error {
-	// see if the key already exists, if it does, it can't be set
-	_, ok := AppConfig.Settings[k]
-	if ok {
-		return nil
-	}
-
-	// Set the environment variable for it
-	err := os.Setenv(k, v)
-	if err != nil {
-		return err
-	}
-
-	AppConfig.Settings[k] = &setting{Type: "string",  Value: v, IsIdempotent: true}
-
-	return nil
-}
-
-// SetIdemString is a convenience function that wraps SetIdempotentString()
-func SetIdemString(k, v string) {
-	SetIdempotentString(k, v)
-}
-
-// SetBoolFlag sets the value of a configuration setting that is also a flag.
-func SetBoolFlag(k, f string, v bool) {
-	// see if the key exists
-	_, ok := AppConfig.Settings[k]
-	if ok {
-		// see if it can be set
-		if AppConfig.Settings[k].IsIdempotent || AppConfig.Settings[k].SourceIsEnv {
-			return
-		}
-
-		// replace current settings with new
-		AppConfig.Settings[k].Type = "bool"
-		AppConfig.Settings[k].Value = v
-		AppConfig.Settings[k].IsFlag = true
-		AppConfig.Settings[k].Code = f
-		return
-	}
-	
-	// otherwise add it
-	s := utils.BoolToString(v)
-	os.Setenv(AppConfig.GetCode() + k, s)
-	AppConfig.Settings[k] = &setting{Type: "bool", Value: v, Code: f, IsFlag: true}
-}
-
 // SetStringFlag sets the value of a configuration setting that is also a flag.
 func SetStringFlag(k, f string, v string) {
 	// see if the key exists
 	_, ok := AppConfig.Settings[k]
 	if ok {
 		// see if it can be set
-		if AppConfig.Settings[k].IsIdempotent || AppConfig.Settings[k].SourceIsEnv || AppConfig.Settings[k].IsCore {
+		if AppConfig.Settings[k].IsIdempotent || AppConfig.Settings[k].SetFromEnv || AppConfig.Settings[k].IsCore {
 			return
 		}
 
@@ -390,11 +377,12 @@ func IsUpdateable(k string) bool {
 	// updated.
 	_, ok := AppConfig.Settings[k]
 	if !ok {
+		fmt.Println("IsUpdateable evaluates to false")
 		return false
 	}
 
 	// See if there are any settings that prevent it from being updated.
-	if AppConfig.Settings[k].IsIdempotent || AppConfig.Settings[k].SourceIsEnv || AppConfig.Settings[k].IsCore {
+	if AppConfig.Settings[k].IsIdempotent || AppConfig.Settings[k].SetFromEnv || AppConfig.Settings[k].IsCore {
 		return false
 	}
 	
