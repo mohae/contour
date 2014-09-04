@@ -17,6 +17,15 @@ type basic struct {
 	expectedErr string
 }
 
+var testConfig = &Config{Settings:map[string]*setting{
+		"configfilename": &setting{"string", "config_test.json", "", true, true, false, false},
+		"configformat": &setting{"string", "", "", false, true, false, false},
+		"logconfigfilename": &setting{"string", "seelog.xml", "", true, false, false, false},
+		"logging": &setting{"", false, "bool", false, false, false, false},
+		"lower": &setting{"bool", true, "l", false, false, false, true},
+		"unsetimmutable":  &setting{"string", "", "", true, false, false, false},
+	},
+}
 
 var toString = customjson.NewMarshalString()
 
@@ -204,7 +213,7 @@ func TestMarshalFormatReader(t *testing.T) {
 
 			Convey("marshalling it should result in", func() {
 				r := bytes.NewReader(jsonExample)
-				err := MarshalFormatReader("json", r)
+				err := marshalFormatReader("json", r)
 
 				Convey("Should not error", func() {
 					So(err, ShouldBeNil)
@@ -226,7 +235,7 @@ func TestMarshalFormatReader(t *testing.T) {
 
 			Convey("marshalling it should result in", func() {
 				r := bytes.NewReader(tomlExample)
-				err := MarshalFormatReader("toml", r)
+				err := marshalFormatReader("toml", r)
 
 				Convey("Should not error", func() {
 					So(err, ShouldBeNil)
@@ -244,7 +253,38 @@ func TestMarshalFormatReader(t *testing.T) {
 
 }
 
-func TestCanUpdate(
+func TestCanUpdate(t *testing.T) {
+	tests := []struct{
+		name string
+		value string
+		value2 string
+		expected string
+	}{
+		{"update a core setting", "configfilename", "another.file", "false"},
+		{"update an immutable setting with value", "logconfigfilename", "logconfig.xml", "false"},
+		{"update an immutable setting without a value", "unsetimmutable", "json", "true"},
+		{"update a setting", "logging", "true", "true"},
+		{"update a setting that does not exist", "arr", "", "false"},
+	}	
+
+	AppConfig = testConfig
+
+	Convey("Given some CanUpdate tests", t, func() {
+		for _, test := range tests {
+
+			Convey("Given a setting test: " + test.name, func() {
+				res := utils.BoolToString(canUpdate(test.name))
+
+				Convey("Should result in " + test.expected, func() {
+					So(res, ShouldEqual, test.expected)
+				})
+
+			})
+			
+		}
+	})
+
+}
 /*
 // Since SetIdemString wraps SetIdempotentString, it is called instead-2for1!
 func TestSetIdempotentString(t *testing.T) {

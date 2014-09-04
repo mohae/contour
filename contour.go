@@ -19,8 +19,8 @@ import (
 // environment variables for consistency across formats.
 var (
 	EnvConfigFilename string = "configfilename"
-	EnvConfigFormat string = "logconfigformat"
-	EnvLogFilename string = "logfilename"
+	EnvConfigFormat string = "configformat"
+	EnvLogConfigFilename string = "logconfigfilename"
 	EnvLogging string = "logging"
 )
 
@@ -37,7 +37,7 @@ var configFile map[string]interface{} = make(map[string]interface{})
 var AppConfig *Config = &Config{Settings: map[string]*setting{}}
 
 const (
-	SettingNotFoundErr = " setting was not found"
+	settingNotFoundErr = " setting was not found"
 )
 
 // Config is a group of settings and holds all of the application setting
@@ -124,8 +124,6 @@ type setting struct {
 // environment variables. At this point, only args, or in application setting
 // changes, can change the non-immutable settings.
 func SetConfig() error {
-	var tmp string
-
 	// Load any set environment variables into AppConfig. Core and already
 	// set Write Once settings are not updated from env.
 	loadEnvs()
@@ -251,7 +249,7 @@ func loadConfigFile() error {
 		return err
 	}
 
-	err = MarshalFormatReader(AppConfig.Settings[EnvConfigFormat].Value.(string),bytes.NewReader(fBytes)) 
+	err = marshalFormatReader(AppConfig.Settings[EnvConfigFormat].Value.(string),bytes.NewReader(fBytes)) 
 	if err != nil {
 		fmt.Println(err.Error())
 		return err
@@ -273,8 +271,8 @@ func readConfigFile(n string) ([]byte, error) {
 	return cfg, nil
 }
 
-// MarshalFormatReader 
-func MarshalFormatReader(t string, r io.Reader) error {
+// marshalFormatReader 
+func marshalFormatReader(t string, r io.Reader) error {
 	b := new(bytes.Buffer)
 	b.ReadFrom(r)
 
@@ -295,8 +293,8 @@ func MarshalFormatReader(t string, r io.Reader) error {
 	return nil
 }
 
-// CanUpdate checks to see if the passed setting key is updateable.
-func CanUpdate(k string) bool {
+// canUpdate checks to see if the passed setting key is updateable.
+func canUpdate(k string) bool {
 	// See if the key exists, if it doesn't already exist, it can't be
 	// updated.
 	_, ok := AppConfig.Settings[k]
@@ -305,18 +303,28 @@ func CanUpdate(k string) bool {
 		return false
 	}
 
-	// See if there are any settings that prevent it from being updated.
-	if AppConfig.Settings[k].Immutable || AppConfig.Settings[k].IsEnv || AppConfig.Settings[k].IsCore {
+	// See if there are any settings that prevent it from being overridden.
+	// Core and Environment variables are never settable. Core must be set
+	// during registration and Environment variables must be set using
+	// the Override functions.
+	if AppConfig.Settings[k].IsCore || AppConfig.Settings[k].IsEnv {
 		return false
 	}
 	
+	// Immutable variables are only settable if they are not set.
+	// This does not apply to boolean as there is no way to determine if
+	// the value is unset. So bool immutables are only writable when they
+	// are registered.
+	if (AppConfig.Settings[k].Immutable && AppConfig.Settings[k].Value != "") || (AppConfig.Settings[k].Immutable && AppConfig.Settings[k].Type == "bool") {
+		return false
+	}
 	return true
 }
 
 // Override overrides the setting, if it is overrideable. This is used to
 // override any environment variable that had pre-existing values.
 func Override(k string, v interface{}) error {
-	if !CanOverride(k) {
+	if !canOverride(k) {
 		return nil
 	}
 	
@@ -332,9 +340,9 @@ func Override(k string, v interface{}) error {
 	return err
 }
 
-// CanOverride() checks to see if the setting can be overridden. Overrides 
-// only come from args and flags. ConfigFile settings must be updated instead.
-func CanOverride(k string) bool {
+// canOverride() checks to see if the setting can be overridden. Overrides 
+// only come from args and flags. ConfigFile settings must be set instead.
+func canOverride(k string) bool {
 	// See if the key exists, if it doesn't already exist, it can't be
 	// overridden
 	_, ok := AppConfig.Settings[k]
@@ -343,10 +351,18 @@ func CanOverride(k string) bool {
 	}
 
 	// See if there are any settings that prevent it from being overridden.
-	if AppConfig.Settings[k].Immutable || AppConfig.Settings[k].IsCore {
+	if AppConfig.Settings[k].IsCore {
 		return false
 	}
 	
+	// Immutable variables are only settable if they are not set.
+	// This does not apply to boolean as there is no way to determine if
+	// the value is unset. So bool immutables are only writable when they
+	// are registered.
+	if (AppConfig.Settings[k].Immutable && AppConfig.Settings[k].Value != "") || (AppConfig.Settings[k].Immutable && AppConfig.Settings[k].Type == "bool") {
+		return false
+	}
+
 	return true	
 }
 

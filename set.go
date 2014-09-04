@@ -78,7 +78,7 @@ func setEnvFromConfigFile() error {
 
 		// Skip if Immutable, IsCore, IsEnv since they aren't 
 		//overridable by ConfigFile.
-		if !CanUpdate(k) {
+		if !canUpdate(k) {
 			fmt.Println("notupdateable")
 			continue
 		}
