@@ -9,6 +9,52 @@ package contour
 // These should be called at app startup to register all configuration
 // settings that the application uses.
 
+import (
+	"errors"
+	"fmt"
+	"os"
+)
+
+// RegisterConfigFilename set's the configuration file's name. The name is
+// parsed for a valid extension--one that is a supported format--and saves
+// that value too. If it cannot be determined, the extension info is not set.
+// These are considered core values and cannot be changed from command-line
+// and configuration files. (IsCore == true).
+func RegisterConfigFilename(k, v string) error {
+	fmt.Println("RegisterConfigFilename", k, v)
+	if v == "" {
+		return errors.New("A config filename was expected, none received")
+	}
+
+	if k == "" {
+		return errors.New("A key for the config filename setting was expected, none received")
+	}
+
+	RegisterCoreString(k, v)
+	
+	// Register it first. If a valid config format isn't found, an error 
+	// will be returned, so registering it afterwords would mean the
+	// setting would not exist.
+	RegisterImmutableString(EnvConfigFormat, "")
+	format, err := getConfigFormat(v)
+	if err != nil {	
+		fmt.Println(err.Error())
+		return err
+	}
+
+	AppConfig.Settings[EnvConfigFormat].Value = format
+
+	fmt.Println("EnvConfigFormat:\t", os.Getenv(EnvConfigFormat))
+	fmt.Printf("ConfigFormat:\t%v\n", AppConfig.Settings[EnvConfigFormat])
+	// Now we can update the format, since it wasn't set before, it can be
+	// set now before it becomes read only.
+	RegisterImmutableString(EnvConfigFormat, format)
+	fmt.Println("SetEnvConfigFormat:\t", os.Getenv(EnvConfigFormat))
+
+	return nil
+	
+}
+
 // RegisterSetting checks to see if the entry already exists and adds the
 // new setting if it does not.
 func RegisterSetting( Type string, k string, v interface{}, Code string, Immutable, IsCore, IsEnv, IsFlag bool) {

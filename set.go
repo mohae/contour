@@ -10,6 +10,7 @@ package contour
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	
 	utils "github.com/mohae/utilitybelt"
@@ -42,17 +43,72 @@ func SetEnvs() error {
 // the callers responsibility.
 func setEnv(k string, v interface{}) error {
 	var err error
+	fmt.Printf("\tenter setEnv with %v %v\n", k, v)
 
 	// Update the setting with file's
 	switch AppConfig.Settings[k].Type {
-	case "bool", "int", "string":
+	case "int", "string":
 		err = os.Setenv(k,v.(string))		
+	case "bool":
+		s := utils.BoolToString(v.(bool))
+		err = os.Setenv(k, s)
 	default:
 		err = errors.New(k + "'s datatype, " + AppConfig.Settings[k].Type + ", is not supported")
 	}
 
+	fmt.Printf("\tEnv post set: %v, %v", k, os.Getenv(k))
 	return err
 
+}
+
+// setEnvFromConfigFile goes through all the settings in the configFile and
+// checks to see if the setting is updateable; saving those that are to their
+// environment variable.
+func setEnvFromConfigFile() error {
+	var err error
+
+	for k, v := range configFile {
+		// Find the key in the settings
+		_, ok := AppConfig.Settings[k]
+		if !ok {
+			// skip settings that don't already exist
+			fmt.Println("skipped")
+			continue
+		}
+
+		// Skip if Immutable, IsCore, IsEnv since they aren't 
+		//overridable by ConfigFile.
+		if !CanUpdate(k) {
+			fmt.Println("notupdateable")
+			continue
+		}
+
+		fmt.Println("SetFromConfigFile", k, v)
+	
+		err = setEnv(k, v)
+		if err != nil {
+			return err
+		}
+
+		// Update the setting with file's
+		switch AppConfig.Settings[k].Type {
+		case "string":
+			err = SetString(k,v.(string))	
+		case "bool":
+			err = SetBool(k,v.(bool))	
+		case "int":
+			err = SetInt(k,v.(int))	
+		default:
+			return errors.New(k + "'s datatype, " + AppConfig.Settings[k].Type + ", is not supported")
+		}
+
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return nil
 }
 
 // SetSetting
@@ -185,7 +241,11 @@ func SetImmutableString(k, v string) error {
 		return err
 	}
 
+	fmt.Println("SetImmutableString", k, v)
 	err = os.Setenv(k,v)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 	return err 
 }
 

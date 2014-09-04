@@ -124,9 +124,22 @@ type setting struct {
 // environment variables. At this point, only args, or in application setting
 // changes, can change the non-immutable settings.
 func SetConfig() error {
+	var tmp string
+
+	fmt.Printf("\nSet Config: Start\n")
+	tmp = os.Getenv(EnvConfigFormat)
+	fmt.Printf("Format App: %v\tFormat Env:%v\n", AppConfig.Settings[EnvConfigFormat].Value, tmp)
+	fmt.Printf("Set Config: envs set\n")
+
 	// Load any set environment variables into AppConfig. Core and already
 	// set Write Once settings are not updated from env.
 	loadEnvs()
+
+	tmp = os.Getenv(EnvConfigFormat)
+	fmt.Printf("Set Config: envs set\n")
+	fmt.Printf("Format App: %v\tFormat Env:%v\n\n", AppConfig.Settings[EnvConfigFormat].Value, tmp)
+
+
 
 	// Set all the environment variables. This is the application settings
 	// merged with any already existing environment variable values.
@@ -134,6 +147,10 @@ func SetConfig() error {
 	if err != nil {
 		return err
 	}
+	
+	tmp = os.Getenv(EnvConfigFormat)
+	fmt.Printf("Set Config: envs set\n")
+	fmt.Printf("Format App: %v\tFormat Env:%v\n", AppConfig.Settings[EnvConfigFormat].Value, tmp)
 
 	// Load the Config file.
 	err = loadConfigFile()
@@ -141,49 +158,17 @@ func SetConfig() error {
 		return err
 	}
 	
+	fmt.Printf("Set Config: config file loaded\n")
+
 	//  Save the config file settings to their env variables, if allowed.
 	err = setEnvFromConfigFile()
 	if err != nil  {
 		return err
 	}
 
-	return nil
-}
-
-// RegisterConfigFilename set's the configuration file's name. The name is
-// parsed for a valid extension--one that is a supported format--and saves
-// that value too. If it cannot be determined, the extension info is not set.
-// These are considered core values and cannot be changed from command-line
-// and configuration files. (IsCore == true).
-func RegisterConfigFilename(k, v string) error {
-	fmt.Println("RegisterConfigFilename", k, v)
-	if v == "" {
-		return errors.New("A config filename was expected, none received")
-	}
-
-	if k == "" {
-		return errors.New("A key for the config filename setting was expected, none received")
-	}
-
-	RegisterCoreString(k, v)
-	
-	// Register it first. If a valid config format isn't found, an error 
-	// will be returned, so registering it afterwords would mean the
-	// setting would not exist.
-	RegisterImmutableString(EnvConfigFormat, "")
-	f, err := getConfigFormat(v)
-	if err != nil {	
-		fmt.Println(err.Error())
-		return err
-	}
-
-	// Now we can update the format, since it wasn't set before, it can be
-	// set now before it becomes read only.
-	SetImmutableString(EnvConfigFormat, f)
-
+	fmt.Printf("Set Config: Environment variables loaded\n")
 
 	return nil
-	
 }
 
 // getConfigFormat gets the configured config filename and returns the format
@@ -191,7 +176,6 @@ func RegisterConfigFilename(k, v string) error {
 func getConfigFormat(s string) (string, error) {
 	parts := strings.Split(s, ".")
 	format := ""
-
 	// case 0 has already been evaluated
 	switch len(parts) {
 	case 1: 
@@ -207,6 +191,7 @@ func getConfigFormat(s string) (string, error) {
 		return "", errors.New(format + " is an unsupported format for configuration files")
 	}
 
+	fmt.Printf("GetConfigFormat: %v\n", format)
 	return format, nil
 
 }
@@ -256,60 +241,11 @@ func loadEnvs() {
 	
 }
 
-// setEnvFromConfigFile goes through all the settings in the configFile and
-// checks to see if the setting is updateable; saving those that are to their
-// environment variable.
-func setEnvFromConfigFile() error {
-	var err error
 
-	for k, v := range configFile {
-		// Find the key in the settings
-		_, ok := AppConfig.Settings[k]
-		if !ok {
-			// skip settings that don't already exist
-			fmt.Println("skipped")
-			continue
-		}
-
-		// Skip if Immutable, IsCore, IsEnv since they aren't 
-		//overridable by ConfigFile.
-		if !CanUpdate(k) {
-			fmt.Println("notupdateable")
-			continue
-		}
-
-		fmt.Println("SetFromConfigFile", k, v)
-	
-		err = setEnv(k, v)
-		if err != nil {
-			return err
-		}
-
-		// Update the setting with file's
-		switch AppConfig.Settings[k].Type {
-		case "string":
-			err = SetString(k,v.(string))	
-		case "bool":
-			err = SetBool(k,v.(bool))	
-		case "int":
-			err = SetInt(k,v.(int))	
-		default:
-			return errors.New(k + "'s datatype, " + AppConfig.Settings[k].Type + ", is not supported")
-		}
-
-		if err != nil {
-			return err
-		}
-
-	}
-
-	return nil
-}
 
 // loadConfigFile() is the entry point for reading the configuration file.
 func loadConfigFile() error {
 	n := AppConfig.Settings[EnvConfigFilename].Value.(string)
-	fmt.Println("LoadConfigFile ", n)
 	if n == "" {
 		// This isn't an error as config file is allowed to not exist
 		// TODO:
@@ -318,20 +254,23 @@ func loadConfigFile() error {
 		return nil
 	}
 
+	if AppConfig.Settings[EnvConfigFormat].Value == nil {
+		
+	}
 
 	fBytes, err := readConfigFile(n)
 	if err != nil {
 		return err
 	}
 
-	err = MarshalFormatReader(os.Getenv(EnvConfigFormat),bytes.NewReader(fBytes)) 
+	err = MarshalFormatReader(AppConfig.Settings[EnvConfigFormat].Value.(string),bytes.NewReader(fBytes)) 
 	if err != nil {
 		fmt.Println(err.Error())
 		return err
 	}
 
-	fmt.Println( configFile)
-	fmt.Println(os.Getenv(EnvConfigFormat))
+	fmt.Printf("%v\n", AppConfig.Settings[EnvConfigFilename].Value)
+	fmt.Printf("%v\n", AppConfig.Settings[EnvConfigFormat].Value)
 	fmt.Println("exit LoadConfigFile")
 	return nil
 }
