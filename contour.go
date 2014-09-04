@@ -75,7 +75,7 @@ func (c *Config) GetCode() string {
 // set, it will return an error.
 func (c *Config) SetCode(s string) error {
 	if c.code != "" {
-		return errors.New("appCode is already set. AppCode is idempotent. Once set, it cannot be altered")
+		return errors.New("appCode is already set. AppCode is immutable. Once set, it cannot be altered")
 	}
 
 	c.code = s
@@ -103,7 +103,7 @@ type setting struct {
 	// settings if for things like application name, where you don't want
 	// anything else overwriting that value, once set, and you want to be
 	// able to overwrite any existing ENV value if contour hasn't already
-	// set it. Once set, IsIdempotent is also true.
+	// set it. Once set, Immutable is also true.
 	IsCore bool
 
 	// IsEnv: whether or not the original source of this setting was its
@@ -126,20 +126,9 @@ type setting struct {
 func SetConfig() error {
 	var tmp string
 
-	fmt.Printf("\nSet Config: Start\n")
-	tmp = os.Getenv(EnvConfigFormat)
-	fmt.Printf("Format App: %v\tFormat Env:%v\n", AppConfig.Settings[EnvConfigFormat].Value, tmp)
-	fmt.Printf("Set Config: envs set\n")
-
 	// Load any set environment variables into AppConfig. Core and already
 	// set Write Once settings are not updated from env.
 	loadEnvs()
-
-	tmp = os.Getenv(EnvConfigFormat)
-	fmt.Printf("Set Config: envs set\n")
-	fmt.Printf("Format App: %v\tFormat Env:%v\n\n", AppConfig.Settings[EnvConfigFormat].Value, tmp)
-
-
 
 	// Set all the environment variables. This is the application settings
 	// merged with any already existing environment variable values.
@@ -147,10 +136,6 @@ func SetConfig() error {
 	if err != nil {
 		return err
 	}
-	
-	tmp = os.Getenv(EnvConfigFormat)
-	fmt.Printf("Set Config: envs set\n")
-	fmt.Printf("Format App: %v\tFormat Env:%v\n", AppConfig.Settings[EnvConfigFormat].Value, tmp)
 
 	// Load the Config file.
 	err = loadConfigFile()
@@ -158,15 +143,11 @@ func SetConfig() error {
 		return err
 	}
 	
-	fmt.Printf("Set Config: config file loaded\n")
-
 	//  Save the config file settings to their env variables, if allowed.
 	err = setEnvFromConfigFile()
 	if err != nil  {
 		return err
 	}
-
-	fmt.Printf("Set Config: Environment variables loaded\n")
 
 	return nil
 }
@@ -174,12 +155,17 @@ func SetConfig() error {
 // getConfigFormat gets the configured config filename and returns the format
 // it is in, if it is a supported format; otherwise an error.
 func getConfigFormat(s string) (string, error) {
+	if s == "" {
+		return "", errors.New("a config filename was expected, none received")
+	}
+
+
 	parts := strings.Split(s, ".")
 	format := ""
 	// case 0 has already been evaluated
 	switch len(parts) {
 	case 1: 
-		return "", errors.New("unable to determine config format, the configuration file " + s + " doesn't have an extension")
+		return "", errors.New("unable to determine config format, the configuration file, " + strings.TrimSpace(s) + ", doesn't have an extension")
 	case 2:
 		format = parts[1]
 	default:
@@ -254,8 +240,10 @@ func loadConfigFile() error {
 		return nil
 	}
 
+	// This shouldn't happend, but lots of things happen that shouldn't.
+	// It should have been registered already. so if it doesn't exit, err.
 	if AppConfig.Settings[EnvConfigFormat].Value == nil {
-		
+		return errors.New("Unable to load configuration value, its format type was not set")
 	}
 
 	fBytes, err := readConfigFile(n)

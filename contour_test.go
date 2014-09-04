@@ -2,12 +2,21 @@ package contour
 
 import (
 	"bytes"
+	_"os"
 	"testing"
-	"os"
 
 	"github.com/mohae/customjson"
+	utils "github.com/mohae/utilitybelt"
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+type basic struct {
+	name string
+	value string
+	expected string
+	expectedErr string
+}
+
 
 var toString = customjson.NewMarshalString()
 
@@ -77,184 +86,90 @@ var jsonResults = map[string]interface {}{
 	},
 }
 
+func checkTestReturn(test basic, format string, err error) {
+	if err != nil {
+		if test.expectedErr != "" {
+			Convey("Should result in an error", func() {
+				So(err.Error(), ShouldEqual, test.expectedErr)
+			})
+		} else {
+			Convey("Should not error", func() {
+				So(err, ShouldBeNil)
+			})
+		}
+	} else {
+		if test.expectedErr != "" {
+			Convey("Should not result in an error", func() {
+				So(err.Error(), ShouldEqual, test.expectedErr)
+			})
+		} else {
+			Convey("Should result in the file's extenstion", func() {
+				So(format, ShouldEqual, test.expected)
+			})
+		}
+	}
+}
+
 func TestGetConfigFormat(t *testing.T) {
-	Convey("Given a GetconfigFormatTest", t, func() {
+	tests := []basic {
+		{"an empty configfilename", "", "", "a config filename was expected, none received"},
+		{"a configfilename without an extension", "config", "", "unable to determine config format, the configuration file, config, doesn't have an extension"},
+		{"a configfilename with an invalid extension", "config.bmp", "", "bmp is an unsupported format for configuration files"},
+		{"a configfilename with a json extension", "config.json", "json", ""},
+		{"a configfilename with a toml extension", "config.toml", "toml", ""},
+	}
 
-		Convey("Given an empty config format environment variable", func() {
-			os.Setenv(EnvConfigFormat, "")
-			Convey("Given an empty configfilename", func() {
-				os.Setenv(EnvConfigFilename, "")
-				
-				Convey("Getting the config format", func() {
-					_, err := getConfigFormat()
-
-					Convey("Should result in an error", func() {
-						So(err.Error(), ShouldEqual, "unable to determine config format, filename not set")
-					}) 
-
-				})
-
-			})
-
-			Convey("Given a filename without an extension", func() {
-				os.Setenv(EnvConfigFilename, "config")
-				
-				Convey("Getting the config format", func() {
-					_, err := getConfigFormat()
-
-					Convey("Should result in an error", func() {
-						So(err.Error(), ShouldEqual, "unable to determine config format, the configuration file config doesn't have an extension")
-					}) 
-
-				})
-
-			})
-
-			Convey("Given a filename with an invalid format extension", func() {
-				os.Setenv(EnvConfigFormat, "config.bmp")
-				
-				Convey("Getting the config format", func() {
-					_, err := getConfigFormat()
-
-					Convey("Should result in an error", func() {
-						So(err.Error(), ShouldEqual, "unable to determine config format, the configuration file config doesn't have an extension")
-					}) 
-
-				})
-
-			})
-
-			Convey("Given a filename with a json extension", func() {				
-
-				Convey("Getting the config format", func() {
-					os.Setenv(EnvConfigFormat, "json")
-					res, err := getConfigFormat()
-
-					Convey("Should not error", func() {
-						So(err, ShouldBeNil)
-					}) 
-
-					Convey("Should result in getting json as an extension", func() {
-						So(res, ShouldEqual, "json")
-					})
-
-				})
-
-			})
-
-			Convey("Given a filename with a json extension", func() {
-				
-				Convey("Getting the config format", func() {
-					os.Setenv(EnvConfigFormat, "toml")
-					res, err := getConfigFormat()
-
-					Convey("Should not error", func() {
-						So(err, ShouldBeNil)
-					}) 
-
-					Convey("Should result in getting json as an extension", func() {
-						So(res, ShouldEqual, "toml")
-					})
-
-				})
-
+	for _, test := range tests {
+		Convey("Given " + test.name + " Test", t, func() {
+		
+			Convey("Getting the config format", func() {
+				format, err := getConfigFormat(test.value)
+				checkTestReturn(test, format, err)
 			})
 		})
-
-		Convey("Given setting the environment variable with json", func() {
-			os.Setenv(EnvConfigFormat, "json")
-			
-			Convey("Calling getConfigFormat", func() {
-				res, err := getConfigFormat()
-				
-				Convey("Should not error", func() {
-					So(err, ShouldBeNil)
-				})
-
-				Convey("and the format should equal json", func() {
-					So(res, ShouldEqual, "json")
-				})
-
-			})
-
-		})
-
-
-		Convey("Given setting the environment variable with toml", func() {
-			os.Setenv(EnvConfigFormat, "toml")
-			
-			Convey("Calling getConfigFormat", func() {
-				res, err := getConfigFormat()
-				
-				Convey("Should not error", func() {
-					So(err, ShouldBeNil)
-				})
-
-				Convey("and the format should equal toml", func() {
-					So(res, ShouldEqual, "toml")
-				})
-
-			})
-
-		})
-
-		Convey("Given setting the environment variable with an unsupported format", func() {
-			os.Setenv(EnvConfigFormat, "png")
-			
-			Convey("Calling getConfigFormat", func() {
-				_, err := getConfigFormat()
-				
-				Convey("Should error", func() {
-					So(err.Error(), ShouldEqual, "unable to determine config format, the configuration file config doesn't have an extension")
-				})
-
-			})
-
-		})
-
-	})
+	}
 
 }
 
 func TestIsSupportedFormat(t *testing.T) {
-	Convey("Given some supported format tests", t, func() {
+	tests := []basic{
+		{"empty format test", "", "false", ""},
+		{"invalid format test", "bmp", "false", ""},
+		{"json format test", "json", "true", ""},
+		{"toml", "toml", "true", ""},
+	}
+
+	for _, test := range tests {
+		Convey("Given some supported format tests", t, func() {
 		
-		Convey("Checking to see if json is supported", func() {
-			is := isSupportedFormat("json") 
+			Convey(test.name, func() {
+				is := utils.BoolToString(isSupportedFormat(test.value))
 			
-			Convey("Should result in true", func() {
-				So(is, ShouldEqual, true)
+				Convey("Should result in " + test.expected, func() {
+					So(is, ShouldEqual, test.expected)
+				})
 			})
+
 		})
 
-		Convey("Checking to see if toml is supported", func() {
-			is := isSupportedFormat("toml") 
-			
-			Convey("Should result in true", func() {
-				So(is, ShouldEqual, true)
-			})
-		})
-
-		Convey("Checking to see if tnt is supported", func() {
-			is := isSupportedFormat("tnt")  
-			
-			Convey("Should result in false", func() {
-				So(is, ShouldEqual, false)
-			})
-		})
-
-	})	
+	}
 
 }
 
+func TestLoadEnvs(t *testing.T) {
+
+
+}
 
 // Only testing failure for now
 func TestLoadConfigFile(t *testing.T) {
-	Convey("Given an unset config filename", t, func() {
+
+	Convey("Given an empty config filename", t, func() {
+		AppConfig.Settings[EnvConfigFilename] = &setting{Value: ""}
+		AppConfig.Settings[EnvConfigFormat] = &setting{Value: ""}
 
 		Convey("loading the config file", func() {		
-			os.Setenv(EnvConfigFilename, "")
-			err := LoadConfigFile()
+			err := loadConfigFile()
 			
 			Convey("Should not result in an error", func() {
 				So(err, ShouldBeNil)
@@ -265,9 +180,10 @@ func TestLoadConfigFile(t *testing.T) {
 	})
 
 	Convey("Given an invalid config filename", t, func() {
-		os.Setenv(EnvConfigFilename, "holygrail")
+		AppConfig.Settings[EnvConfigFilename] = &setting{Value: "holygrail"}
+		AppConfig.Settings[EnvConfigFormat] = &setting{Value: ""}
 		Convey("loading the config file", func() {		
-			err := LoadConfigFile()
+			err := loadConfigFile()
 			
 			Convey("Should result in an error", func() {
 				So(err.Error(), ShouldEqual, "open holygrail: no such file or directory")
@@ -278,6 +194,7 @@ func TestLoadConfigFile(t *testing.T) {
 	})
 
 }
+
 
 func TestMarshalFormatReader(t *testing.T) {
 
@@ -327,6 +244,8 @@ func TestMarshalFormatReader(t *testing.T) {
 
 }
 
+func TestCanUpdate(
+/*
 // Since SetIdemString wraps SetIdempotentString, it is called instead-2for1!
 func TestSetIdempotentString(t *testing.T) {
 	tests := []struct{
