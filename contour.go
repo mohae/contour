@@ -124,25 +124,25 @@ type setting struct {
 // environment variables. At this point, only args, or in application setting
 // changes, can change the non-immutable settings.
 func SetConfig() error {
-	// Goes through all the initialized, non-core settings and sees if
-	// their env variables are already set.
-	getEnvs()
+	// Load any set environment variables into AppConfig. Core and already
+	// set Write Once settings are not updated from env.
+	loadEnvs()
 
 	// Set all the environment variables. This is the application settings
 	// merged with any already existing environment variable values.
-	err := setEnvs()
+	err := SetEnvs()
 	if err != nil {
 		return err
 	}
 
 	// Load the Config file.
-	err := loadConfigFile()
+	err = loadConfigFile()
 	if err != nil {
 		return err
 	}
 	
 	//  Save the config file settings to their env variables, if allowed.
-	err := setEnvFromConfigFile()
+	err = setEnvFromConfigFile()
 	if err != nil  {
 		return err
 	}
@@ -226,9 +226,9 @@ func isSupportedFormat(s string) bool {
         return false
 }
 
-// getEnvs updates the configuration from the environment variable values.
+// loadEnvs updates the configuration from the environment variable values.
 // A setting is only updated if it IsUpdateable.
-func getEnvs() {
+func loadEnvs() {
 	for k, _ := range AppConfig.Settings {
 		// See if k exists as an env variable
 		v := os.Getenv(k)
@@ -279,15 +279,20 @@ func setEnvFromConfigFile() error {
 		}
 
 		fmt.Println("SetFromConfigFile", k, v)
+	
+		err = setEnv(k, v)
+		if err != nil {
+			return err
+		}
 
 		// Update the setting with file's
 		switch AppConfig.Settings[k].Type {
 		case "string":
-			err = SetString(k,v)	
+			err = SetString(k,v.(string))	
 		case "bool":
-			err = SetBool(k,v)	
+			err = SetBool(k,v.(bool))	
 		case "int":
-			err = Setint(k,v)	
+			err = SetInt(k,v.(int))	
 		default:
 			return errors.New(k + "'s datatype, " + AppConfig.Settings[k].Type + ", is not supported")
 		}
@@ -303,7 +308,7 @@ func setEnvFromConfigFile() error {
 
 // loadConfigFile() is the entry point for reading the configuration file.
 func loadConfigFile() error {
-	n := AppConfig.S
+	n := AppConfig.Settings[EnvConfigFilename].Value.(string)
 	fmt.Println("LoadConfigFile ", n)
 	if n == "" {
 		// This isn't an error as config file is allowed to not exist
@@ -393,10 +398,11 @@ func Override(k string, v interface{}) error {
 		return err
 	}
 
-	// Set the new value
-	set(k, v)
+	// TODO: work out override behavior 
+	//Set the new value
+//	err = setE(k, v)
 
-	return nil
+	return err
 }
 
 // CanOverride() checks to see if the setting can be overridden. Overrides 
