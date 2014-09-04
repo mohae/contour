@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/BurntSushi/toml"
@@ -35,6 +36,55 @@ var configFile map[string]interface{} = make(map[string]interface{})
 
 // config holds the current application configuration
 var AppConfig *Config = &Config{Settings: map[string]*setting{}}
+
+// Define bool arg slice.
+type boolSlice []bool
+
+// Fulfill the flag.Var() interface{}
+func (b *boolSlice)  String() string {
+	return fmt.Sprintf("%b", *b)
+}
+
+func (b *boolSlice) Set(value string) error {
+	tmp, err := strconv.ParseBool(value)
+	if err != nil {
+		return err
+	}
+
+	*b = append(*b, tmp)
+	return nil
+}
+
+// Define int arg slice.
+type intSlice []int
+
+// Fulfill the flag.Var() interface{}
+func (i *intSlice)  String() string {
+	return fmt.Sprintf("%d", *i)
+}
+
+func (i *intSlice) Set(value string) error {
+	temp, err := strconv.Atoi(value)
+	if err != nil {
+		return err
+	} 
+
+	*i = append(*i, temp)
+	return nil
+}
+
+// Define string arg slice.
+type stringSlice []string
+
+// Fulfill the flag.Var() interface{}
+func (s *stringSlice)  String() string {
+	return fmt.Sprintf("%d", *s)
+}
+
+func (s *stringSlice) Set(value string) error {
+	*s = append(*s, value)
+	return nil
+}
 
 const (
 	settingNotFoundErr = " setting was not found"
@@ -321,25 +371,6 @@ func canUpdate(k string) bool {
 	return true
 }
 
-// Override overrides the setting, if it is overrideable. This is used to
-// override any environment variable that had pre-existing values.
-func Override(k string, v interface{}) error {
-	if !canOverride(k) {
-		return nil
-	}
-	
-	err := os.Setenv(AppConfig.GetCode() + k, v.(string))
-	if err != nil {
-		return err
-	}
-
-	// TODO: work out override behavior 
-	//Set the new value
-//	err = setE(k, v)
-
-	return err
-}
-
 // canOverride() checks to see if the setting can be overridden. Overrides 
 // only come from args and flags. ConfigFile settings must be set instead.
 func canOverride(k string) bool {
@@ -457,6 +488,46 @@ func GetString(k string) (string, error) {
 func GetInterface(k string) (interface{}, error) {
 	return Get(k)
 }
+
+// GetBoolFilterNames returns a list of filter names (flags).
+func GetBoolFilterNames() []string {
+	var names []string
+
+	for k, setting := range AppConfig.Settings {
+		if setting.IsFlag && setting.Type == "bool" {
+			names = append(names, k)
+		}
+	}
+	
+	return names
+}	
+
+// GetIntFilterNames returns a list of filter names (flags).
+func GetIntFilterNames() []string {
+	var names []string
+
+	for k, setting := range AppConfig.Settings {
+		if setting.IsFlag && setting.Type == "int" {
+			names = append(names, k)
+		}
+	}
+	
+	return names
+}	
+
+
+// GetStringFilterNames returns a list of filter names (flags).
+func GetStringFilterNames() []string {
+	var names []string
+
+	for k, setting := range AppConfig.Settings {
+		if setting.IsFlag && setting.Type == "string" {
+			names = append(names, k)
+		}
+	}
+	
+	return names
+}	
 
 func notFoundErr(k string) error {
 	return errors.New(k + " not found")
