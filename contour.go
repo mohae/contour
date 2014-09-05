@@ -35,7 +35,7 @@ var commandAlias map[string]string = make(map[string]string)
 var configFile map[string]interface{} = make(map[string]interface{})
 
 // config holds the current application configuration
-var AppConfig *Config = &Config{Settings: map[string]*setting{}}
+var AppConfig *Config = &Config{settings: map[string]*setting{}}
 
 const (
 	settingNotFoundErr = " setting was not found"
@@ -65,7 +65,7 @@ func GetAppConfig() *Config {
 // NewConfig returns a *Config to the caller. Any config created by NewConfig()
 // is independent of the AppConfig
 func NewConfig() *Config {
-	return &Config{Settings: map[string]*setting{}}
+	return &Config{settings: map[string]*setting{}}
 }
 
 // GetAppCode returns the app code for the config. If set, this is used as
@@ -196,7 +196,7 @@ func isSupportedFormat(s string) bool {
 // loadEnvs updates the configuration from the environment variable values.
 // A setting is only updated if it IsUpdateable.
 func loadEnvs() {
-	for k, _ := range AppConfig.Settings {
+	for k, _ := range AppConfig.settings {
 		// See if k exists as an env variable
 		v := os.Getenv(k)
 		if v == "" {
@@ -204,27 +204,27 @@ func loadEnvs() {
 		}
 
 		// Core is not updateable
-		if AppConfig.Settings[k].IsCore {
+		if AppConfig.settings[k].IsCore {
 			continue
 		}
 
 		// If its readonly, see if its set. If it isn't it can be.
-		if AppConfig.Settings[k].Immutable {
-			if AppConfig.Settings[k].Value != nil {
+		if AppConfig.settings[k].Immutable {
+			if AppConfig.settings[k].Value != nil {
 				continue
 			}
 		}
 
 		// Gotten this far, set it
-		AppConfig.Settings[k].Value = v
-		AppConfig.Settings[k].IsEnv = true
+		AppConfig.settings[k].Value = v
+		AppConfig.settings[k].IsEnv = true
 	}
 
 }
 
 // loadConfigFile() is the entry point for reading the configuration file.
 func loadConfigFile() error {
-	n := AppConfig.Settings[EnvConfigFilename].Value.(string)
+	n := AppConfig.settings[EnvConfigFilename].Value.(string)
 	if n == "" {
 		// This isn't an error as config file is allowed to not exist
 		// TODO:
@@ -235,7 +235,7 @@ func loadConfigFile() error {
 
 	// This shouldn't happend, but lots of things happen that shouldn't.
 	// It should have been registered already. so if it doesn't exit, err.
-	if AppConfig.Settings[EnvConfigFormat].Value == nil {
+	if AppConfig.settings[EnvConfigFormat].Value == nil {
 		return errors.New("Unable to load configuration value, its format type was not set")
 	}
 
@@ -244,7 +244,7 @@ func loadConfigFile() error {
 		return err
 	}
 
-	err = marshalFormatReader(AppConfig.Settings[EnvConfigFormat].Value.(string), bytes.NewReader(fBytes))
+	err = marshalFormatReader(AppConfig.settings[EnvConfigFormat].Value.(string), bytes.NewReader(fBytes))
 	if err != nil {
 		return err
 	}
@@ -288,7 +288,7 @@ func marshalFormatReader(t string, r io.Reader) error {
 func canUpdate(k string) bool {
 	// See if the key exists, if it doesn't already exist, it can't be
 	// updated.
-	_, ok := AppConfig.Settings[k]
+	_, ok := AppConfig.settings[k]
 	if !ok {
 		return false
 	}
@@ -297,7 +297,7 @@ func canUpdate(k string) bool {
 	// Core and Environment variables are never settable. Core must be set
 	// during registration and Environment variables must be set using
 	// the Override functions.
-	if AppConfig.Settings[k].IsCore || AppConfig.Settings[k].IsEnv {
+	if AppConfig.settings[k].IsCore || AppConfig.settings[k].IsEnv {
 		return false
 	}
 
@@ -305,7 +305,7 @@ func canUpdate(k string) bool {
 	// This does not apply to boolean as there is no way to determine if
 	// the value is unset. So bool immutables are only writable when they
 	// are registered.
-	if (AppConfig.Settings[k].Immutable && AppConfig.Settings[k].Value != "") || (AppConfig.Settings[k].Immutable && AppConfig.Settings[k].Type == "bool") {
+	if (AppConfig.settings[k].Immutable && AppConfig.settings[k].Value != "") || (AppConfig.settings[k].Immutable && AppConfig.settings[k].Type == "bool") {
 		return false
 	}
 	return true
@@ -316,13 +316,13 @@ func canUpdate(k string) bool {
 func canOverride(k string) bool {
 	// See if the key exists, if it doesn't already exist, it can't be
 	// overridden
-	_, ok := AppConfig.Settings[k]
+	_, ok := AppConfig.settings[k]
 	if !ok {
 		return false
 	}
 
 	// See if there are any settings that prevent it from being overridden.
-	if AppConfig.Settings[k].IsCore {
+	if AppConfig.settings[k].IsCore {
 		return false
 	}
 
@@ -330,7 +330,7 @@ func canOverride(k string) bool {
 	// This does not apply to boolean as there is no way to determine if
 	// the value is unset. So bool immutables are only writable when they
 	// are registered.
-	if (AppConfig.Settings[k].Immutable && AppConfig.Settings[k].Value != "") || (AppConfig.Settings[k].Immutable && AppConfig.Settings[k].Type == "bool") {
+	if (AppConfig.settings[k].Immutable && AppConfig.settings[k].Value != "") || (AppConfig.settings[k].Immutable && AppConfig.settings[k].Type == "bool") {
 		return false
 	}
 
@@ -382,7 +382,7 @@ func AddSettingAlias(setting, alias string) error {
 // resetAppConfig resets the application's configuration struct to empty.
 // This does not affect their respective environment variables
 func resetAppConfig() {
-	AppConfig = &Config{Settings: map[string]*setting{}}
+	AppConfig = &Config{settings: map[string]*setting{}}
 }
 
 // notFoundErr returns a standardized not found error.
@@ -407,8 +407,8 @@ func FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error) {
 	var flags int
 
 	for _, name := range boolFilterNames {
-		if AppConfig.Settings[name].IsFlag {
-			boolFilters[flags] = flagSet.Bool(name, AppConfig.Settings[name].Value.(bool), fmt.Sprintf("filter %s", name))
+		if AppConfig.settings[name].IsFlag {
+			boolFilters[flags] = flagSet.Bool(name, AppConfig.settings[name].Value.(bool), fmt.Sprintf("filter %s", name))
 			bFilterNames[flags] = name
 			flags++
 		}
@@ -423,8 +423,8 @@ func FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error) {
 	flags = 0
 
 	for _, name := range intFilterNames {
-		if AppConfig.Settings[name].IsFlag {
-			intFilters[flags] = flagSet.Int(name, AppConfig.Settings[name].Value.(int), fmt.Sprintf("filter %s", name))
+		if AppConfig.settings[name].IsFlag {
+			intFilters[flags] = flagSet.Int(name, AppConfig.settings[name].Value.(int), fmt.Sprintf("filter %s", name))
 			iFilterNames[flags] = name
 			flags++
 		}
@@ -438,8 +438,8 @@ func FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error) {
 	flags = 0
 
 	for _, name := range stringFilterNames {
-		if AppConfig.Settings[name].IsFlag {
-			stringFilters[flags] = flagSet.String(name, AppConfig.Settings[name].Value.(string), fmt.Sprintf("filter %s", name))
+		if AppConfig.settings[name].IsFlag {
+			stringFilters[flags] = flagSet.String(name, AppConfig.settings[name].Value.(string), fmt.Sprintf("filter %s", name))
 			iFilterNames[flags] = name
 			flags++
 		}
@@ -453,19 +453,19 @@ func FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error) {
 
 	// Process the captured values
 	for i, v := range boolFilters {
-		if v != AppConfig.Settings[bFilterNames[i]].Value {
+		if v != AppConfig.settings[bFilterNames[i]].Value {
 			Override(bFilterNames[i], v)
 		}
 	}
 
 	for i, v := range intFilters {
-		if v != AppConfig.Settings[iFilterNames[i]].Value {
+		if v != AppConfig.settings[iFilterNames[i]].Value {
 			Override(iFilterNames[i], v)
 		}
 	}
 
 	for i, v := range stringFilters {
-		if v != AppConfig.Settings[sFilterNames[i]].Value {
+		if v != AppConfig.settings[sFilterNames[i]].Value {
 			Override(sFilterNames[i], v)
 		}
 	}

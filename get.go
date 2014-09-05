@@ -2,42 +2,42 @@ package contour
 
 // Get returns the setting Value as an interface{}.
 func Get(k string) (interface{}, error) {
-	_, ok := AppConfig.Settings[k]
+	_, ok := AppConfig.settings[k]
 	if !ok {
 		return nil, notFoundErr(k)
 	}
 
-	return AppConfig.Settings[k].Value, nil
+	return AppConfig.settings[k].Value, nil
 }
 
 // GetBool returns the setting Value as a bool.
 func GetBool(k string) (bool, error) {
-	_, ok := AppConfig.Settings[k]
+	_, ok := AppConfig.settings[k]
 	if !ok {
 		return false, notFoundErr(k)
 	}
 
-	return AppConfig.Settings[k].Value.(bool), nil
+	return AppConfig.settings[k].Value.(bool), nil
 }
 
 // GetInt returns the setting Value as an int.
 func GetInt(k string) (int, error) {
-	_, ok := AppConfig.Settings[k]
+	_, ok := AppConfig.settings[k]
 	if !ok {
 		return 0, notFoundErr(k)
 	}
 
-	return AppConfig.Settings[k].Value.(int), nil
+	return AppConfig.settings[k].Value.(int), nil
 }
 
 // GetString returns the setting Value as a string.
 func GetString(k string) (string, error) {
-	_, ok := AppConfig.Settings[k]
+	_, ok := AppConfig.settings[k]
 	if !ok {
 		return "", notFoundErr(k)
 	}
 
-	return AppConfig.Settings[k].Value.(string), nil
+	return AppConfig.settings[k].Value.(string), nil
 }
 
 // GetInterface is a convenience wrapper function to Get
@@ -49,7 +49,7 @@ func GetInterface(k string) (interface{}, error) {
 func GetBoolFilterNames() []string {
 	var names []string
 
-	for k, setting := range AppConfig.Settings {
+	for k, setting := range AppConfig.settings {
 		if setting.IsFlag && setting.Type == "bool" {
 			names = append(names, k)
 		}
@@ -62,7 +62,7 @@ func GetBoolFilterNames() []string {
 func GetIntFilterNames() []string {
 	var names []string
 
-	for k, setting := range AppConfig.Settings {
+	for k, setting := range AppConfig.settings {
 		if setting.IsFlag && setting.Type == "int" {
 			names = append(names, k)
 		}
@@ -75,7 +75,7 @@ func GetIntFilterNames() []string {
 func GetStringFilterNames() []string {
 	var names []string
 
-	for k, setting := range AppConfig.Settings {
+	for k, setting := range AppConfig.settings {
 		if setting.IsFlag && setting.Type == "string" {
 			names = append(names, k)
 		}

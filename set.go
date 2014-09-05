@@ -20,7 +20,7 @@ import (
 func SetEnvs() error {
 	var err error
 	// For each setting
-	for k, setting := range AppConfig.Settings {
+	for k, setting := range AppConfig.settings {
 		switch setting.Type {
 		case "bool":
 			err = os.Setenv(k, strconv.FormatBool(setting.Value.(bool)))
@@ -46,14 +46,14 @@ func setEnv(k string, v interface{}) error {
 	var err error
 
 	// Update the setting with file's
-	switch AppConfig.Settings[k].Type {
+	switch AppConfig.settings[k].Type {
 	case "int", "string":
 		err = os.Setenv(k, v.(string))
 	case "bool":
 		s := strconv.FormatBool(v.(bool))
 		err = os.Setenv(k, s)
 	default:
-		err = errors.New(k + "'s datatype, " + AppConfig.Settings[k].Type + ", is not supported")
+		err = errors.New(k + "'s datatype, " + AppConfig.settings[k].Type + ", is not supported")
 	}
 
 	return err
@@ -67,7 +67,7 @@ func setEnvFromConfigFile() error {
 
 	for k, v := range configFile {
 		// Find the key in the settings
-		_, ok := AppConfig.Settings[k]
+		_, ok := AppConfig.settings[k]
 		if !ok {
 			// skip settings that don't already exist
 			continue
@@ -85,7 +85,7 @@ func setEnvFromConfigFile() error {
 		}
 
 		// Update the setting with file's
-		switch AppConfig.Settings[k].Type {
+		switch AppConfig.settings[k].Type {
 		case "string":
 			err = UpdateString(k, v.(string))
 		case "bool":
@@ -93,7 +93,7 @@ func setEnvFromConfigFile() error {
 		case "int":
 			err = UpdateInt(k, v.(int))
 		default:
-			return errors.New(k + "'s datatype, " + AppConfig.Settings[k].Type + ", is not supported")
+			return errors.New(k + "'s datatype, " + AppConfig.settings[k].Type + ", is not supported")
 		}
 
 		if err != nil {
@@ -108,12 +108,12 @@ func setEnvFromConfigFile() error {
 // SetSetting
 // TODO figure this out
 func SetSetting(Type, k string, v interface{}, Code string, Immutable, IsCore, IsEnv, IsFlag bool) error {
-	_, ok := AppConfig.Settings[k]
+	_, ok := AppConfig.settings[k]
 	if ok {
 		return nil
 	}
 
-	AppConfig.Settings[k] = &setting{
+	AppConfig.settings[k] = &setting{
 		Type:      Type,
 		Value:     v,
 		Code:      Code,

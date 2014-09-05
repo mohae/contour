@@ -22,7 +22,7 @@ func Override(k string, v interface{}) error {
 	// TODO:
 	//	log failure
 	//	return error instead of silently failing?
-	if AppConfig.Settings[k].IsCore || AppConfig.Settings[k].Immutable || !AppConfig.Settings[k].IsFlag {
+	if AppConfig.settings[k].IsCore || AppConfig.settings[k].Immutable || !AppConfig.settings[k].IsFlag {
 		return nil
 	}
 
@@ -30,7 +30,7 @@ func Override(k string, v interface{}) error {
 	var tmp string
 	var err error
 
-	switch AppConfig.Settings[k].Type {
+	switch AppConfig.settings[k].Type {
 	case "string", "int":
 		err = os.Setenv(k, v.(string))
 	case "bool":
@@ -38,14 +38,14 @@ func Override(k string, v interface{}) error {
 		tmp = strconv.FormatBool(*v.(*bool))
 		err = os.Setenv(k, tmp)
 	default:
-		err = fmt.Errorf("Unable to override setting %s: type is unsupported %s", k, AppConfig.Settings[k].Type)
+		err = fmt.Errorf("Unable to override setting %s: type is unsupported %s", k, AppConfig.settings[k].Type)
 	}
 
 	if err != nil {
 		return err
 	}
 
-	AppConfig.Settings[k].Value = v
+	AppConfig.settings[k].Value = v
 
 	return nil
 }
