@@ -217,6 +217,6 @@ func RegisterIntFlag(k string, v int, f string) {
 // RegisterStringFlag adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func RegisterStringFlag(k, v, f string) {
-	RegisterSetting(k, v, "string", f, false, false, false, true)
+	RegisterSetting("string", k, v, f, false, false, false, true)
 	return
 }

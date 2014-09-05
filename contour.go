@@ -437,11 +437,13 @@ func FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error) {
 	stringFilters := make([]*string, len(stringFilterNames))
 	sFilterNames := make([]string, len(stringFilterNames))
 	flags = 0
-
+	fmt.Printf("stringFilters: %s\n", len(stringFilters))
+	fmt.Printf("sFilternames: %s\n", len(sFilterNames))
 	for _, name := range stringFilterNames {
 		if AppConfig.settings[name].IsFlag {
+			fmt.Println(flags)
 			stringFilters[flags] = flagSet.String(name, AppConfig.settings[name].Value.(string), fmt.Sprintf("filter %s", name))
-			iFilterNames[flags] = name
+			sFilterNames[flags] = name
 			flags++
 		}
 	}

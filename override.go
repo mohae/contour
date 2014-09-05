@@ -31,11 +31,16 @@ func Override(k string, v interface{}) error {
 	var err error
 
 	switch AppConfig.settings[k].Type {
-	case "string", "int":
-		err = os.Setenv(k, v.(string))
+	case "string":
+		err = os.Setenv(k, *v.(*string))
+
+	case "int":
+		err = os.Setenv(k, string(*v.(*int)))
+
 	case "bool":
 		tmp = strconv.FormatBool(*v.(*bool))
 		err = os.Setenv(k, tmp)
+
 	default:
 		err = fmt.Errorf("Unable to override setting %s: type is unsupported %s", k, AppConfig.settings[k].Type)
 	}

@@ -22,10 +22,15 @@ func SetEnvs() error {
 	// For each setting
 	for k, setting := range AppConfig.settings {
 		switch setting.Type {
+		case "string":
+			err = os.Setenv(k, setting.Value.(string))
+
 		case "bool":
 			err = os.Setenv(k, strconv.FormatBool(setting.Value.(bool)))
-		case "int", "string":
-			err = os.Setenv(k, setting.Value.(string))
+
+		case "int":
+			err = os.Setenv(k, string(setting.Value.(int)))
+
 		default:
 			err = errors.New(k + "'s datatype, " + setting.Type + ", is not supported")
 		}
