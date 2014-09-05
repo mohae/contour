@@ -13,6 +13,9 @@ import (
 )
 
 func Override(k string, v interface{}) error {
+	if v == nil {
+		return nil
+	}
 	// If it can't be overriden, return it.
 	// This is currently a silent fail.
 	// TODO: 
@@ -30,6 +33,7 @@ func Override(k string, v interface{}) error {
 	case "string", "int":
 		err = os.Setenv(k, v.(string))
 	case "bool":
+		fmt.Printf("%v\t%#V\t%+v\t%T\n", v)
 		tmp = strconv.FormatBool(*v.(*bool))
 		err = os.Setenv(k, tmp)
 	default:

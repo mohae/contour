@@ -3,8 +3,9 @@ package contour
 
 import (
 	"bytes"
-	"encoding/json"
+ 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -531,4 +532,92 @@ func GetStringFilterNames() []string {
 
 func notFoundErr(k string) error {
 	return errors.New(k + " not found")
+}
+
+// FilterArgs takes the passed args and filter's the flags out of them.
+// The populated flags override their settings, according to the override
+// rules. Successful overrides result in the relevant AppConfig setting
+// being updated along with the environment variable.
+//
+// Any args left, after filtering, are returned to the caller.
+func FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error) {
+
+	// Get the flag filters from the config variable information.
+	boolFilterNames := GetBoolFilterNames()
+
+	// Preallocate the worst case scenario.
+	boolFilters := make([]*bool, len(boolFilterNames))
+	bFilterNames := make([]string, len(boolFilterNames))
+	var flags int
+
+
+	for _, name := range boolFilterNames {
+		if AppConfig.Settings[name].IsFlag {
+			boolFilters[flags] = flagSet.Bool(name, AppConfig.Settings[name].Value.(bool), fmt.Sprintf("filter %s", name))
+			bFilterNames[flags] = name
+			flags++
+		}
+	}
+
+	// Get the flag filters from the config variable information.
+	intFilterNames := GetIntFilterNames()
+
+	// Preallocate the worst case scenario.
+	intFilters := make([]*int, len(intFilterNames))
+	iFilterNames := make([]string, len(intFilterNames))
+	flags = 0
+
+	for _, name := range intFilterNames {
+		if AppConfig.Settings[name].IsFlag {
+			intFilters[flags] = flagSet.Int(name, AppConfig.Settings[name].Value.(int), fmt.Sprintf("filter %s", name))
+			iFilterNames[flags] = name
+			flags++
+		}
+	}
+	// Get the flag filters from the config variable information.
+	stringFilterNames := GetStringFilterNames()
+
+	// Preallocate the worst case scenario.
+	stringFilters := make([]*string, len(stringFilterNames))
+	sFilterNames := make([]string, len(stringFilterNames))
+	flags = 0
+
+	for _, name := range stringFilterNames {
+		if AppConfig.Settings[name].IsFlag {
+			stringFilters[flags] = flagSet.String(name, AppConfig.Settings[name].Value.(string), fmt.Sprintf("filter %s", name))
+			iFilterNames[flags] = name
+			flags++
+		}
+	}
+
+
+	// Parse args for flags
+	err := flagSet.Parse(args)
+	if err != nil {
+		return nil, fmt.Errorf("parse of command-line arguments failed: %s", err)
+	}
+
+	// Set the command-flags, where allowed
+//	contour.Override	
+
+	// Process the captured values
+	for i, v := range boolFilters {
+		if v != AppConfig.Settings[bFilterNames[i]].Value {
+			Override(bFilterNames[i], v)
+		}
+	}
+
+	for i, v := range intFilters {
+		if v != AppConfig.Settings[iFilterNames[i]].Value {
+			Override(iFilterNames[i], v)
+		}
+	}
+
+	for i, v := range stringFilters {
+		if v != AppConfig.Settings[sFilterNames[i]].Value {
+			Override(sFilterNames[i], v)
+		}
+	}
+
+	return args, nil
 }
