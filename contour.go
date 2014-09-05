@@ -396,8 +396,9 @@ func notFoundErr(k string) error {
 // being updated along with the environment variable.
 //
 // Any args left, after filtering, are returned to the caller.
+// TODO: refactor this for greater abstraction (as long as it doesn't come
+//	at the cost of reflection)
 func FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error) {
-
 	// Get the flag filters from the config variable information.
 	boolFilterNames := GetBoolFilterNames()
 
@@ -451,6 +452,9 @@ func FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error) {
 		return nil, fmt.Errorf("parse of command-line arguments failed: %s", err)
 	}
 
+	// Get the remaining args
+	cmdArgs := flagSet.Args()
+
 	// Process the captured values
 	for i, v := range boolFilters {
 		if v != AppConfig.settings[bFilterNames[i]].Value {
@@ -470,5 +474,5 @@ func FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error) {
 		}
 	}
 
-	return args, nil
+	return cmdArgs, nil
 }

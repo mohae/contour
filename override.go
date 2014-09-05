@@ -34,7 +34,6 @@ func Override(k string, v interface{}) error {
 	case "string", "int":
 		err = os.Setenv(k, v.(string))
 	case "bool":
-		fmt.Printf("%v\t%#V\t%+v\t%T\n", v)
 		tmp = strconv.FormatBool(*v.(*bool))
 		err = os.Setenv(k, tmp)
 	default:
