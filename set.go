@@ -10,19 +10,19 @@ package contour
 
 import (
 	"errors"
-	"fmt"
 	"os"
-	
-	utils "github.com/mohae/utilitybelt"
+	"strconv"	
 )
 
+// SetEnvs goes through AppConfig and saves all of the settings to their
+// environment variables.
 func SetEnvs() error {
 	var err error
 	// For each setting
 	for k, setting := range AppConfig.Settings {
 		switch setting.Type {
 		case "bool":
-			err = os.Setenv(k, utils.BoolToString(setting.Value.(bool)))
+			err = os.Setenv(k, strconv.FormatBool(setting.Value.(bool)))
 		case "int", "string":
 			err = os.Setenv(k, setting.Value.(string))
 		default:
@@ -43,22 +43,19 @@ func SetEnvs() error {
 // the callers responsibility.
 func setEnv(k string, v interface{}) error {
 	var err error
-	fmt.Printf("\tenter setEnv with %v %v\n", k, v)
 
 	// Update the setting with file's
 	switch AppConfig.Settings[k].Type {
 	case "int", "string":
 		err = os.Setenv(k,v.(string))		
 	case "bool":
-		s := utils.BoolToString(v.(bool))
+		s := strconv.FormatBool(v.(bool))
 		err = os.Setenv(k, s)
 	default:
 		err = errors.New(k + "'s datatype, " + AppConfig.Settings[k].Type + ", is not supported")
 	}
 
-	fmt.Printf("\tEnv post set: %v, %v", k, os.Getenv(k))
 	return err
-
 }
 
 // setEnvFromConfigFile goes through all the settings in the configFile and
@@ -72,19 +69,15 @@ func setEnvFromConfigFile() error {
 		_, ok := AppConfig.Settings[k]
 		if !ok {
 			// skip settings that don't already exist
-			fmt.Println("skipped")
 			continue
 		}
 
 		// Skip if Immutable, IsCore, IsEnv since they aren't 
 		//overridable by ConfigFile.
 		if !canUpdate(k) {
-			fmt.Println("notupdateable")
 			continue
 		}
 
-		fmt.Println("SetFromConfigFile", k, v)
-	
 		err = setEnv(k, v)
 		if err != nil {
 			return err
@@ -93,11 +86,11 @@ func setEnvFromConfigFile() error {
 		// Update the setting with file's
 		switch AppConfig.Settings[k].Type {
 		case "string":
-			err = SetString(k,v.(string))	
+			err = UpdateString(k,v.(string))	
 		case "bool":
-			err = SetBool(k,v.(bool))	
+			err = UpdateBool(k,v.(bool))	
 		case "int":
-			err = SetInt(k,v.(int))	
+			err = UpdateInt(k,v.(int))	
 		default:
 			return errors.New(k + "'s datatype, " + AppConfig.Settings[k].Type + ", is not supported")
 		}
@@ -132,45 +125,6 @@ func SetSetting(Type, k string, v interface{}, Code string, Immutable, IsCore, I
 	return nil
 }
 	
-
-
-// SetBool adds the information to the AppsConfig struct, but does not
-// save it to its environment variable.
-func SetBool(k string, v bool) error {
-	err := SetSetting("bool", k, v, "", false, false, false, false)
-	if err != nil {
-		return err
-	}
-
-	s := utils.BoolToString(v)
-	err = os.Setenv(k,s)
-	return err 
-}
-
-// SetInt adds the information to the AppsConfig struct, but does not
-// save it to its environment variable.
-func SetInt(k string, v int) error {
-	err := SetSetting("int", k, v, "", false, false, false, false)
-	if err != nil {
-		return err
-	}
-
-	err = os.Setenv(k,string(v))
-	return err 
-}
-
-// SetString adds the information to the AppsConfig struct, but does not
-// save it to its environment variable.
-func SetString(k, v string) error {
-	err := SetSetting("string", k, v, "", false, false, false, false)
-	if err != nil {
-		return err
-	}
-
-	err = os.Setenv(k,v)
-	return err 
-}
-
 // SetFlagBool adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func SetFlagBool(k string, v bool, f string) error {
@@ -179,9 +133,8 @@ func SetFlagBool(k string, v bool, f string) error {
 		return err
 	}
 
-	s := utils.BoolToString(v)
-	err = os.Setenv(k,s)
-	return err 
+	s := strconv.FormatBool(v)
+	return os.Setenv(k,s)
 }
 
 // SetFlagInt adds the information to the AppsConfig struct, but does not
@@ -192,8 +145,7 @@ func SetFlagInt(k string, v int, f string) error {
 		return err
 	}
 
-	err = os.Setenv(k,string(v))
-	return err 
+	return os.Setenv(k,string(v))
 }
 
 // SetFlagString adds the information to the AppsConfig struct, but does not
@@ -204,8 +156,7 @@ func SetFlagString(k, v, f string) error {
 		return err
 	}
 
-	err = os.Setenv(k,v)
-	return err 
+	return os.Setenv(k,v)
 }
 
 // SetImmutableBool adds the information to the AppsConfig struct, but does
@@ -216,9 +167,8 @@ func SetImmutableBool(k string, v bool) error {
 		return err
 	}
 
-	s := utils.BoolToString(v)
-	err = os.Setenv(k,s)
-	return err 
+	s := strconv.FormatBool(v)
+	return os.Setenv(k,s)
 }
 
 // SetImmutableInt adds the information to the AppsConfig struct, but does
@@ -229,8 +179,7 @@ func SetImmutableInt(k string, v int) error {
 		return err
 	}
 
-	err = os.Setenv(k,string(v))
-	return err 
+	return os.Setenv(k,string(v))
 }
 
 // SetImmutableString adds the information to the AppsConfig struct, but does
@@ -241,12 +190,5 @@ func SetImmutableString(k, v string) error {
 		return err
 	}
 
-	fmt.Println("SetImmutableString", k, v)
-	err = os.Setenv(k,v)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	return err 
+	return os.Setenv(k,v)
 }
-
-

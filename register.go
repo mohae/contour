@@ -11,8 +11,6 @@ package contour
 
 import (
 	"errors"
-	"fmt"
-	"os"
 )
 
 // RegisterConfigFilename set's the configuration file's name. The name is
@@ -21,7 +19,6 @@ import (
 // These are considered core values and cannot be changed from command-line
 // and configuration files. (IsCore == true).
 func RegisterConfigFilename(k, v string) error {
-	fmt.Println("RegisterConfigFilename", k, v)
 	if v == "" {
 		return errors.New("A config filename was expected, none received")
 	}
@@ -38,21 +35,16 @@ func RegisterConfigFilename(k, v string) error {
 	RegisterImmutableString(EnvConfigFormat, "")
 	format, err := getConfigFormat(v)
 	if err != nil {	
-		fmt.Println(err.Error())
 		return err
 	}
 
 	AppConfig.Settings[EnvConfigFormat].Value = format
 
-	fmt.Println("EnvConfigFormat:\t", os.Getenv(EnvConfigFormat))
-	fmt.Printf("ConfigFormat:\t%v\n", AppConfig.Settings[EnvConfigFormat])
 	// Now we can update the format, since it wasn't set before, it can be
 	// set now before it becomes read only.
 	RegisterImmutableString(EnvConfigFormat, format)
-	fmt.Println("SetEnvConfigFormat:\t", os.Getenv(EnvConfigFormat))
 
-	return nil
-	
+	return nil	
 }
 
 // RegisterSetting checks to see if the entry already exists and adds the
@@ -98,7 +90,8 @@ func RegisterSetting( Type string, k string, v interface{}, Code string, Immutab
 		Immutable: Immutable,
 		IsCore: IsCore,
 		IsEnv: IsEnv,
-		IsFlag: IsFlag}
+		IsFlag: IsFlag,
+	}
 }
 	
 // RegisterCoreBool adds the information to the AppsConfig struct, but does not

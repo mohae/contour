@@ -10,7 +10,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/BurntSushi/toml"
@@ -37,55 +36,6 @@ var configFile map[string]interface{} = make(map[string]interface{})
 
 // config holds the current application configuration
 var AppConfig *Config = &Config{Settings: map[string]*setting{}}
-
-// Define bool arg slice.
-type boolSlice []bool
-
-// Fulfill the flag.Var() interface{}
-func (b *boolSlice)  String() string {
-	return fmt.Sprintf("%b", *b)
-}
-
-func (b *boolSlice) Set(value string) error {
-	tmp, err := strconv.ParseBool(value)
-	if err != nil {
-		return err
-	}
-
-	*b = append(*b, tmp)
-	return nil
-}
-
-// Define int arg slice.
-type intSlice []int
-
-// Fulfill the flag.Var() interface{}
-func (i *intSlice)  String() string {
-	return fmt.Sprintf("%d", *i)
-}
-
-func (i *intSlice) Set(value string) error {
-	temp, err := strconv.Atoi(value)
-	if err != nil {
-		return err
-	} 
-
-	*i = append(*i, temp)
-	return nil
-}
-
-// Define string arg slice.
-type stringSlice []string
-
-// Fulfill the flag.Var() interface{}
-func (s *stringSlice)  String() string {
-	return fmt.Sprintf("%d", *s)
-}
-
-func (s *stringSlice) Set(value string) error {
-	*s = append(*s, value)
-	return nil
-}
 
 const (
 	settingNotFoundErr = " setting was not found"
@@ -118,19 +68,20 @@ func NewConfig() *Config {
 	return &Config{Settings: map[string]*setting{}}
 }
 
-func (c *Config) GetCode() string {
+// GetAppCode returns the app code for the config. If set, this is used as
+// the prefix for environment variables and configuration setting names. 
+func (c *Config) GetAppCode() string {
 	return c.code
 }
 
 // SetAppCode set's the appcode. This can only be done once. If it is already
 // set, it will return an error.
-func (c *Config) SetCode(s string) error {
+func (c *Config) SetAppCode(s string) error {
 	if c.code != "" {
 		return errors.New("appCode is already set. AppCode is immutable. Once set, it cannot be altered")
 	}
 
 	c.code = s
-
 	return nil
 }
 
@@ -193,12 +144,7 @@ func SetConfig() error {
 	}
 	
 	//  Save the config file settings to their env variables, if allowed.
-	err = setEnvFromConfigFile()
-	if err != nil  {
-		return err
-	}
-
-	return nil
+	return  setEnvFromConfigFile()
 }
 
 // getConfigFormat gets the configured config filename and returns the format
@@ -208,15 +154,17 @@ func getConfigFormat(s string) (string, error) {
 		return "", errors.New("a config filename was expected, none received")
 	}
 
-
 	parts := strings.Split(s, ".")
 	format := ""
+
 	// case 0 has already been evaluated
 	switch len(parts) {
 	case 1: 
 		return "", errors.New("unable to determine config format, the configuration file, " + strings.TrimSpace(s) + ", doesn't have an extension")
+
 	case 2:
 		format = parts[1]
+
 	default:
 		// assume its the last part
 		format = parts[len(parts) - 1]
@@ -226,7 +174,6 @@ func getConfigFormat(s string) (string, error) {
 		return "", errors.New(format + " is an unsupported format for configuration files")
 	}
 
-	fmt.Printf("GetConfigFormat: %v\n", format)
 	return format, nil
 
 }
@@ -269,7 +216,6 @@ func loadEnvs() {
 		}
 
 		// Gotten this far, set it
-		fmt.Println("SetFromEnv", k, v)
 		AppConfig.Settings[k].Value = v
 		AppConfig.Settings[k].IsEnv = true
 	}
@@ -302,13 +248,9 @@ func loadConfigFile() error {
 
 	err = marshalFormatReader(AppConfig.Settings[EnvConfigFormat].Value.(string),bytes.NewReader(fBytes)) 
 	if err != nil {
-		fmt.Println(err.Error())
 		return err
 	}
 
-	fmt.Printf("%v\n", AppConfig.Settings[EnvConfigFilename].Value)
-	fmt.Printf("%v\n", AppConfig.Settings[EnvConfigFormat].Value)
-	fmt.Println("exit LoadConfigFile")
 	return nil
 }
 
@@ -350,7 +292,6 @@ func canUpdate(k string) bool {
 	// updated.
 	_, ok := AppConfig.Settings[k]
 	if !ok {
-		fmt.Println("IsUpdateable evaluates to false")
 		return false
 	}
 
@@ -404,8 +345,7 @@ func AddCommandAlias(command, alias string) error {
 	// see if an alias already exists
 	v, ok := commandAlias[alias]
 	if ok {
-		err := errors.New(alias + " is an alias of the command " + v + " cannot make it an alias of " + command)
-		return err
+		return errors.New(alias + " is an alias of the command " + v + " cannot make it an alias of " + command)
 	}
 
 	// see if the command already has aliases
@@ -416,7 +356,6 @@ func AddCommandAlias(command, alias string) error {
 	}
 
 	commandAlias[alias] = command
-
 	return nil
 }
 
@@ -438,7 +377,6 @@ func AddSettingAlias(setting, alias string) error {
 	}
 
 	settingAlias[alias] = setting
-
 	return nil
 }
 
@@ -449,87 +387,7 @@ func resetAppConfig() {
 	AppConfig = &Config{Settings: map[string]*setting{}}
 }
 
-func Get(k string) (interface{}, error) {
-	_, ok := AppConfig.Settings[k]
-	if !ok {
-		return nil, notFoundErr(k)
-	}
-
-	return AppConfig.Settings[k].Value, nil
-}
-
-func GetBool(k string) (bool, error) {
-	_, ok := AppConfig.Settings[k]
-	if !ok {
-		return false, notFoundErr(k)
-	}
-	
-	return AppConfig.Settings[k].Value.(bool), nil
-}
-
-func GetInt(k string) (int, error) {
-	_, ok := AppConfig.Settings[k]
-	if !ok {
-		return 0, notFoundErr(k)
-	}
-
-	return AppConfig.Settings[k].Value.(int), nil
-}
-
-func GetString(k string) (string, error) {
-	_, ok := AppConfig.Settings[k]
-	if !ok {
-		return "", notFoundErr(k)
-	}
-
-	return AppConfig.Settings[k].Value.(string), nil
-}
-
-// GetInterface is a convenience wrapper function to Get
-func GetInterface(k string) (interface{}, error) {
-	return Get(k)
-}
-
-// GetBoolFilterNames returns a list of filter names (flags).
-func GetBoolFilterNames() []string {
-	var names []string
-
-	for k, setting := range AppConfig.Settings {
-		if setting.IsFlag && setting.Type == "bool" {
-			names = append(names, k)
-		}
-	}
-	
-	return names
-}	
-
-// GetIntFilterNames returns a list of filter names (flags).
-func GetIntFilterNames() []string {
-	var names []string
-
-	for k, setting := range AppConfig.Settings {
-		if setting.IsFlag && setting.Type == "int" {
-			names = append(names, k)
-		}
-	}
-	
-	return names
-}	
-
-
-// GetStringFilterNames returns a list of filter names (flags).
-func GetStringFilterNames() []string {
-	var names []string
-
-	for k, setting := range AppConfig.Settings {
-		if setting.IsFlag && setting.Type == "string" {
-			names = append(names, k)
-		}
-	}
-	
-	return names
-}	
-
+// notFoundErr returns a standardized not found error.
 func notFoundErr(k string) error {
 	return errors.New(k + " not found")
 }
@@ -549,7 +407,6 @@ func FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error) {
 	boolFilters := make([]*bool, len(boolFilterNames))
 	bFilterNames := make([]string, len(boolFilterNames))
 	var flags int
-
 
 	for _, name := range boolFilterNames {
 		if AppConfig.Settings[name].IsFlag {
@@ -596,9 +453,6 @@ func FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("parse of command-line arguments failed: %s", err)
 	}
-
-	// Set the command-flags, where allowed
-//	contour.Override	
 
 	// Process the captured values
 	for i, v := range boolFilters {
