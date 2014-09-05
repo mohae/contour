@@ -1,5 +1,5 @@
 // Contains log related stuff.
-package contour 
+package contour
 
 import (
 	"errors"
@@ -42,7 +42,7 @@ func SetLogWriter(writer io.Writer) error {
 }
 
 // FlushLog, call before app shutdown. This is called by realMain(). If a
-// logger other than Seelog is going to be used, use the 
+// logger other than Seelog is going to be used, use the
 func FlushLog() {
 	logger.Flush()
 }

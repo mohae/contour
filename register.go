@@ -1,10 +1,11 @@
 package contour
+
 // Register contains all of contour's Register functions.Calling Register
 // adds, or registers, the settings information to the AppConfig variable.
-// The setting value, if there is one, is not saved to its environment 
+// The setting value, if there is one, is not saved to its environment
 // variable at this point.
 //
-// This allows for 
+// This allows for
 //
 // These should be called at app startup to register all configuration
 // settings that the application uses.
@@ -28,13 +29,13 @@ func RegisterConfigFilename(k, v string) error {
 	}
 
 	RegisterCoreString(k, v)
-	
-	// Register it first. If a valid config format isn't found, an error 
+
+	// Register it first. If a valid config format isn't found, an error
 	// will be returned, so registering it afterwords would mean the
 	// setting would not exist.
 	RegisterImmutableString(EnvConfigFormat, "")
 	format, err := getConfigFormat(v)
-	if err != nil {	
+	if err != nil {
 		return err
 	}
 
@@ -44,12 +45,12 @@ func RegisterConfigFilename(k, v string) error {
 	// set now before it becomes read only.
 	RegisterImmutableString(EnvConfigFormat, format)
 
-	return nil	
+	return nil
 }
 
 // RegisterSetting checks to see if the entry already exists and adds the
 // new setting if it does not.
-func RegisterSetting( Type string, k string, v interface{}, Code string, Immutable, IsCore, IsEnv, IsFlag bool) {
+func RegisterSetting(Type string, k string, v interface{}, Code string, Immutable, IsCore, IsEnv, IsFlag bool) {
 	var update bool
 	_, ok := AppConfig.Settings[k]
 	if ok {
@@ -58,7 +59,7 @@ func RegisterSetting( Type string, k string, v interface{}, Code string, Immutab
 		if AppConfig.Settings[k].IsCore {
 			return
 		}
-	
+
 		// Read-only settings that have bee set can't be re-registered.
 		if AppConfig.Settings[k].Immutable {
 
@@ -67,7 +68,7 @@ func RegisterSetting( Type string, k string, v interface{}, Code string, Immutab
 			}
 
 			update = true
-			
+
 		}
 
 	}
@@ -80,20 +81,20 @@ func RegisterSetting( Type string, k string, v interface{}, Code string, Immutab
 		AppConfig.Settings[k].IsCore = IsCore
 		AppConfig.Settings[k].IsEnv = IsEnv
 		AppConfig.Settings[k].IsFlag = IsFlag
-		return  
+		return
 	}
 
 	AppConfig.Settings[k] = &setting{
-		Type: Type,
-		Value: v,
-		Code: Code,
+		Type:      Type,
+		Value:     v,
+		Code:      Code,
 		Immutable: Immutable,
-		IsCore: IsCore,
-		IsEnv: IsEnv,
-		IsFlag: IsFlag,
+		IsCore:    IsCore,
+		IsEnv:     IsEnv,
+		IsFlag:    IsFlag,
 	}
 }
-	
+
 // RegisterCoreBool adds the information to the AppsConfig struct, but does not
 // save it to its environment variable
 func RegisterCoreBool(k string, v bool) {
@@ -136,26 +137,24 @@ func RegisterCoreFlagString(k, v, f string) {
 	return
 }
 
-
 // RegisterImmutableBool adds the information to the AppsConfig struct, but
 // does not save it to its environment variable.
 func RegisterImmutableBool(k string, v bool) {
-	RegisterSetting("bool", k, v, "", true,  false, false, false)
+	RegisterSetting("bool", k, v, "", true, false, false, false)
 	return
 }
 
 // RegisterImmutableInt adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func RegisterImmutableInt(k string, v int) {
-	RegisterSetting("int", k, v, "", true,  false, false, false)
+	RegisterSetting("int", k, v, "", true, false, false, false)
 	return
 }
-
 
 // RegisterROString adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func RegisterImmutableString(k, v string) {
- 	RegisterSetting("string", k, v, "", true,  false, false, false)
+	RegisterSetting("string", k, v, "", true, false, false, false)
 	return
 }
 
@@ -176,7 +175,7 @@ func RegisterImmutableFlagInt(k string, v int, f string) {
 // RegisterImmutableFlagString adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func RegisterImmutableFlagString(k, v, f string) {
- 	RegisterSetting("string", k, v, f, true, false, false, true)
+	RegisterSetting("string", k, v, f, true, false, false, true)
 	return
 }
 
@@ -221,4 +220,3 @@ func RegisterStringFlag(k, v, f string) {
 	RegisterSetting(k, v, "string", f, false, false, false, true)
 	return
 }
-

@@ -3,7 +3,7 @@ package contour
 
 import (
 	"bytes"
- 	"encoding/json"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -19,10 +19,10 @@ import (
 // Or you can supply your own values. Contour automatically downcases
 // environment variables for consistency across formats.
 var (
-	EnvConfigFilename string = "configfilename"
-	EnvConfigFormat string = "configformat"
+	EnvConfigFilename    string = "configfilename"
+	EnvConfigFormat      string = "configformat"
 	EnvLogConfigFilename string = "logconfigfilename"
-	EnvLogging string = "logging"
+	EnvLogging           string = "logging"
 )
 
 // settingAlias are aliases to settings, each setting is its own alias.
@@ -43,17 +43,17 @@ const (
 
 // Config is a group of settings and holds all of the application setting
 // information. Even though contour automatically uses environment variables,
-// unless its told to ignore them, it still needs to maintain state 
+// unless its told to ignore them, it still needs to maintain state
 // information about each setting so it knows how to handle attempst to update.
-// TODO: 
+// TODO:
 //	* support ignoring environment variables
 //
 type Config struct {
 
 	// code is the shortcode for this configuration. It is mostly used to
 	// prefix environment variables, when used.
-	code 	string
-	Settings 	map[string]*setting
+	code     string
+	settings map[string]*setting
 }
 
 // GetAppConfig returns the AppConfig to the caller. Any contour function
@@ -69,7 +69,7 @@ func NewConfig() *Config {
 }
 
 // GetAppCode returns the app code for the config. If set, this is used as
-// the prefix for environment variables and configuration setting names. 
+// the prefix for environment variables and configuration setting names.
 func (c *Config) GetAppCode() string {
 	return c.code
 }
@@ -101,7 +101,7 @@ type setting struct {
 	// updated later--becoming immutable in the process.
 	Immutable bool
 
-	// IsCore: whether or not this is considered a core setting. Core 
+	// IsCore: whether or not this is considered a core setting. Core
 	// settings if for things like application name, where you don't want
 	// anything else overwriting that value, once set, and you want to be
 	// able to overwrite any existing ENV value if contour hasn't already
@@ -119,8 +119,8 @@ type setting struct {
 
 // SetConfig goes through the initialized settings and updates the updateable
 // settings if a new, valid value is found. This applies to, in order: Env
-// variables and config files. For any that are not found, or that are 
-// immutable, once set, the original initialization values are used. 
+// variables and config files. For any that are not found, or that are
+// immutable, once set, the original initialization values are used.
 //
 // The merged configuration settings are then  written to their respective
 // environment variables. At this point, only args, or in application setting
@@ -142,9 +142,9 @@ func SetConfig() error {
 	if err != nil {
 		return err
 	}
-	
+
 	//  Save the config file settings to their env variables, if allowed.
-	return  setEnvFromConfigFile()
+	return setEnvFromConfigFile()
 }
 
 // getConfigFormat gets the configured config filename and returns the format
@@ -159,7 +159,7 @@ func getConfigFormat(s string) (string, error) {
 
 	// case 0 has already been evaluated
 	switch len(parts) {
-	case 1: 
+	case 1:
 		return "", errors.New("unable to determine config format, the configuration file, " + strings.TrimSpace(s) + ", doesn't have an extension")
 
 	case 2:
@@ -167,7 +167,7 @@ func getConfigFormat(s string) (string, error) {
 
 	default:
 		// assume its the last part
-		format = parts[len(parts) - 1]
+		format = parts[len(parts)-1]
 	}
 
 	if !isSupportedFormat(format) {
@@ -181,16 +181,16 @@ func getConfigFormat(s string) (string, error) {
 // isSupportedFormat checks to see if the passed string represents a supported
 // config format.
 func isSupportedFormat(s string) bool {
-        switch s {
-        case "json":
-                return true
+	switch s {
+	case "json":
+		return true
 	case "toml":
-                return true
-        default:
-                return  false
-        }
+		return true
+	default:
+		return false
+	}
 
-        return false
+	return false
 }
 
 // loadEnvs updates the configuration from the environment variable values.
@@ -219,10 +219,8 @@ func loadEnvs() {
 		AppConfig.Settings[k].Value = v
 		AppConfig.Settings[k].IsEnv = true
 	}
-	
+
 }
-
-
 
 // loadConfigFile() is the entry point for reading the configuration file.
 func loadConfigFile() error {
@@ -246,7 +244,7 @@ func loadConfigFile() error {
 		return err
 	}
 
-	err = marshalFormatReader(AppConfig.Settings[EnvConfigFormat].Value.(string),bytes.NewReader(fBytes)) 
+	err = marshalFormatReader(AppConfig.Settings[EnvConfigFormat].Value.(string), bytes.NewReader(fBytes))
 	if err != nil {
 		return err
 	}
@@ -264,12 +262,12 @@ func readConfigFile(n string) ([]byte, error) {
 	return cfg, nil
 }
 
-// marshalFormatReader 
+// marshalFormatReader
 func marshalFormatReader(t string, r io.Reader) error {
 	b := new(bytes.Buffer)
 	b.ReadFrom(r)
 
-	switch t{
+	switch t {
 	case "json":
 		err := json.Unmarshal(b.Bytes(), &configFile)
 		if err != nil {
@@ -302,7 +300,7 @@ func canUpdate(k string) bool {
 	if AppConfig.Settings[k].IsCore || AppConfig.Settings[k].IsEnv {
 		return false
 	}
-	
+
 	// Immutable variables are only settable if they are not set.
 	// This does not apply to boolean as there is no way to determine if
 	// the value is unset. So bool immutables are only writable when they
@@ -313,7 +311,7 @@ func canUpdate(k string) bool {
 	return true
 }
 
-// canOverride() checks to see if the setting can be overridden. Overrides 
+// canOverride() checks to see if the setting can be overridden. Overrides
 // only come from args and flags. ConfigFile settings must be set instead.
 func canOverride(k string) bool {
 	// See if the key exists, if it doesn't already exist, it can't be
@@ -327,7 +325,7 @@ func canOverride(k string) bool {
 	if AppConfig.Settings[k].IsCore {
 		return false
 	}
-	
+
 	// Immutable variables are only settable if they are not set.
 	// This does not apply to boolean as there is no way to determine if
 	// the value is unset. So bool immutables are only writable when they
@@ -336,10 +334,10 @@ func canOverride(k string) bool {
 		return false
 	}
 
-	return true	
+	return true
 }
 
-// AddCommandAlias adds an alias for a command. The first time a command is 
+// AddCommandAlias adds an alias for a command. The first time a command is
 // added, it's added as an alias of itself too.
 func AddCommandAlias(command, alias string) error {
 	// see if an alias already exists
@@ -446,7 +444,6 @@ func FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error) {
 			flags++
 		}
 	}
-
 
 	// Parse args for flags
 	err := flagSet.Parse(args)

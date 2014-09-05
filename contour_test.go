@@ -2,7 +2,7 @@ package contour
 
 import (
 	"bytes"
-	_"os"
+	_ "os"
 	"testing"
 
 	"github.com/mohae/customjson"
@@ -11,20 +11,20 @@ import (
 )
 
 type basic struct {
-	name string
-	value string
-	expected string
+	name        string
+	value       string
+	expected    string
 	expectedErr string
 }
 
-var testConfig = &Config{Settings:map[string]*setting{
-		"configfilename": &setting{"string", "config_test.json", "", true, true, false, false},
-		"configformat": &setting{"string", "", "", false, true, false, false},
-		"logconfigfilename": &setting{"string", "seelog.xml", "", true, false, false, false},
-		"logging": &setting{"", false, "bool", false, false, false, false},
-		"lower": &setting{"bool", true, "l", false, false, false, true},
-		"unsetimmutable":  &setting{"string", "", "", true, false, false, false},
-	},
+var testConfig = &Config{Settings: map[string]*setting{
+	"configfilename":    &setting{"string", "config_test.json", "", true, true, false, false},
+	"configformat":      &setting{"string", "", "", false, true, false, false},
+	"logconfigfilename": &setting{"string", "seelog.xml", "", true, false, false, false},
+	"logging":           &setting{"", false, "bool", false, false, false, false},
+	"lower":             &setting{"bool", true, "l", false, false, false, true},
+	"unsetimmutable":    &setting{"string", "", "", true, false, false, false},
+},
 }
 
 var toString = customjson.NewMarshalString()
@@ -67,31 +67,31 @@ var jsonExample = []byte(`
 }
 `)
 
-var tomlResults = map[string]interface {}{
-	"appVar1":true,
-  	"appVar2":false,
-	"appVar3":42,
-	"appVar4":"zip",
-	"appVar5":[]string{"less","sass","scss"},
-	"logging":map[string]interface{}{
-		"Logging":true,
-		"LogConfig":"test/test.toml",
-		"LogFileLevel":"debug",
-		"LogStdoutLevel":"error",
+var tomlResults = map[string]interface{}{
+	"appVar1": true,
+	"appVar2": false,
+	"appVar3": 42,
+	"appVar4": "zip",
+	"appVar5": []string{"less", "sass", "scss"},
+	"logging": map[string]interface{}{
+		"Logging":        true,
+		"LogConfig":      "test/test.toml",
+		"LogFileLevel":   "debug",
+		"LogStdoutLevel": "error",
 	},
 }
 
-var jsonResults = map[string]interface {}{
-	"appVar1":true,
-  	"appVar2":false,
-	"appVar3":42,
-	"appVar4":"zip",
-	"appVar5":[]string{"less","sass","scss"},
-	"logging":map[string]interface{}{
-		"logging":true,
-		"logconfig":"test/test.toml",
-		"logfilelevel":"debug",
-		"logstdoutlevel":"error",
+var jsonResults = map[string]interface{}{
+	"appVar1": true,
+	"appVar2": false,
+	"appVar3": 42,
+	"appVar4": "zip",
+	"appVar5": []string{"less", "sass", "scss"},
+	"logging": map[string]interface{}{
+		"logging":        true,
+		"logconfig":      "test/test.toml",
+		"logfilelevel":   "debug",
+		"logstdoutlevel": "error",
 	},
 }
 
@@ -120,7 +120,7 @@ func checkTestReturn(test basic, format string, err error) {
 }
 
 func TestGetConfigFormat(t *testing.T) {
-	tests := []basic {
+	tests := []basic{
 		{"an empty configfilename", "", "", "a config filename was expected, none received"},
 		{"a configfilename without an extension", "config", "", "unable to determine config format, the configuration file, config, doesn't have an extension"},
 		{"a configfilename with an invalid extension", "config.bmp", "", "bmp is an unsupported format for configuration files"},
@@ -129,8 +129,8 @@ func TestGetConfigFormat(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		Convey("Given " + test.name + " Test", t, func() {
-		
+		Convey("Given "+test.name+" Test", t, func() {
+
 			Convey("Getting the config format", func() {
 				format, err := getConfigFormat(test.value)
 				checkTestReturn(test, format, err)
@@ -150,11 +150,11 @@ func TestIsSupportedFormat(t *testing.T) {
 
 	for _, test := range tests {
 		Convey("Given some supported format tests", t, func() {
-		
+
 			Convey(test.name, func() {
 				is := utils.BoolToString(isSupportedFormat(test.value))
-			
-				Convey("Should result in " + test.expected, func() {
+
+				Convey("Should result in "+test.expected, func() {
 					So(is, ShouldEqual, test.expected)
 				})
 			})
@@ -167,7 +167,6 @@ func TestIsSupportedFormat(t *testing.T) {
 
 func TestLoadEnvs(t *testing.T) {
 
-
 }
 
 // Only testing failure for now
@@ -177,13 +176,13 @@ func TestLoadConfigFile(t *testing.T) {
 		AppConfig.Settings[EnvConfigFilename] = &setting{Value: ""}
 		AppConfig.Settings[EnvConfigFormat] = &setting{Value: ""}
 
-		Convey("loading the config file", func() {		
+		Convey("loading the config file", func() {
 			err := loadConfigFile()
-			
+
 			Convey("Should not result in an error", func() {
 				So(err, ShouldBeNil)
 			})
-		
+
 		})
 
 	})
@@ -191,19 +190,18 @@ func TestLoadConfigFile(t *testing.T) {
 	Convey("Given an invalid config filename", t, func() {
 		AppConfig.Settings[EnvConfigFilename] = &setting{Value: "holygrail"}
 		AppConfig.Settings[EnvConfigFormat] = &setting{Value: ""}
-		Convey("loading the config file", func() {		
+		Convey("loading the config file", func() {
 			err := loadConfigFile()
-			
+
 			Convey("Should result in an error", func() {
 				So(err.Error(), ShouldEqual, "open holygrail: no such file or directory")
 			})
-		
+
 		})
 
 	})
 
 }
-
 
 func TestMarshalFormatReader(t *testing.T) {
 
@@ -254,10 +252,10 @@ func TestMarshalFormatReader(t *testing.T) {
 }
 
 func TestCanUpdate(t *testing.T) {
-	tests := []struct{
-		name string
-		value string
-		value2 string
+	tests := []struct {
+		name     string
+		value    string
+		value2   string
 		expected string
 	}{
 		{"update a core setting", "configfilename", "another.file", "false"},
@@ -265,26 +263,27 @@ func TestCanUpdate(t *testing.T) {
 		{"update an immutable setting without a value", "unsetimmutable", "json", "true"},
 		{"update a setting", "logging", "true", "true"},
 		{"update a setting that does not exist", "arr", "", "false"},
-	}	
+	}
 
 	AppConfig = testConfig
 
 	Convey("Given some CanUpdate tests", t, func() {
 		for _, test := range tests {
 
-			Convey("Given a setting test: " + test.name, func() {
+			Convey("Given a setting test: "+test.name, func() {
 				res := utils.BoolToString(canUpdate(test.name))
 
-				Convey("Should result in " + test.expected, func() {
+				Convey("Should result in "+test.expected, func() {
 					So(res, ShouldEqual, test.expected)
 				})
 
 			})
-			
+
 		}
 	})
 
 }
+
 /*
 // Since SetIdemString wraps SetIdempotentString, it is called instead-2for1!
 func TestSetIdempotentString(t *testing.T) {
@@ -324,7 +323,7 @@ func TestSetIdempotentString(t *testing.T) {
 				Convey("and the AppConfig settings for it", func() {
 					So(AppConfig.Settings[test.key], ShouldResemble, test.expected)
 				})
-				
+
 			})
 
 		}
@@ -353,7 +352,7 @@ func TestSetBoolFlag(t *testing.T) {
 
 		Convey("Setting a bool flag", t, func() {
 			SetBoolFlag(test.key, test.value, test.b)
-		
+
 			Convey("Should result in the setting be set", func() {
 				So(AppConfig.Settings[test.key], ShouldResemble, test.expected)
 			})

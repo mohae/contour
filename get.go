@@ -1,6 +1,5 @@
 package contour
 
-
 // Get returns the setting Value as an interface{}.
 func Get(k string) (interface{}, error) {
 	_, ok := AppConfig.Settings[k]
@@ -17,7 +16,7 @@ func GetBool(k string) (bool, error) {
 	if !ok {
 		return false, notFoundErr(k)
 	}
-	
+
 	return AppConfig.Settings[k].Value.(bool), nil
 }
 
@@ -55,9 +54,9 @@ func GetBoolFilterNames() []string {
 			names = append(names, k)
 		}
 	}
-	
+
 	return names
-}	
+}
 
 // GetIntFilterNames returns a list of filter names (flags).
 func GetIntFilterNames() []string {
@@ -68,10 +67,9 @@ func GetIntFilterNames() []string {
 			names = append(names, k)
 		}
 	}
-	
-	return names
-}	
 
+	return names
+}
 
 // GetStringFilterNames returns a list of filter names (flags).
 func GetStringFilterNames() []string {
@@ -82,8 +80,6 @@ func GetStringFilterNames() []string {
 			names = append(names, k)
 		}
 	}
-	
+
 	return names
-}	
-
-
+}
