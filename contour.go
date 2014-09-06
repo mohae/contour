@@ -224,7 +224,13 @@ func loadEnvs() {
 
 // loadConfigFile() is the entry point for reading the configuration file.
 func loadConfigFile() error {
-	n := AppConfig.settings[EnvConfigFilename].Value.(string)
+	setting, ok := AppConfig.settings[EnvConfigFilename]
+	if !ok {
+		// Wasn't configured, nothing to do. Not an error.
+		return nil
+	}
+
+	n := setting.Value.(string)
 	if n == "" {
 		// This isn't an error as config file is allowed to not exist
 		// TODO:
