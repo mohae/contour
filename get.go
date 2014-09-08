@@ -17,7 +17,7 @@ func GetBool(k string) (bool, error) {
 		return false, notFoundErr(k)
 	}
 
-	return AppConfig.settings[k].Value.(bool), nil
+	return *AppConfig.settings[k].Value.(*bool), nil
 }
 
 // GetInt returns the setting Value as an int.
@@ -27,7 +27,7 @@ func GetInt(k string) (int, error) {
 		return 0, notFoundErr(k)
 	}
 
-	return AppConfig.settings[k].Value.(int), nil
+	return *AppConfig.settings[k].Value.(*int), nil
 }
 
 // GetString returns the setting Value as a string.
@@ -37,7 +37,7 @@ func GetString(k string) (string, error) {
 		return "", notFoundErr(k)
 	}
 
-	return AppConfig.settings[k].Value.(string), nil
+	return *AppConfig.settings[k].Value.(*string), nil
 }
 
 // GetInterface is a convenience wrapper function to Get
