@@ -37,7 +37,7 @@ func GetInterface(k string) interface{} {
 func GetBoolFilterNames() []string {
 	var names []string
 
-	for k, setting := range AppConfig.settings {
+	for k, setting := range appConfig.settings {
 		if setting.IsFlag && setting.Type == "bool" {
 			names = append(names, k)
 		}
@@ -50,7 +50,7 @@ func GetBoolFilterNames() []string {
 func GetIntFilterNames() []string {
 	var names []string
 
-	for k, setting := range AppConfig.settings {
+	for k, setting := range appConfig.settings {
 		if setting.IsFlag && setting.Type == "int" {
 			names = append(names, k)
 		}
@@ -63,7 +63,7 @@ func GetIntFilterNames() []string {
 func GetStringFilterNames() []string {
 	var names []string
 
-	for k, setting := range AppConfig.settings {
+	for k, setting := range appConfig.settings {
 		if setting.IsFlag && setting.Type == "string" {
 			names = append(names, k)
 		}
@@ -74,42 +74,42 @@ func GetStringFilterNames() []string {
 
 // GetE returns the setting Value as an interface{}.
 func GetE(k string) (interface{}, error) {
-	_, ok := AppConfig.settings[k]
+	_, ok := appConfig.settings[k]
 	if !ok {
 		return nil, notFoundErr(k)
 	}
 
-	return AppConfig.settings[k].Value, nil
+	return appConfig.settings[k].Value, nil
 }
 
 // GetBoolE returns the setting Value as a bool.
 func GetBoolE(k string) (bool, error) {
-	_, ok := AppConfig.settings[k]
+	_, ok := appConfig.settings[k]
 	if !ok {
 		return false, notFoundErr(k)
 	}
 
-	return *AppConfig.settings[k].Value.(*bool), nil
+	return *appConfig.settings[k].Value.(*bool), nil
 }
 
 // GetIntE returns the setting Value as an int.
 func GetIntE(k string) (int, error) {
-	_, ok := AppConfig.settings[k]
+	_, ok := appConfig.settings[k]
 	if !ok {
 		return 0, notFoundErr(k)
 	}
 
-	return *AppConfig.settings[k].Value.(*int), nil
+	return *appConfig.settings[k].Value.(*int), nil
 }
 
 // GetStringE returns the setting Value as a string.
 func GetStringE(k string) (string, error) {
-	_, ok := AppConfig.settings[k]
+	_, ok := appConfig.settings[k]
 	if !ok {
 		return "", notFoundErr(k)
 	}
 
-	return AppConfig.settings[k].Value.(string), nil
+	return appConfig.settings[k].Value.(string), nil
 }
 
 // GetInterfaceE is a convenience wrapper function to Get

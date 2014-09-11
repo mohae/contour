@@ -8,7 +8,7 @@ import (
 // UpdateBool adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func UpdateBool(k string, v bool) error {
-	AppConfig.settings[k].Value = v
+	appConfig.settings[k].Value = v
 	s := strconv.FormatBool(v)
 	err := os.Setenv(k, s)
 	return err
@@ -17,14 +17,14 @@ func UpdateBool(k string, v bool) error {
 // UpdateInt adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func UpdateInt(k string, v int) error {
-	AppConfig.settings[k].Value = v
+	appConfig.settings[k].Value = v
 	return os.Setenv(k, string(v))
 }
 
 // UpdateString adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func UpdateString(k, v string) error {
-	AppConfig.settings[k].Value = v
+	appConfig.settings[k].Value = v
 	return os.Setenv(k, v)
 
 }

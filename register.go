@@ -34,12 +34,12 @@ func RegisterConfigFilename(k, v string) error {
 	// will be returned, so registering it afterwords would mean the
 	// setting would not exist.
 	RegisterImmutableString(EnvConfigFormat, "")
-	format, err := getConfigFormat(v)
+	format, err := configFormat(v)
 	if err != nil {
 		return err
 	}
 
-	AppConfig.settings[EnvConfigFormat].Value = format
+	appConfig.settings[EnvConfigFormat].Value = format
 
 	// Now we can update the format, since it wasn't set before, it can be
 	// set now before it becomes read only.
@@ -52,18 +52,18 @@ func RegisterConfigFilename(k, v string) error {
 // new setting if it does not.
 func RegisterSetting(Type string, k string, v interface{}, Code string, Immutable, IsCore, IsEnv, IsFlag bool) {
 	var update bool
-	_, ok := AppConfig.settings[k]
+	_, ok := appConfig.settings[k]
 	if ok {
 
 		// Core settings can't be re-registered.
-		if AppConfig.settings[k].IsCore {
+		if appConfig.settings[k].IsCore {
 			return
 		}
 
 		// Read-only settings that have bee set can't be re-registered.
-		if AppConfig.settings[k].Immutable {
+		if appConfig.settings[k].Immutable {
 
-			if AppConfig.settings[k].Value != nil {
+			if appConfig.settings[k].Value != nil {
 				return
 			}
 
@@ -74,17 +74,17 @@ func RegisterSetting(Type string, k string, v interface{}, Code string, Immutabl
 	}
 
 	if update {
-		AppConfig.settings[k].Type = Type
-		AppConfig.settings[k].Value = v
-		AppConfig.settings[k].Code = Code
-		AppConfig.settings[k].Immutable = Immutable
-		AppConfig.settings[k].IsCore = IsCore
-		AppConfig.settings[k].IsEnv = IsEnv
-		AppConfig.settings[k].IsFlag = IsFlag
+		appConfig.settings[k].Type = Type
+		appConfig.settings[k].Value = v
+		appConfig.settings[k].Code = Code
+		appConfig.settings[k].Immutable = Immutable
+		appConfig.settings[k].IsCore = IsCore
+		appConfig.settings[k].IsEnv = IsEnv
+		appConfig.settings[k].IsFlag = IsFlag
 		return
 	}
 
-	AppConfig.settings[k] = &setting{
+	appConfig.settings[k] = &setting{
 		Type:      Type,
 		Value:     v,
 		Code:      Code,

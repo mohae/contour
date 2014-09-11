@@ -20,7 +20,7 @@ import (
 func SetEnvs() error {
 	var err error
 	// For each setting
-	for k, setting := range AppConfig.settings {
+	for k, setting := range appConfig.settings {
 		switch setting.Type {
 		case "string":
 			err = os.Setenv(k, setting.Value.(string))
@@ -51,14 +51,14 @@ func setEnv(k string, v interface{}) error {
 	var err error
 
 	// Update the setting with file's
-	switch AppConfig.settings[k].Type {
+	switch appConfig.settings[k].Type {
 	case "int", "string":
 		err = os.Setenv(k, v.(string))
 	case "bool":
 		s := strconv.FormatBool(v.(bool))
 		err = os.Setenv(k, s)
 	default:
-		err = errors.New(k + "'s datatype, " + AppConfig.settings[k].Type + ", is not supported")
+		err = errors.New(k + "'s datatype, " + appConfig.settings[k].Type + ", is not supported")
 	}
 
 	return err
@@ -72,7 +72,7 @@ func setEnvFromConfigFile() error {
 
 	for k, v := range configFile {
 		// Find the key in the settings
-		_, ok := AppConfig.settings[k]
+		_, ok := appConfig.settings[k]
 		if !ok {
 			// skip settings that don't already exist
 			continue
@@ -90,7 +90,7 @@ func setEnvFromConfigFile() error {
 		}
 
 		// Update the setting with file's
-		switch AppConfig.settings[k].Type {
+		switch appConfig.settings[k].Type {
 		case "string":
 			err = UpdateString(k, v.(string))
 		case "bool":
@@ -98,7 +98,7 @@ func setEnvFromConfigFile() error {
 		case "int":
 			err = UpdateInt(k, v.(int))
 		default:
-			return errors.New(k + "'s datatype, " + AppConfig.settings[k].Type + ", is not supported")
+			return errors.New(k + "'s datatype, " + appConfig.settings[k].Type + ", is not supported")
 		}
 
 		if err != nil {
@@ -113,12 +113,12 @@ func setEnvFromConfigFile() error {
 // SetSetting
 // TODO figure this out
 func SetSetting(Type, k string, v interface{}, Code string, Immutable, IsCore, IsEnv, IsFlag bool) error {
-	_, ok := AppConfig.settings[k]
+	_, ok := appConfig.settings[k]
 	if ok {
 		return nil
 	}
 
-	AppConfig.settings[k] = &setting{
+	appConfig.settings[k] = &setting{
 		Type:      Type,
 		Value:     v,
 		Code:      Code,
