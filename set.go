@@ -11,30 +11,20 @@ package contour
 
 import (
 	"errors"
-	"os"
 	"strconv"
 )
 
 // SetEnvs goes through AppConfig and saves all of the settings to their
 // environment variables.
-func SetEnvs() error {
+func Setenvs() error {
+	if !appConfig.UseEnv() {
+		return nil
+	}
+
 	var err error
 	// For each setting
 	for k, setting := range appConfig.settings {
-		switch setting.Type {
-		case "string":
-			err = os.Setenv(k, setting.Value.(string))
-
-		case "bool":
-			err = os.Setenv(k, strconv.FormatBool(setting.Value.(bool)))
-
-		case "int":
-			err = os.Setenv(k, string(setting.Value.(int)))
-
-		default:
-			err = errors.New(k + "'s datatype, " + setting.Type + ", is not supported")
-		}
-
+		err = appConfig.Setenv(k, setting)
 		if err != nil {
 			return err
 		}
@@ -45,29 +35,14 @@ func SetEnvs() error {
 
 }
 
-// setEnv set's the environment variable. No validation is done here, that's
-// the callers responsibility.
-func setEnv(k string, v interface{}) error {
-	var err error
-
-	// Update the setting with file's
-	switch appConfig.settings[k].Type {
-	case "int", "string":
-		err = os.Setenv(k, v.(string))
-	case "bool":
-		s := strconv.FormatBool(v.(bool))
-		err = os.Setenv(k, s)
-	default:
-		err = errors.New(k + "'s datatype, " + appConfig.settings[k].Type + ", is not supported")
-	}
-
-	return err
-}
-
 // setEnvFromConfigFile goes through all the settings in the configFile and
 // checks to see if the setting is updateable; saving those that are to their
 // environment variable.
 func setEnvFromConfigFile() error {
+	if !appConfig.UseEnv() {
+		return nil
+	}
+
 	var err error
 
 	for k, v := range configFile {
@@ -84,7 +59,7 @@ func setEnvFromConfigFile() error {
 			continue
 		}
 
-		err = setEnv(k, v)
+		err = appConfig.Setenv(k, v)
 		if err != nil {
 			return err
 		}
@@ -139,8 +114,7 @@ func SetFlagBool(k string, v bool, f string) error {
 		return err
 	}
 
-	s := strconv.FormatBool(v)
-	return os.Setenv(k, s)
+	return appConfig.Setenv(k, v)
 }
 
 // SetFlagInt adds the information to the AppsConfig struct, but does not
@@ -151,7 +125,7 @@ func SetFlagInt(k string, v int, f string) error {
 		return err
 	}
 
-	return os.Setenv(k, string(v))
+	return appConfig.Setenv(k, string(v))
 }
 
 // SetFlagString adds the information to the AppsConfig struct, but does not
@@ -162,7 +136,7 @@ func SetFlagString(k, v, f string) error {
 		return err
 	}
 
-	return os.Setenv(k, v)
+	return appConfig.Setenv(k, v)
 }
 
 // SetImmutableBool adds the information to the AppsConfig struct, but does
@@ -174,7 +148,7 @@ func SetImmutableBool(k string, v bool) error {
 	}
 
 	s := strconv.FormatBool(v)
-	return os.Setenv(k, s)
+	return appConfig.Setenv(k, s)
 }
 
 // SetImmutableInt adds the information to the AppsConfig struct, but does
@@ -185,7 +159,7 @@ func SetImmutableInt(k string, v int) error {
 		return err
 	}
 
-	return os.Setenv(k, string(v))
+	return appConfig.Setenv(k, string(v))
 }
 
 // SetImmutableString adds the information to the AppsConfig struct, but does
@@ -196,5 +170,5 @@ func SetImmutableString(k, v string) error {
 		return err
 	}
 
-	return os.Setenv(k, v)
+	return appConfig.Setenv(k, v)
 }

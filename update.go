@@ -1,30 +1,23 @@
 package contour
 
-import (
-	"os"
-	"strconv"
-)
-
 // UpdateBool adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func UpdateBool(k string, v bool) error {
 	appConfig.settings[k].Value = v
-	s := strconv.FormatBool(v)
-	err := os.Setenv(k, s)
-	return err
+	return  appConfig.Setenv(k,v)
 }
 
 // UpdateInt adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func UpdateInt(k string, v int) error {
 	appConfig.settings[k].Value = v
-	return os.Setenv(k, string(v))
+	return appConfig.Setenv(k,v)
 }
 
 // UpdateString adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func UpdateString(k, v string) error {
 	appConfig.settings[k].Value = v
-	return os.Setenv(k, v)
+	return  appConfig.Setenv(k,v)
 
 }

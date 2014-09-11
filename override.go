@@ -6,12 +6,7 @@ package contour
 // that is not a flag. Also, override cannot set any Immutable or IsCore
 // settings.
 //
-// A common user for overrides is to set values obtained by flags.
-import (
-	"fmt"
-	"os"
-	"strconv"
-)
+// A common use for overrides is to set values obtained by flags.
 
 func Override(k string, v interface{}) error {
 	if v == nil {
@@ -26,25 +21,8 @@ func Override(k string, v interface{}) error {
 		return nil
 	}
 
-	// write it to its environment variable
-	var tmp string
-	var err error
-
-	switch appConfig.settings[k].Type {
-	case "string":
-		err = os.Setenv(k, *v.(*string))
-
-	case "int":
-		err = os.Setenv(k, string(*v.(*int)))
-
-	case "bool":
-		tmp = strconv.FormatBool(*v.(*bool))
-		err = os.Setenv(k, tmp)
-
-	default:
-		err = fmt.Errorf("Unable to override setting %s: type is unsupported %s", k, appConfig.settings[k].Type)
-	}
-
+	// Write to environment variable
+	err := appConfig.Setenv(k, v)
 	if err != nil {
 		return err
 	}

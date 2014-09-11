@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"strconv"
 
 	"github.com/BurntSushi/toml"
 )
@@ -141,7 +142,7 @@ func SetConfig() error {
 
 	// Set all the environment variables. This is the application settings
 	// merged with any already existing environment variable values.
-	err := SetEnvs()
+	err := Setenvs()
 	if err != nil {
 		return err
 	}
@@ -205,6 +206,10 @@ func isSupportedFormat(s string) bool {
 // loadEnvs updates the configuration from the environment variable values.
 // A setting is only updated if it IsUpdateable.
 func loadEnvs() {
+	if !appConfig.useEnv {
+		return
+	}
+
 	for k, _ := range appConfig.settings {
 		// See if k exists as an env variable
 		v := os.Getenv(k)
@@ -491,5 +496,36 @@ func FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error) {
 	}
 
 	return cmdArgs, nil
+}
+
+func (c *Config) UseEnv() bool {
+	return c.useEnv
+}
+
+// Set env accepts a key and value and sets a single environment variable from that
+func (c *Config) Setenv(k string, v interface{}) error {
+	// if we aren't using environment variables, do nothing.
+	if !appConfig.UseEnv() {
+		return nil
+	}
+
+	var tmp string
+	var err error
+
+	switch appConfig.settings[k].Type {
+	case "string":
+		err = os.Setenv(k, *v.(*string))
+
+	case "int":
+		err = os.Setenv(k, string(*v.(*int)))
+
+	case "bool":
+		tmp = strconv.FormatBool(*v.(*bool))
+		err = os.Setenv(k, tmp)
+
+	default:
+		err = fmt.Errorf("Unable to set env variable for %s: type is unsupported %s", k, appConfig.settings[k].Type)
+	}
+	return err
 }
 
