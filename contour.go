@@ -443,8 +443,7 @@ func FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error) {
 	stringFilters := make([]*string, len(stringFilterNames))
 	sFilterNames := make([]string, len(stringFilterNames))
 	flags = 0
-	fmt.Printf("stringFilters: %s\n", len(stringFilters))
-	fmt.Printf("sFilternames: %s\n", len(sFilterNames))
+
 	for _, name := range stringFilterNames {
 		if AppConfig.settings[name].IsFlag {
 			fmt.Println(flags)
