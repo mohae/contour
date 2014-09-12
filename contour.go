@@ -94,7 +94,6 @@ func (c *Config) SetAppCode(s string) error {
 	return nil
 }
 
-// S
 // setting holds the information for a configuration setting.
 type setting struct {
 	// Type is the datatype for the setting
