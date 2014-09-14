@@ -1,7 +1,6 @@
 package contour
 
 import (
-	"errors"
 	"fmt"
 	_"os"
 )
@@ -14,6 +13,7 @@ import (
 //	* support ignoring environment variables
 //
 type Cfg struct {
+	name string
 
 	// code is the shortcode for this configuration. It is mostly used to
 	// prefix environment variables, when used.
@@ -47,7 +47,7 @@ func AppConfig() *Cfg {
 		return c
 	}
 
-	configs[app] = &Cfg{Settings: map[string]*setting{}}	
+	configs[app] = &Cfg{name: app, Settings: map[string]*setting{}}	
 	return configs[app]
 }
 
@@ -73,16 +73,16 @@ func NewConfig(k string ) (c *Cfg, err error) {
 		return c, err
 	}
 
-	c = &Cfg{Settings: map[string]*setting{}}
+	c = &Cfg{name: k, Settings: map[string]*setting{}}
 	configs[k] = c
 	
 	return c, nil
 }
 
-/*
-// AppCode returns the app code for the config. If set, this is used as
+
+// Code returns the code for the config. If set, this is used as
 // the prefix for environment variables and configuration setting names.
-func (c *Cfg) AppCode() string {
+func (c *Cfg) Code() string {
 	return c.code
 }
 
@@ -91,7 +91,7 @@ func (c *Cfg) UseEnv() bool {
 	return c.useEnv
 }
 
-/*
+
 // SetConfig goes through the initialized Settings and updates the updateable
 // Settings if a new, valid value is found. This applies to, in order: Env
 // variables and config files. For any that are not found, or that are
@@ -103,25 +103,53 @@ func (c *Cfg) UseEnv() bool {
 func (c *Cfg) SetConfig() error {
 	// Load any set environment variables into appConfig. Core and already
 	// set Write Once Settings are not updated from env.
-	c.loadEnvs()
+//	c.loadEnvs()
 
 	// Set all the environment variables. This is the application Settings
 	// merged with any already existing environment variable values.
-	err := c.Setenvs()
-	if err != nil {
-		return err
-	}
+//	err := c.Setenvs()
+//	if err != nil {
+//		return err
+//	}
 
 	// Load the Config file.
-	err = c.loadConfigFile()
-	if err != nil {
+	err := c.setFromFile()
+		if err != nil {
 		return err
 	}
 
-	//  Save the config file Settings to their env variables, if allowed.
-	return c.setEnvFromConfigFile()
+	return nil
 }
-*/
+
+func (c *Cfg) setFromFile() error {
+	f, err := c.getFile()
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
+	// Go through the file contents and update the Cfg
+	for k, v := range f {
+		// Find the key in the settings
+		_, ok := c.Settings[k]
+		if !ok {
+			// skip settings that don't already exist
+			continue
+		}
+
+		err := c.updateE(k, v)
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return nil
+}
+
+func setFromFile() error {
+	return configs[app].setFromFile()
+}
 
 /*
 // Set env accepts a key and value and sets a single environment variable from that
@@ -152,13 +180,81 @@ func (c *Cfg) Setenv(k string, v interface{}) error {
 }
 */
 
+
 // SetCode set's the code for this configuration. This can only be done once.
 // If it is already set, it will return an error.
 func (c *Cfg) SetCode(s string) error {
 	if c.code != "" {
-		return errors.New("appCode is already set. AppCode is immutable. Once set, it cannot be altered")
+		return fmt.Errorf("appCode is already set. AppCode is immutable. Once set, it cannot be altered")
 	}
 
 	c.code = s
+	return nil
+}
+
+// Convenience functions for the main config
+// Code returns the code for the config. If set, this is used as
+// the prefix for environment variables and configuration setting names.
+func Code() string {
+	return configs[app].code
+}
+
+
+func UseEnv() bool {
+	return configs[app].useEnv
+}
+
+
+// SetConfig goes through the initialized Settings and updates the updateable
+// Settings if a new, valid value is found. This applies to, in order: Env
+// variables and config files. For any that are not found, or that are
+// immutable, once set, the original initialization values are used.
+//
+// The merged configuration Settings are then  written to their respective
+// environment variables. At this point, only args, or in application setting
+// changes, can change the non-immutable Settings.
+func SetConfig() error {
+	return nil
+}
+
+
+/*
+// Set env accepts a key and value and sets a single environment variable from that
+func (c *Cfg) Setenv(k string, v interface{}) error {
+	// if we aren't using environment variables, do nothing.
+	if !appConfig.UseEnv() {
+		return nil
+	}
+
+	var tmp string
+	var err error
+
+	switch appConfig.Settings[k].Type {
+	case "string":
+		err = os.Setenv(k, *v.(*string))
+
+	case "int":
+		err = os.Setenv(k, string(*v.(*int)))
+
+	case "bool":
+		tmp = strconv.FormatBool(*v.(*bool))
+		err = os.Setenv(k, tmp)
+
+	default:
+		err = fmt.Errorf("Unable to set env variable for %s: type is unsupported %s", k, appConfig.Settings[k].Type)
+	}
+	return err
+}
+*/
+
+
+// SetCode set's the code for this configuration. This can only be done once.
+// If it is already set, it will return an error.
+func SetCode(s string) error {
+	if configs[app].code != "" {
+		return fmt.Errorf("appCode is already set. AppCode is immutable. Once set, it cannot be altered")
+	}
+
+	configs[app].code = s
 	return nil
 }

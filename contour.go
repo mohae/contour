@@ -2,20 +2,19 @@
 package contour
 
 import (
-	_"bytes"
-	_"encoding/json"
+	"bytes"
+	"encoding/json"
 	_"encoding/xml"
-	"errors"
 	_"flag"
-	_"fmt"
-	_"io"
-	_"io/ioutil"
+	"fmt"
+	"io"
+	"io/ioutil"
 	_"os"
 	"strings"
 	_"strconv"
 
 	_ "code.google.com/p/gcfg"
-	_ "github.com/BurntSushi/toml"
+	"github.com/BurntSushi/toml"
 )
 
 const app = "app"
@@ -42,7 +41,7 @@ func init() {
 // it is in, if it is a supported format; otherwise an error.
 func configFormat(s string) (string, error) {
 	if s == "" {
-		return "", errors.New("a config filename was expected, none received")
+		return "", fmt.Errorf("a config filename was expected, none received")
 	}
 
 	parts := strings.Split(s, ".")
@@ -51,7 +50,7 @@ func configFormat(s string) (string, error) {
 	// case 0 has already been evaluated
 	switch len(parts) {
 	case 1:
-		return "", errors.New("unable to determine config format, the configuration file, " + strings.TrimSpace(s) + ", doesn't have an extension")
+		return "", fmt.Errorf("unable to determine config format, the configuration file, " + strings.TrimSpace(s) + ", doesn't have an extension")
 
 	case 2:
 		format = parts[1]
@@ -62,7 +61,7 @@ func configFormat(s string) (string, error) {
 	}
 
 	if !isSupportedFormat(format) {
-		return "", errors.New(format + " is an unsupported format for configuration files")
+		return "", fmt.Errorf(format + " is an unsupported format for configuration files")
 	}
 
 	return format, nil
@@ -123,13 +122,13 @@ func loadEnvs() {
 	}
 
 }
-
-// loadConfigFile() is the entry point for reading the configuration file.
-func loadConfigFile() error {
-	setting, ok := appConfig.settings[EnvConfigFilename]
+*/
+// getCfgFile() is the entry point for reading the configuration file.
+func (c *Cfg) getFile() (map[string]interface{}, error) {
+	setting, ok := c.Settings[EnvCfgFile]
 	if !ok {
 		// Wasn't configured, nothing to do. Not an error.
-		return nil
+		return nil, nil
 	}
 
 	n := setting.Value.(string)
@@ -138,32 +137,36 @@ func loadConfigFile() error {
 		// TODO:
 		//	Possible add a ConfigFileRequired flag
 		//	Add logging support
-		return nil
+		return nil, nil
 	}
 
 	// This shouldn't happend, but lots of things happen that shouldn't.
 	// It should have been registered already. so if it doesn't exit, err.
-	if appConfig.settings[EnvConfigFormat].Value == nil {
-		return errors.New("Unable to load configuration value, its format type was not set")
+	if c.Settings[EnvCfgFormat].Value == nil {
+		return nil, fmt.Errorf("Unable to load the cfg file, the configuration format type was not set")
 	}
 
-	fBytes, err := readConfigFile(n)
+	fBytes, err := readCfgFile(n)
 	if err != nil {
-		return err
+		logger.Error(err)
+		return nil, err
 	}
 
-	err = marshalFormatReader(appConfig.settings[EnvConfigFormat].Value.(string), bytes.NewReader(fBytes))
+	cfg := make(map[string]interface{})
+	cfg, err = marshalFormatReader(c.Settings[EnvCfgFormat].Value.(string), bytes.NewReader(fBytes))
 	if err != nil {
-		return err
+		logger.Error(err)
+		return nil, err
 	}
 
-	return nil
+	return cfg, nil
 }
 
-// readConfigFile reads the configFile
-func readConfigFile(n string) ([]byte, error) {
+// readCfgFile reads the configFile
+func readCfgFile(n string) ([]byte, error) {
 	cfg, err := ioutil.ReadFile(n)
 	if err != nil {
+		logger.Error(err)
 		return nil, err
 	}
 
@@ -171,87 +174,99 @@ func readConfigFile(n string) ([]byte, error) {
 }
 
 // marshalFormatReader
-func marshalFormatReader(t string, r io.Reader) error {
+func marshalFormatReader(t string, r io.Reader) (map[string]interface{}, error) {
 	b := new(bytes.Buffer)
 	b.ReadFrom(r)
-
+	
+	ret := make(map[string]interface{})
 	switch t {
 	case "json":
-		err := json.Unmarshal(b.Bytes(), &configFile)
+		err := json.Unmarshal(b.Bytes(), ret)
 		if err != nil {
-			return err
+			logger.Error(err)
+			return nil, err
 		}
 
 	case "toml":
-		_, err := toml.Decode(b.String(), &configFile)
+		_, err := toml.Decode(b.String(), ret)
 		if err != nil {
-			return err
+			logger.Error(err)
+			return nil,  err
 		}
-
+	default:
+		err := fmt.Errorf("unsupported configuration file format type: %s", t)
+		logger.Error(err)
+		return nil, err
 	}
-	return nil
+	return ret, nil
 }
 
+
 // canUpdate checks to see if the passed setting key is updateable.
-func canUpdate(k string) bool {
+// TODO the logic flow is wonky because it could be simplified but
+// want hard check for core and not sure about conf/flag/env stuff yet.
+// so the wierdness sits for now.
+func (c *Cfg) canUpdate(k string) bool {
 	// See if the key exists, if it doesn't already exist, it can't be
 	// updated.
-	_, ok := appConfig.settings[k]
+	_, ok := c.Settings[k]
 	if !ok {
 		return false
 	}
 
 	// See if there are any settings that prevent it from being overridden.
 	// Core and Environment variables are never settable. Core must be set
-	// during registration and Environment variables must be set using
-	// the Override functions.
-	if appConfig.settings[k].IsCore || appConfig.settings[k].IsEnv {
+	// during registration.
+	if c.Settings[k].IsCore {
 		return false
 	}
 
-	// Immutable variables are only settable if they are not set.
-	// This does not apply to boolean as there is no way to determine if
-	// the value is unset. So bool immutables are only writable when they
-	// are registered.
-	if (appConfig.settings[k].Immutable && appConfig.settings[k].Value != "") || (appConfig.settings[k].Immutable && appConfig.settings[k].Type == "bool") {
-		return false
+	// Only flags and conf types are updateable, otherwise they must be
+	// registered or set.
+	if c.Settings[k].IsCfg || c.Settings[k].IsFlag  {
+		return true
 	}
-	return true
+
+	return false
+}
+
+func canUpdate(k string) bool {
+	return configs[app].canUpdate(k)
 }
 
 // canOverride() checks to see if the setting can be overridden. Overrides
-// only come from args and flags. ConfigFile settings must be set instead.
-func canOverride(k string) bool {
+// only come from flags. If it can't be overridden, it must be set via
+// application, environment variable, or cfg file.
+func (c *Cfg) canOverride(k string) bool {
 	// See if the key exists, if it doesn't already exist, it can't be
 	// overridden
-	_, ok := appConfig.settings[k]
+	_, ok := c.Settings[k]
 	if !ok {
 		return false
 	}
 
 	// See if there are any settings that prevent it from being overridden.
-	if appConfig.settings[k].IsCore {
-		return false
-	}
-
-	// Immutable variables are only settable if they are not set.
-	// This does not apply to boolean as there is no way to determine if
-	// the value is unset. So bool immutables are only writable when they
-	// are registered.
-	if (appConfig.settings[k].Immutable && appConfig.settings[k].Value != "") || (appConfig.settings[k].Immutable && appConfig.settings[k].Type == "bool") {
+	// Core can never be overridden
+	// Must be a flag to override.
+	if c.Settings[k].IsCore || !c.Settings[k].IsFlag {
 		return false
 	}
 
 	return true
 }
 
+func canOverride(k string) bool {
+	return configs[app].canOverride(k)
+}
+
+/*
 // AddCommandAlias adds an alias for a command. The first time a command is
 // added, it's added as an alias of itself too.
 func AddCommandAlias(command, alias string) error {
 	// see if an alias already exists
 	v, ok := commandAlias[alias]
 	if ok {
-		return errors.New(alias + " is an alias of the command " + v + " cannot make it an alias of " + command)
+		return fmt.Errorf(alias + " is an alias of the command " + v + " cannot make it an alias of " + command)
 	}
 
 	// see if the command already has aliases
@@ -271,7 +286,7 @@ func AddSettingAlias(setting, alias string) error {
 	// see if an alias already exists
 	v, ok := settingAlias[alias]
 	if ok {
-		err := errors.New(alias + " is an alias of the setting " + v + " cannot make it an alias of " + setting)
+		err := fmt.Errorf(alias + " is an alias of the setting " + v + " cannot make it an alias of " + setting)
 		return err
 	}
 
@@ -297,7 +312,7 @@ func initConfigs() {
 
 // notFoundErr returns a standardized not found error.
 func notFoundErr(k string) error {
-	return errors.New(k + " not found")
+	return fmt.Errorf(k + " not found")
 }
 
 // settingNotFoundErr adds the suffix ": setting " to k before calling

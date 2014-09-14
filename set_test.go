@@ -40,7 +40,7 @@ func TestSetBoolE(t *testing.T) {
 				})
 
 				Convey("And it should be flagged as a config", func() {
-					So(s.IsConfig, ShouldEqual, true)
+					So(s.IsCfg, ShouldEqual, true)
 				})
 
 				Convey("And it should be flagged as a flag", func() {
@@ -85,7 +85,7 @@ func TestSetIntE(t *testing.T) {
 				})
 
 				Convey("And it should be flagged as a config", func() {
-					So(s.IsConfig, ShouldEqual, true)
+					So(s.IsCfg, ShouldEqual, true)
 				})
 
 				Convey("And it should be flagged as a flag", func() {
@@ -130,7 +130,7 @@ func TestSetStringE(t *testing.T) {
 				})
 
 				Convey("And it should be flagged as a config", func() {
-					So(s.IsConfig, ShouldEqual, true)
+					So(s.IsCfg, ShouldEqual, true)
 				})
 
 				Convey("And it should be flagged as a flag", func() {
@@ -172,7 +172,7 @@ func TestSetBool(t *testing.T) {
 				})
 
 				Convey("And it should be flagged as a config", func() {
-					So(s.IsConfig, ShouldEqual, true)
+					So(s.IsCfg, ShouldEqual, true)
 				})
 
 				Convey("And it should be flagged as a flag", func() {
@@ -214,7 +214,7 @@ func TestSetInt(t *testing.T) {
 				})
 
 				Convey("And it should be flagged as a config", func() {
-					So(s.IsConfig, ShouldEqual, true)
+					So(s.IsCfg, ShouldEqual, true)
 				})
 
 				Convey("And it should be flagged as a flag", func() {
@@ -256,7 +256,7 @@ func TestSetString(t *testing.T) {
 				})
 
 				Convey("And it should be flagged as a config", func() {
-					So(s.IsConfig, ShouldEqual, true)
+					So(s.IsCfg, ShouldEqual, true)
 				})
 
 				Convey("And it should be flagged as a flag", func() {

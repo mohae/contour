@@ -85,7 +85,6 @@ var jsonResults = map[string]interface{}{
 	},
 }
 
-
 var testConfig = &Cfg{Settings: map[string]*setting{
 	"corebool":    &setting{
 		Type: "bool",
@@ -106,39 +105,39 @@ var testConfig = &Cfg{Settings: map[string]*setting{
 		Type: "bool",
 		Value: true,
 		Code: "",
-		IsConfig: true,
+		IsCfg: true,
 	},
 	"configint":    &setting{
 		Type: "int",
 		Value: 42,
-		IsConfig: true,
+		IsCfg: true,
 	},
 	"configstring":    &setting{
 		Type: "string",
 		Value: "a config string",
 		Code: "",
-		IsConfig: true,
+		IsCfg: true,
 	},
 	"flagbool":    &setting{
 		Type: "bool",
 		Value: true,
 		Code: "b",
 		IsFlag: true,
-		IsConfig: true,
+		IsCfg: true,
 	},
 	"flagint":    &setting{
 		Type: "int",
 		Value: 42,
 		Code: "i",
 		IsFlag: true,
-		IsConfig: true,
+		IsCfg: true,
 	},
 	"flagstring":    &setting{
 		Type: "string",
 		Value: "a flag string",
 		Code: "s",
 		IsFlag: true,
-		IsConfig: true,
+		IsCfg: true,
 	},
 	"bool":    &setting{
 		Type: "bool",

@@ -53,7 +53,7 @@ func (c *Cfg) RegisterConfigFilename(k, v string) error {
 
 // RegisterSetting checks to see if the entry already exists and adds the
 // new setting if it does not.
-func (c *Cfg) RegisterSetting(Type string, k string, v interface{}, Code string, IsCore, IsConfig, IsFlag bool) {
+func (c *Cfg) RegisterSetting(Type string, k string, v interface{}, Code string, IsCore, IsCfg, IsFlag bool) {
 	var update bool
 	_, ok := c.Settings[k]
 	if ok {
@@ -74,7 +74,7 @@ func (c *Cfg) RegisterSetting(Type string, k string, v interface{}, Code string,
 		c.Settings[k].Value = v
 		c.Settings[k].Code = Code
 		c.Settings[k].IsCore = IsCore
-		c.Settings[k].IsConfig = IsConfig
+		c.Settings[k].IsCfg = IsCfg
 		c.Settings[k].IsFlag = IsFlag
 		return
 	}
@@ -84,7 +84,7 @@ func (c *Cfg) RegisterSetting(Type string, k string, v interface{}, Code string,
 		Value:     v,
 		Code:      Code,
 		IsCore:    IsCore,
-		IsConfig:     IsConfig,
+		IsCfg:     IsCfg,
 		IsFlag:    IsFlag,
 	}
 }
@@ -133,8 +133,8 @@ func (c *Cfg) RegisterConfString(k string, v bool) {
 
 // RegisterFlagBool adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func (c *Cfg) RegisterFlagBool(k string, v bool) {
-	c.RegisterSetting("bool", k, v, "", false, true, true)
+func (c *Cfg) RegisterFlagBool(k string, v bool, f string) {
+	c.RegisterSetting("bool", k, v, f, false, true, true)
 	return
 }
 
@@ -211,7 +211,7 @@ func RegisterConfigFilename(k, v string) error {
 
 // RegisterSetting checks to see if the entry already exists and adds the
 // new setting if it does not.
-func RegisterSetting(Type string, k string, v interface{}, Code string, IsCore, IsConfig, IsFlag bool) {
+func RegisterSetting(Type string, k string, v interface{}, Code string, IsCore, IsCfg, IsFlag bool) {
 	var update bool
 	_, ok := configs[app].Settings[k]
 	if ok {
@@ -232,7 +232,7 @@ func RegisterSetting(Type string, k string, v interface{}, Code string, IsCore, 
 		configs[app].Settings[k].Value = v
 		configs[app].Settings[k].Code = Code
 		configs[app].Settings[k].IsCore = IsCore
-		configs[app].Settings[k].IsConfig = IsConfig
+		configs[app].Settings[k].IsCfg = IsCfg
 		configs[app].Settings[k].IsFlag = IsFlag
 		return
 	}
@@ -242,7 +242,7 @@ func RegisterSetting(Type string, k string, v interface{}, Code string, IsCore, 
 		Value:     v,
 		Code:      Code,
 		IsCore:    IsCore,
-		IsConfig:     IsConfig,
+		IsCfg:     IsCfg,
 		IsFlag:    IsFlag,
 	}
 }
@@ -291,8 +291,8 @@ func RegisterConfString(k string, v bool) {
 
 // RegisterFlagBool adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func RegisterFlagBool(k string, v bool) {
-	configs[app].RegisterSetting("bool", k, v, "", false, true, true)
+func RegisterFlagBool(k string, v bool, f string) {
+	configs[app].RegisterSetting("bool", k, v, f, false, true, true)
 	return
 }
 

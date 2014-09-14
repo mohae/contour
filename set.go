@@ -36,48 +36,30 @@ func Setenvs() error {
 	return nil
 
 }
+*/
 
 // setEnvFromConfigFile goes through all the Settings in the configFile and
 // checks to see if the setting is updateable; saving those that are to their
 // environment variable.
-func setEnvFromConfigFile() error {
-	if !appConfig.UseEnv() {
+func (c *Cfg) setCfg(cf map[string]interface{}) error {
+	if !c.UseEnv() {
 		return nil
 	}
 
-	var err error
-
-	for k, v := range configFile {
+	for k, v := range cf {
 		// Find the key in the Settings
-		_, ok := appConfig.Settings[k]
+		_, ok := c.Settings[k]
 		if !ok {
 			// skip Settings that don't already exist
 			continue
 		}
 
-		// Skip if Immutable, IsCore, IsEnv since they aren't
-		//overridable by ConfigFile.
-		if !canUpdate(k) {
-			continue
-		}
+//		err = appConfig.Setenv(k, v)
+//		if err != nil {
+//			return err
+//		}
 
-		err = appConfig.Setenv(k, v)
-		if err != nil {
-			return err
-		}
-
-		// Update the setting with file's
-		switch appConfig.Settings[k].Type {
-		case "string":
-			err = UpdateString(k, v.(string))
-		case "bool":
-			err = UpdateBool(k, v.(bool))
-		case "int":
-			err = UpdateInt(k, v.(int))
-		default:
-			return errors.New(k + "'s datatype, " + appConfig.Settings[k].Type + ", is not supported")
-		}
-
+		err := c.updateE(k, v)
 		if err != nil {
 			return err
 		}
@@ -86,10 +68,10 @@ func setEnvFromConfigFile() error {
 
 	return nil
 }
-*/
+
 
 // SetSetting
-func (c *Cfg) SetSetting(Type, k string, v interface{}, Code string, IsCore, IsConfig, IsFlag bool) error {
+func (c *Cfg) SetSetting(Type, k string, v interface{}, Code string, IsCore, IsCfg, IsFlag bool) error {
 	_, ok := c.Settings[k]
 	if ok {
 		err := fmt.Errorf("%s: key already exists, cannot add another setting with the same key")
@@ -102,7 +84,7 @@ func (c *Cfg) SetSetting(Type, k string, v interface{}, Code string, IsCore, IsC
 		Value:	v,
 		Code:	Code,
 		IsCore:	IsCore,
-		IsConfig:	IsConfig,
+		IsCfg:	IsCfg,
 		IsFlag:		IsFlag,
 	}
 

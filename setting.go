@@ -37,7 +37,7 @@ type setting struct {
 	IsCore bool
 
 	// IsConfig:
-	IsConfig bool
+	IsCfg bool
 
 	// IsFlag:  whether or not this is a flag. When IsFlag is true,
 	// IsConfig will also be true since a Flag is a subset of Config.
