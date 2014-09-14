@@ -214,7 +214,7 @@ func UseEnv() bool {
 // environment variables. At this point, only args, or in application setting
 // changes, can change the non-immutable Settings.
 func SetConfig() error {
-	return nil
+	return configs[app].SetConfig()
 }
 
 

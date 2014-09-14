@@ -26,7 +26,7 @@ func (c *Cfg) GetBoolE(k string) (bool, error) {
 		return false, notFoundErr(k)
 	}
 
-	return c.Settings[k].Value.(bool), nil
+	return *c.Settings[k].Value.(*bool), nil
 }
 
 // GetIntE returns the setting Value as an int.
