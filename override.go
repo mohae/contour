@@ -10,7 +10,7 @@ import "fmt"
 //
 // A common use for overrides is to set values obtained by flags.
 
-func (c *config) Override(k string, v interface{}) error {
+func (c *Cfg) Override(k string, v interface{}) error {
 	if v == nil {
 		return nil
 	}

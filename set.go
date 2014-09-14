@@ -89,7 +89,7 @@ func setEnvFromConfigFile() error {
 */
 
 // SetSetting
-func (c *config) SetSetting(Type, k string, v interface{}, Code string, IsCore, IsConfig, IsFlag bool) error {
+func (c *Cfg) SetSetting(Type, k string, v interface{}, Code string, IsCore, IsConfig, IsFlag bool) error {
 	_, ok := c.Settings[k]
 	if ok {
 		err := fmt.Errorf("%s: key already exists, cannot add another setting with the same key")
@@ -111,37 +111,37 @@ func (c *config) SetSetting(Type, k string, v interface{}, Code string, IsCore, 
 
 // SetFlagBoolE adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func (c *config) SetFlagBoolE(k string, v bool, f string) error {
+func (c *Cfg) SetFlagBoolE(k string, v bool, f string) error {
 	return c.SetSetting("bool", k, v, f, false, true, true)
 }
 
 // SetFlagIntE adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func (c *config) SetFlagIntE(k string, v int, f string) error {
+func (c *Cfg) SetFlagIntE(k string, v int, f string) error {
 	return c.SetSetting("int", k, v, f, false, true, true)
 }
 
 // SetFlagStringE adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func (c *config) SetFlagStringE(k, v, f string) error {
+func (c *Cfg) SetFlagStringE(k, v, f string) error {
 	return c.SetSetting("string", k, v, f, false, true, true)
 }
 
 // SetFlagBool adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func (c *config) SetFlagBool(k string, v bool, f string) {
+func (c *Cfg) SetFlagBool(k string, v bool, f string) {
 	c.SetFlagBoolE(k, v, f)
 }
 
 // SetFlagInt adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func (c *config) SetFlagInt(k string, v int, f string) {
+func (c *Cfg) SetFlagInt(k string, v int, f string) {
 	c.SetFlagIntE(k, v, f)
 }
 
 // SetFlagString adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func (c *config) SetFlagString(k, v, f string) {
+func (c *Cfg) SetFlagString(k, v, f string) {
 	c.SetFlagStringE(k, v, f)
 
 }

@@ -10,7 +10,7 @@ package contour
 
 // GetE returns the setting Value as an interface{}. If its not a valid
 // setting, an error is returned.
-func (c *config) GetE(k string) (interface{}, error) {
+func (c *Cfg) GetE(k string) (interface{}, error) {
 	_, ok := c.Settings[k]
 	if !ok {
 		return nil, notFoundErr(k)
@@ -20,7 +20,7 @@ func (c *config) GetE(k string) (interface{}, error) {
 }
 
 // GetBoolE returns the setting Value as a bool.
-func (c *config) GetBoolE(k string) (bool, error) {
+func (c *Cfg) GetBoolE(k string) (bool, error) {
 	_, ok := c.Settings[k]
 	if !ok {
 		return false, notFoundErr(k)
@@ -30,7 +30,7 @@ func (c *config) GetBoolE(k string) (bool, error) {
 }
 
 // GetIntE returns the setting Value as an int.
-func (c *config) GetIntE(k string) (int, error) {
+func (c *Cfg) GetIntE(k string) (int, error) {
 	_, ok := c.Settings[k]
 	if !ok {
 		return 0, notFoundErr(k)
@@ -40,7 +40,7 @@ func (c *config) GetIntE(k string) (int, error) {
 }
 
 // GetStringE returns the setting Value as a string.
-func (c *config) GetStringE(k string) (string, error) {
+func (c *Cfg) GetStringE(k string) (string, error) {
 	_, ok := c.Settings[k]
 	if !ok {
 		return "", notFoundErr(k)
@@ -50,35 +50,35 @@ func (c *config) GetStringE(k string) (string, error) {
 }
 
 // GetInterfaceE is a convenience wrapper function to Get
-func (c *config) GetInterfaceE(k string) (interface{}, error) {
+func (c *Cfg) GetInterfaceE(k string) (interface{}, error) {
 	return c.GetE(k)
 }
 
-func (c *config) Get(k string) interface{} {
+func (c *Cfg) Get(k string) interface{} {
 	s, _ := c.GetE(k)
 	return s
 }
 
 // GetBool returns the setting Value as a bool.
-func (c *config) GetBool(k string) bool {
+func (c *Cfg) GetBool(k string) bool {
 	s, _ := c.GetBoolE(k)
 	return s
 }
 
 // GetInt returns the setting Value as an int.
-func (c *config) GetInt(k string) int {
+func (c *Cfg) GetInt(k string) int {
 	s, _ := c.GetIntE(k)
 	return s
 }
 
 // GetString returns the setting Value as a string.
-func (c *config) GetString(k string) string {
+func (c *Cfg) GetString(k string) string {
 	s, _ := c.GetStringE(k)
 	return s
 }
 
 // GetInterfac returns the setting Value as an interface
-func (c *config) GetInterface(k string) interface{} {
+func (c *Cfg) GetInterface(k string) interface{} {
 	return c.Get(k)
 }
 
@@ -86,7 +86,7 @@ func (c *config) GetInterface(k string) interface{} {
 // Filter Methods obtain a list of flags of the filter type, e.g. boolFilter 
 // for bool flags, and returns them.
 // GetBoolFilterNames returns a list of filter names (flags).
-func (c *config) GetBoolFilterNames() []string {
+func (c *Cfg) GetBoolFilterNames() []string {
 	var names []string
 
 	for k, setting := range c.Settings {
@@ -99,7 +99,7 @@ func (c *config) GetBoolFilterNames() []string {
 }
 
 // GetIntFilterNames returns a list of filter names (flags).
-func (c *config) GetIntFilterNames() []string {
+func (c *Cfg) GetIntFilterNames() []string {
 	var names []string
 
 	for k, setting := range c.Settings {
@@ -112,7 +112,7 @@ func (c *config) GetIntFilterNames() []string {
 }
 
 // GetStringFilterNames returns a list of filter names (flags).
-func (c *config) GetStringFilterNames() []string {
+func (c *Cfg) GetStringFilterNames() []string {
 	var names []string
 
 	for k, setting := range c.Settings {

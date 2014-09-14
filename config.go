@@ -6,14 +6,14 @@ import (
 	_"os"
 )
 
-// Config is a group of Settings and holds all of the application setting
+// Cfg is a group of Settings and holds all of the application setting
 // information. Even though contour automatically uses environment variables,
 // unless its told to ignore them, it still needs to maintain state
 // information about each setting so it knows how to handle attempst to update.
 // TODO:
 //	* support ignoring environment variables
 //
-type config struct {
+type Cfg struct {
 
 	// code is the shortcode for this configuration. It is mostly used to
 	// prefix environment variables, when used.
@@ -41,18 +41,18 @@ type config struct {
 // If the application is only going to use one configuration, this is what
 // should be used as one can just interact with contour, instead of directly
 // with the app config, which is also supported.
-func AppConfig() *config {
+func AppConfig() *Cfg {
 	c, ok := configs[app]
 	if ok {
 		return c
 	}
 
-	configs[app] = &config{Settings: map[string]*setting{}}	
+	configs[app] = &Cfg{Settings: map[string]*setting{}}	
 	return configs[app]
 }
 
 // Config returns the config for the passed key, if it exists, or an error.
-func Config(k string) (*config, error) {
+func Config(k string) (*Cfg, error) {
 	c, ok := configs[k]
 	if !ok {
 		err := fmt.Errorf("%s config was requested; it does not exist", k)
@@ -62,10 +62,10 @@ func Config(k string) (*config, error) {
 	return c, nil
 }
 
-// NewConfig returns a *config to the caller. This config is added to configs
+// NewConfig returns a *Cfg to the caller. This config is added to configs
 // using the passed key value. If a config using the requested key already
 // exists, an error is returned.
-func NewConfig(k string ) (c *config, err error) {
+func NewConfig(k string ) (c *Cfg, err error) {
 	c, ok := configs[k]
 	if ok {
 		err = fmt.Errorf("unable to create a new config for %s, it already exists", k)
@@ -73,7 +73,7 @@ func NewConfig(k string ) (c *config, err error) {
 		return c, err
 	}
 
-	c = &config{Settings: map[string]*setting{}}
+	c = &Cfg{Settings: map[string]*setting{}}
 	configs[k] = c
 	
 	return c, nil
@@ -82,12 +82,12 @@ func NewConfig(k string ) (c *config, err error) {
 /*
 // AppCode returns the app code for the config. If set, this is used as
 // the prefix for environment variables and configuration setting names.
-func (c *config) AppCode() string {
+func (c *Cfg) AppCode() string {
 	return c.code
 }
 
 
-func (c *config) UseEnv() bool {
+func (c *Cfg) UseEnv() bool {
 	return c.useEnv
 }
 
@@ -100,7 +100,7 @@ func (c *config) UseEnv() bool {
 // The merged configuration Settings are then  written to their respective
 // environment variables. At this point, only args, or in application setting
 // changes, can change the non-immutable Settings.
-func (c *config) SetConfig() error {
+func (c *Cfg) SetConfig() error {
 	// Load any set environment variables into appConfig. Core and already
 	// set Write Once Settings are not updated from env.
 	c.loadEnvs()
@@ -125,7 +125,7 @@ func (c *config) SetConfig() error {
 
 /*
 // Set env accepts a key and value and sets a single environment variable from that
-func (c *config) Setenv(k string, v interface{}) error {
+func (c *Cfg) Setenv(k string, v interface{}) error {
 	// if we aren't using environment variables, do nothing.
 	if !appConfig.UseEnv() {
 		return nil
@@ -154,7 +154,7 @@ func (c *config) Setenv(k string, v interface{}) error {
 
 // SetCode set's the code for this configuration. This can only be done once.
 // If it is already set, it will return an error.
-func (c *config) SetCode(s string) error {
+func (c *Cfg) SetCode(s string) error {
 	if c.code != "" {
 		return errors.New("appCode is already set. AppCode is immutable. Once set, it cannot be altered")
 	}

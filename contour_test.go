@@ -86,7 +86,7 @@ var jsonResults = map[string]interface{}{
 }
 
 
-var testConfig = &config{Settings: map[string]*setting{
+var testConfig = &Cfg{Settings: map[string]*setting{
 	"corebool":    &setting{
 		Type: "bool",
 		Value: true,
@@ -157,10 +157,10 @@ var testConfig = &config{Settings: map[string]*setting{
 	},
 }}
 
-var emptyConfigs map[string]*config
-var testConfigs = map[string]*config{
-	app: &config{Settings: map[string]*setting{}},
-	"test1": &config{Settings: map[string]*setting{}},
+var emptyConfigs map[string]*Cfg
+var testConfigs = map[string]*Cfg{
+	app: &Cfg{Settings: map[string]*setting{}},
+	"test1": &Cfg{Settings: map[string]*setting{}},
 }
 
 
