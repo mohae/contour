@@ -1,0 +1,164 @@
+package contour
+
+import (
+	"errors"
+	"fmt"
+	_"os"
+)
+
+// Config is a group of Settings and holds all of the application setting
+// information. Even though contour automatically uses environment variables,
+// unless its told to ignore them, it still needs to maintain state
+// information about each setting so it knows how to handle attempst to update.
+// TODO:
+//	* support ignoring environment variables
+//
+type config struct {
+
+	// code is the shortcode for this configuration. It is mostly used to
+	// prefix environment variables, when used.
+	code     string
+
+	// file is the name of the config file
+	file string
+
+	// encoding is what encoding scheme is used for this config.
+	encoding string
+
+	// useEnv: whether this config writes to and reads from environment
+	// variables. If false, Settings are stored only in Config.
+	useEnv bool
+
+	// Settings contains a map of the configuration Settings for this
+	// config.
+	Settings map[string]*setting
+}
+
+// AppConfig returns the configs[app]. If it doesn't exist, one is initialized
+// and returned.
+// 
+// Contour has a set of functions that implicitly interact with configs[app].
+// If the application is only going to use one configuration, this is what
+// should be used as one can just interact with contour, instead of directly
+// with the app config, which is also supported.
+func AppConfig() *config {
+	c, ok := configs[app]
+	if ok {
+		return c
+	}
+
+	configs[app] = &config{Settings: map[string]*setting{}}	
+	return configs[app]
+}
+
+// Config returns the config for the passed key, if it exists, or an error.
+func Config(k string) (*config, error) {
+	c, ok := configs[k]
+	if !ok {
+		err := fmt.Errorf("%s config was requested; it does not exist", k)
+		logger.Error(err)
+		return nil, err
+	}
+	return c, nil
+}
+
+// NewConfig returns a *config to the caller. This config is added to configs
+// using the passed key value. If a config using the requested key already
+// exists, an error is returned.
+func NewConfig(k string ) (c *config, err error) {
+	c, ok := configs[k]
+	if ok {
+		err = fmt.Errorf("unable to create a new config for %s, it already exists", k)
+		logger.Error(err)
+		return c, err
+	}
+
+	c = &config{Settings: map[string]*setting{}}
+	configs[k] = c
+	
+	return c, nil
+}
+
+/*
+// AppCode returns the app code for the config. If set, this is used as
+// the prefix for environment variables and configuration setting names.
+func (c *config) AppCode() string {
+	return c.code
+}
+
+
+func (c *config) UseEnv() bool {
+	return c.useEnv
+}
+
+/*
+// SetConfig goes through the initialized Settings and updates the updateable
+// Settings if a new, valid value is found. This applies to, in order: Env
+// variables and config files. For any that are not found, or that are
+// immutable, once set, the original initialization values are used.
+//
+// The merged configuration Settings are then  written to their respective
+// environment variables. At this point, only args, or in application setting
+// changes, can change the non-immutable Settings.
+func (c *config) SetConfig() error {
+	// Load any set environment variables into appConfig. Core and already
+	// set Write Once Settings are not updated from env.
+	c.loadEnvs()
+
+	// Set all the environment variables. This is the application Settings
+	// merged with any already existing environment variable values.
+	err := c.Setenvs()
+	if err != nil {
+		return err
+	}
+
+	// Load the Config file.
+	err = c.loadConfigFile()
+	if err != nil {
+		return err
+	}
+
+	//  Save the config file Settings to their env variables, if allowed.
+	return c.setEnvFromConfigFile()
+}
+*/
+
+/*
+// Set env accepts a key and value and sets a single environment variable from that
+func (c *config) Setenv(k string, v interface{}) error {
+	// if we aren't using environment variables, do nothing.
+	if !appConfig.UseEnv() {
+		return nil
+	}
+
+	var tmp string
+	var err error
+
+	switch appConfig.Settings[k].Type {
+	case "string":
+		err = os.Setenv(k, *v.(*string))
+
+	case "int":
+		err = os.Setenv(k, string(*v.(*int)))
+
+	case "bool":
+		tmp = strconv.FormatBool(*v.(*bool))
+		err = os.Setenv(k, tmp)
+
+	default:
+		err = fmt.Errorf("Unable to set env variable for %s: type is unsupported %s", k, appConfig.Settings[k].Type)
+	}
+	return err
+}
+*/
+
+// SetCode set's the code for this configuration. This can only be done once.
+// If it is already set, it will return an error.
+func (c *config) SetCode(s string) error {
+	if c.code != "" {
+		return errors.New("appCode is already set. AppCode is immutable. Once set, it cannot be altered")
+	}
+
+	c.code = s
+	return nil
+}

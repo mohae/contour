@@ -2,160 +2,32 @@
 package contour
 
 import (
-	"bytes"
-	"encoding/json"
+	_"bytes"
+	_"encoding/json"
+	_"encoding/xml"
 	"errors"
-	"flag"
-	"fmt"
-	"io"
-	"io/ioutil"
-	"os"
+	_"flag"
+	_"fmt"
+	_"io"
+	_"io/ioutil"
+	_"os"
 	"strings"
-	"strconv"
+	_"strconv"
 
-	"github.com/BurntSushi/toml"
+	_ "code.google.com/p/gcfg"
+	_ "github.com/BurntSushi/toml"
 )
 
-// Environment Variable constants for common environment variables.
-// Or you can supply your own values. Contour automatically downcases
-// environment variables for consistency across formats.
-var (
-	EnvConfigFilename    string = "configfilename"
-	EnvConfigFormat      string = "configformat"
-	EnvLogConfigFilename string = "logconfigfilename"
-	EnvLogging           string = "logging"
-)
+const app = "app"
 
-// settingAlias are aliases to settings, each setting is its own alias.
-var settingAlias map[string]string = make(map[string]string)
+// configs allows for support of multiple configurations. The main application
+// config is 'app'. Calling any of Contour's function versions of
+// config.method() is the equivelant of calling config[app].method().
+var configs map[string]*config
 
-// commandAlias are aliases to commands, each command is its own alias.
-var commandAlias map[string]string = make(map[string]string)
-
-// configFile holds the contents of the configuration file
-var configFile map[string]interface{} = make(map[string]interface{})
-
-// config holds the current application configuration
-var appConfig *Config = &Config{settings: map[string]*setting{}}
-
-const (
-	settingNotFoundErr = " setting was not found"
-)
-
-// Config is a group of settings and holds all of the application setting
-// information. Even though contour automatically uses environment variables,
-// unless its told to ignore them, it still needs to maintain state
-// information about each setting so it knows how to handle attempst to update.
-// TODO:
-//	* support ignoring environment variables
-//
-type Config struct {
-
-	// code is the shortcode for this configuration. It is mostly used to
-	// prefix environment variables, when used.
-	code     string
-
-	// useEnv: whether this config writes to and reads from environment
-	// variables. If false, settings are stored only in Config.
-	useEnv bool
-
-	// settings contains a map of the configuration settings for this
-	// config.
-	settings map[string]*setting
+func init() {
+	initConfigs()
 }
-
-// GetAppConfig returns the AppConfig to the caller. Any contour function
-// called uses this config.
-func AppConfig() *Config {
-	return appConfig
-}
-
-// NewConfig returns a *Config to the caller. Any config created by NewConfig()
-// is independent of the appConfig.
-// TODO add methods for all of the AppConfig functions to Config.
-func NewConfig() *Config {
-	return &Config{settings: map[string]*setting{}}
-}
-
-// AppCode returns the app code for the config. If set, this is used as
-// the prefix for environment variables and configuration setting names.
-func (c *Config) AppCode() string {
-	return c.code
-}
-
-// SetAppCode set's the appcode. This can only be done once. If it is already
-// set, it will return an error.
-func (c *Config) SetAppCode(s string) error {
-	if c.code != "" {
-		return errors.New("appCode is already set. AppCode is immutable. Once set, it cannot be altered")
-	}
-
-	c.code = s
-	return nil
-}
-
-// setting holds the information for a configuration setting.
-type setting struct {
-	// Type is the datatype for the setting
-	Type string
-
-	// The current value of the setting
-	Value interface{}
-
-	// Code of the setting
-	Code string
-
-	// Immutable: Once the Value has been set, it cannot be changed. This
-	// allows for registering a setting without a value, so it can be
-	// updated later--becoming immutable in the process.
-	Immutable bool
-
-	// IsCore: whether or not this is considered a core setting. Core
-	// settings if for things like application name, where you don't want
-	// anything else overwriting that value, once set, and you want to be
-	// able to overwrite any existing ENV value if contour hasn't already
-	// set it. Once set, Immutable is also true.
-	IsCore bool
-
-	// IsEnv: whether or not the original source of this setting was its
-	// environment variables, vs. flags or config, etc. This is tracked
-	// because it has implications on override behavior.
-	IsEnv bool
-
-	// IsFlag:  whether or not this is a flag.
-	IsFlag bool
-}
-
-// SetConfig goes through the initialized settings and updates the updateable
-// settings if a new, valid value is found. This applies to, in order: Env
-// variables and config files. For any that are not found, or that are
-// immutable, once set, the original initialization values are used.
-//
-// The merged configuration settings are then  written to their respective
-// environment variables. At this point, only args, or in application setting
-// changes, can change the non-immutable settings.
-func SetConfig() error {
-	// Load any set environment variables into appConfig. Core and already
-	// set Write Once settings are not updated from env.
-	loadEnvs()
-
-	// Set all the environment variables. This is the application settings
-	// merged with any already existing environment variable values.
-	err := Setenvs()
-	if err != nil {
-		return err
-	}
-
-	// Load the Config file.
-	err = loadConfigFile()
-	if err != nil {
-		return err
-	}
-
-	//  Save the config file settings to their env variables, if allowed.
-	return setEnvFromConfigFile()
-}
-
 // configFormat gets the configured config filename and returns the format
 // it is in, if it is a supported format; otherwise an error.
 func configFormat(s string) (string, error) {
@@ -195,6 +67,12 @@ func isSupportedFormat(s string) bool {
 		return true
 	case "toml":
 		return true
+	case "yaml", "yml":
+		return true
+	case "ini":
+		return true
+	case "xml":
+		return true
 	default:
 		return false
 	}
@@ -202,6 +80,7 @@ func isSupportedFormat(s string) bool {
 	return false
 }
 
+/*
 // loadEnvs updates the configuration from the environment variable values.
 // A setting is only updated if it IsUpdateable.
 func loadEnvs() {
@@ -496,35 +375,21 @@ func FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error) {
 
 	return cmdArgs, nil
 }
+*/
 
-func (c *Config) UseEnv() bool {
-	return c.useEnv
+// initConfigs initializes the configs var. This can be called to reset it in
+// testing too.
+func initConfigs() {
+	configs = make(map[string]*config)
 }
 
-// Set env accepts a key and value and sets a single environment variable from that
-func (c *Config) Setenv(k string, v interface{}) error {
-	// if we aren't using environment variables, do nothing.
-	if !appConfig.UseEnv() {
-		return nil
-	}
-
-	var tmp string
-	var err error
-
-	switch appConfig.settings[k].Type {
-	case "string":
-		err = os.Setenv(k, *v.(*string))
-
-	case "int":
-		err = os.Setenv(k, string(*v.(*int)))
-
-	case "bool":
-		tmp = strconv.FormatBool(*v.(*bool))
-		err = os.Setenv(k, tmp)
-
-	default:
-		err = fmt.Errorf("Unable to set env variable for %s: type is unsupported %s", k, appConfig.settings[k].Type)
-	}
-	return err
+// notFoundErr returns a standardized not found error.
+func notFoundErr(k string) error {
+	return errors.New(k + " not found")
 }
 
+// settingNotFoundErr adds the suffix ": setting " to k before calling
+// notFoundErr
+func settingNotFoundErr(k string) error {
+	return notFoundErr(k + ": setting")
+}

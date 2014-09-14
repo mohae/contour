@@ -1,12 +1,12 @@
 package contour
 
 import (
-	"bytes"
+	_"bytes"
 	_ "os"
+	"strconv"
 	"testing"
 
 	"github.com/mohae/customjson"
-	utils "github.com/mohae/utilitybelt"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -15,16 +15,6 @@ type basic struct {
 	value       string
 	expected    string
 	expectedErr string
-}
-
-var testConfig = &Config{Settings: map[string]*setting{
-	"configfilename":    &setting{"string", "config_test.json", "", true, true, false, false},
-	"configformat":      &setting{"string", "", "", false, true, false, false},
-	"logconfigfilename": &setting{"string", "seelog.xml", "", true, false, false, false},
-	"logging":           &setting{"", false, "bool", false, false, false, false},
-	"lower":             &setting{"bool", true, "l", false, false, false, true},
-	"unsetimmutable":    &setting{"string", "", "", true, false, false, false},
-},
 }
 
 var toString = customjson.NewMarshalString()
@@ -95,6 +85,86 @@ var jsonResults = map[string]interface{}{
 	},
 }
 
+
+var testConfig = &config{Settings: map[string]*setting{
+	"corebool":    &setting{
+		Type: "bool",
+		Value: true,
+		IsCore: true,
+	},
+	"coreint":    &setting{
+		Type: "int",
+		Value: 42,
+		IsCore: true,
+	},
+	"corestring":    &setting{
+		Type: "string",
+		Value: "a core string",
+		IsCore: true,
+	},
+	"configbool":    &setting{
+		Type: "bool",
+		Value: true,
+		Code: "",
+		IsConfig: true,
+	},
+	"configint":    &setting{
+		Type: "int",
+		Value: 42,
+		IsConfig: true,
+	},
+	"configstring":    &setting{
+		Type: "string",
+		Value: "a config string",
+		Code: "",
+		IsConfig: true,
+	},
+	"flagbool":    &setting{
+		Type: "bool",
+		Value: true,
+		Code: "b",
+		IsFlag: true,
+		IsConfig: true,
+	},
+	"flagint":    &setting{
+		Type: "int",
+		Value: 42,
+		Code: "i",
+		IsFlag: true,
+		IsConfig: true,
+	},
+	"flagstring":    &setting{
+		Type: "string",
+		Value: "a flag string",
+		Code: "s",
+		IsFlag: true,
+		IsConfig: true,
+	},
+	"bool":    &setting{
+		Type: "bool",
+		Value: true,
+		Code: "b",
+	},
+	"int":    &setting{
+		Type: "int",
+		Value: 42,
+		Code: "i",
+	},
+	"string":    &setting{
+		Type: "string",
+		Value: "a string",
+		Code: "s",
+	},
+}}
+
+var emptyConfigs map[string]*config
+var testConfigs = map[string]*config{
+	app: &config{Settings: map[string]*setting{}},
+	"test1": &config{Settings: map[string]*setting{}},
+}
+
+
+// helper function
 func checkTestReturn(test basic, format string, err error) {
 	if err != nil {
 		if test.expectedErr != "" {
@@ -119,20 +189,25 @@ func checkTestReturn(test basic, format string, err error) {
 	}
 }
 
-func TestGetConfigFormat(t *testing.T) {
+// Testing 
+func TestConfigFormat(t *testing.T) {
 	tests := []basic{
 		{"an empty configfilename", "", "", "a config filename was expected, none received"},
 		{"a configfilename without an extension", "config", "", "unable to determine config format, the configuration file, config, doesn't have an extension"},
 		{"a configfilename with an invalid extension", "config.bmp", "", "bmp is an unsupported format for configuration files"},
 		{"a configfilename with a json extension", "config.json", "json", ""},
 		{"a configfilename with a toml extension", "config.toml", "toml", ""},
+		{"a configfilename with a toml extension", "config.yaml", "yaml", ""},
+		{"a configfilename with a toml extension", "config.yml", "yml", ""},
+		{"a configfilename with a toml extension", "config.xml", "xml", ""},
+		{"a configfilename with a toml extension", "config.ini", "ini", ""},
 	}
 
 	for _, test := range tests {
 		Convey("Given "+test.name+" Test", t, func() {
 
 			Convey("Getting the config format", func() {
-				format, err := getConfigFormat(test.value)
+				format, err := configFormat(test.value)
 				checkTestReturn(test, format, err)
 			})
 		})
@@ -145,14 +220,18 @@ func TestIsSupportedFormat(t *testing.T) {
 		{"empty format test", "", "false", ""},
 		{"invalid format test", "bmp", "false", ""},
 		{"json format test", "json", "true", ""},
-		{"toml", "toml", "true", ""},
+		{"tom format testl", "toml", "true", ""},
+		{"yaml format test", "yaml", "true", ""},
+		{"yml format test", "yml", "true", ""},
+		{"xml format test", "xml", "true", ""},
+		{"ini format test", "ini", "true", ""},
 	}
 
 	for _, test := range tests {
 		Convey("Given some supported format tests", t, func() {
 
 			Convey(test.name, func() {
-				is := utils.BoolToString(isSupportedFormat(test.value))
+				is := strconv.FormatBool(isSupportedFormat(test.value))
 
 				Convey("Should result in "+test.expected, func() {
 					So(is, ShouldEqual, test.expected)
@@ -165,9 +244,11 @@ func TestIsSupportedFormat(t *testing.T) {
 
 }
 
+/*
 func TestLoadEnvs(t *testing.T) {
 
 }
+
 
 // Only testing failure for now
 func TestLoadConfigFile(t *testing.T) {
@@ -320,7 +401,7 @@ func TestSetIdempotentString(t *testing.T) {
 					So(res, ShouldEqual, test.value)
 				})
 
-				Convey("and the AppConfig settings for it", func() {
+				Convey("and the AppConfig Settings for it", func() {
 					So(AppConfig.Settings[test.key], ShouldResemble, test.expected)
 				})
 
@@ -332,7 +413,6 @@ func TestSetIdempotentString(t *testing.T) {
 
 }
 
-/*
 func TestSetBoolFlag(t *testing.T) {
 	tests := []struct{
 		name string
@@ -363,3 +443,49 @@ func TestSetBoolFlag(t *testing.T) {
 
 }
 */
+
+func TestNotFoundErr(t *testing.T) {
+	tests := []basic{
+		basic{"notFoundErr test1", "setting", "setting not found", ""},
+		basic{"notFoundErr test2", "grail", "grail not found", ""},
+	}
+
+	for _, test := range tests {
+
+		Convey(test.name + "  given a string", t, func() {
+			Convey("calling notFoundErr with it", func() {
+				err := notFoundErr(test.value)
+				Convey("should result in an error", func () {
+					So(err, ShouldNotBeNil)
+					Convey("with the error message", func() {
+						So(err.Error(), ShouldEqual, test.expected)
+					})
+				})
+			})
+		})
+	}
+				
+}
+
+func TestSettingNotFoundErr(t *testing.T) {
+	tests := []basic{
+		basic{"notFoundErr test1", "dinosaur", "dinosaur: setting not found", ""},
+		basic{"notFoundErr test2", "swallow type", "swallow type: setting not found", ""},
+	}
+
+	for _, test := range tests {
+
+		Convey(test.name + "  given a string", t, func() {
+			Convey("calling notFoundErr with it", func() {
+				err := settingNotFoundErr(test.value)
+				Convey("should result in an error", func () {
+					So(err, ShouldNotBeNil)
+					Convey("with the error message", func() {
+						So(err.Error(), ShouldEqual, test.expected)
+					})
+				})
+			})
+		})
+	}
+				
+}
