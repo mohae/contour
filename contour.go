@@ -125,7 +125,7 @@ func loadEnvs() {
 */
 // getCfgFile() is the entry point for reading the configuration file.
 func (c *Cfg) getFile() (map[string]interface{}, error) {
-	setting, ok := c.Settings[EnvCfgFile]
+	setting, ok := c.Settings["configfile"]
 	if !ok {
 		// Wasn't configured, nothing to do. Not an error.
 		return nil, nil
@@ -152,13 +152,14 @@ func (c *Cfg) getFile() (map[string]interface{}, error) {
 		return nil, err
 	}
 
+	fmt.Printf("%s read\n", fBytes)
 	cfg := make(map[string]interface{})
 	cfg, err = marshalFormatReader(c.Settings[EnvCfgFormat].Value.(string), bytes.NewReader(fBytes))
 	if err != nil {
 		logger.Error(err)
 		return nil, err
 	}
-
+	fmt.Printf("%v\n",cfg)
 	return cfg, nil
 }
 
@@ -181,14 +182,14 @@ func marshalFormatReader(t string, r io.Reader) (map[string]interface{}, error) 
 	ret := make(map[string]interface{})
 	switch t {
 	case "json":
-		err := json.Unmarshal(b.Bytes(), ret)
+		err := json.Unmarshal(b.Bytes(), &ret)
 		if err != nil {
 			logger.Error(err)
 			return nil, err
 		}
 
 	case "toml":
-		_, err := toml.Decode(b.String(), ret)
+		_, err := toml.Decode(b.String(), &ret)
 		if err != nil {
 			logger.Error(err)
 			return nil,  err

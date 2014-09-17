@@ -124,10 +124,12 @@ func (c *Cfg) SetConfig() error {
 func (c *Cfg) setFromFile() error {
 	f, err := c.getFile()
 	if err != nil {
+		fmt.Println(err)
 		logger.Error(err)
 		return err
 	}
 
+	fmt.Printf("setfromfile: %v\n", f)
 	// Go through the file contents and update the Cfg
 	for k, v := range f {
 		// Find the key in the settings
@@ -137,6 +139,7 @@ func (c *Cfg) setFromFile() error {
 			continue
 		}
 
+		fmt.Printf("%s: %s\n", k, v)
 		err := c.updateE(k, v)
 		if err != nil {
 			return err
