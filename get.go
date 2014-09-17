@@ -48,9 +48,9 @@ func (c *Cfg) GetIntE(k string) (int, error) {
 
 	switch c.Settings[k].Value.(type) {
 	case int:
-		return c.Settings.k.Value.(int), nil
+		return c.Settings[k].Value.(int), nil
 	case *int:
-		return c.Settings[k].Value.(*int), nil
+		return *c.Settings[k].Value.(*int), nil
 	}
 
 	return 0, nil
@@ -67,7 +67,7 @@ func (c *Cfg) GetStringE(k string) (string, error) {
 	case string:
 		return c.Settings[k].Value.(string), nil
 	case *string:
-		return c.Settings[k].Value.(*string), nil
+		return *c.Settings[k].Value.(*string), nil
 	}
 
 	return "", nil
