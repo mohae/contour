@@ -26,7 +26,17 @@ func (c *Cfg) GetBoolE(k string) (bool, error) {
 		return false, notFoundErr(k)
 	}
 
-	return *c.Settings[k].Value.(*bool), nil
+	switch c.Settings[k].Value.(type) {
+	case bool:
+		return c.Settings[k].Value.(bool), nil
+	case *bool:
+		return *c.Settings[k].Value.(*bool), nil
+	}
+
+	// Should never happen, but since we know the setting is there and we
+	// expect it to be bool, given this method was called, we assume any
+	// non-bool/*bool type == false.
+	return false, nil
 }
 
 // GetIntE returns the setting Value as an int.
@@ -36,7 +46,14 @@ func (c *Cfg) GetIntE(k string) (int, error) {
 		return 0, notFoundErr(k)
 	}
 
-	return c.Settings[k].Value.(int), nil
+	switch c.Settings[k].Value.(type) {
+	case int:
+		return c.Settings.k.Value.(int), nil
+	case *int:
+		return c.Settings[k].Value.(*int), nil
+	}
+
+	return 0, nil
 }
 
 // GetStringE returns the setting Value as a string.
@@ -46,7 +63,14 @@ func (c *Cfg) GetStringE(k string) (string, error) {
 		return "", notFoundErr(k)
 	}
 
-	return c.Settings[k].Value.(string), nil
+	switch c.Settings[k].Value.(type) {
+	case string:
+		return c.Settings[k].Value.(string), nil
+	case *string:
+		return c.Settings[k].Value.(*string), nil
+	}
+
+	return "", nil
 }
 
 // GetInterfaceE is a convenience wrapper function to Get
@@ -82,8 +106,7 @@ func (c *Cfg) GetInterface(k string) interface{} {
 	return c.Get(k)
 }
 
-
-// Filter Methods obtain a list of flags of the filter type, e.g. boolFilter 
+// Filter Methods obtain a list of flags of the filter type, e.g. boolFilter
 // for bool flags, and returns them.
 // GetBoolFilterNames returns a list of filter names (flags).
 func (c *Cfg) GetBoolFilterNames() []string {
@@ -123,7 +146,6 @@ func (c *Cfg) GetStringFilterNames() []string {
 
 	return names
 }
-
 
 // Convenience functions for configs[app]
 // Get returns the setting Value as an interface{}.
@@ -177,13 +199,11 @@ func Get(k string) interface{} {
 	return s
 }
 
-
 // GetBool returns the setting Value as a bool.
 func GetBool(k string) bool {
 	s, _ := configs[app].GetBoolE(k)
 	return s
 }
-
 
 // GetInt returns the setting Value as an int.
 func GetInt(k string) int {
@@ -198,7 +218,7 @@ func GetString(k string) string {
 }
 
 // GetInterface is a convenience wrapper function to Get
-func GetInterface(k string) interface{} {	
+func GetInterface(k string) interface{} {
 	return configs[app].Get(k)
 }
 
@@ -240,7 +260,3 @@ func GetStringFilterNames() []string {
 
 	return names
 }
-
-
-
-
