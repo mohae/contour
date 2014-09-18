@@ -12,7 +12,7 @@ func (c *Cfg) updateE(k string, v interface{}) error {
 		return err
 	}
 
-	c.Settings[k].Value = v
+	c.settings[k].Value = v
 	return nil
 }
 

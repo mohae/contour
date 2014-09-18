@@ -11,26 +11,26 @@ package contour
 // GetE returns the setting Value as an interface{}. If its not a valid
 // setting, an error is returned.
 func (c *Cfg) GetE(k string) (interface{}, error) {
-	_, ok := c.Settings[k]
+	_, ok := c.settings[k]
 	if !ok {
 		return nil, notFoundErr(k)
 	}
 
-	return c.Settings[k].Value, nil
+	return c.settings[k].Value, nil
 }
 
 // GetBoolE returns the setting Value as a bool.
 func (c *Cfg) GetBoolE(k string) (bool, error) {
-	_, ok := c.Settings[k]
+	_, ok := c.settings[k]
 	if !ok {
 		return false, notFoundErr(k)
 	}
 
-	switch c.Settings[k].Value.(type) {
+	switch c.settings[k].Value.(type) {
 	case bool:
-		return c.Settings[k].Value.(bool), nil
+		return c.settings[k].Value.(bool), nil
 	case *bool:
-		return *c.Settings[k].Value.(*bool), nil
+		return *c.settings[k].Value.(*bool), nil
 	}
 
 	// Should never happen, but since we know the setting is there and we
@@ -41,16 +41,16 @@ func (c *Cfg) GetBoolE(k string) (bool, error) {
 
 // GetIntE returns the setting Value as an int.
 func (c *Cfg) GetIntE(k string) (int, error) {
-	_, ok := c.Settings[k]
+	_, ok := c.settings[k]
 	if !ok {
 		return 0, notFoundErr(k)
 	}
 
-	switch c.Settings[k].Value.(type) {
+	switch c.settings[k].Value.(type) {
 	case int:
-		return c.Settings[k].Value.(int), nil
+		return c.settings[k].Value.(int), nil
 	case *int:
-		return *c.Settings[k].Value.(*int), nil
+		return *c.settings[k].Value.(*int), nil
 	}
 
 	return 0, nil
@@ -58,16 +58,16 @@ func (c *Cfg) GetIntE(k string) (int, error) {
 
 // GetStringE returns the setting Value as a string.
 func (c *Cfg) GetStringE(k string) (string, error) {
-	_, ok := c.Settings[k]
+	_, ok := c.settings[k]
 	if !ok {
 		return "", notFoundErr(k)
 	}
 
-	switch c.Settings[k].Value.(type) {
+	switch c.settings[k].Value.(type) {
 	case string:
-		return c.Settings[k].Value.(string), nil
+		return c.settings[k].Value.(string), nil
 	case *string:
-		return *c.Settings[k].Value.(*string), nil
+		return *c.settings[k].Value.(*string), nil
 	}
 
 	return "", nil
@@ -112,7 +112,7 @@ func (c *Cfg) GetInterface(k string) interface{} {
 func (c *Cfg) GetBoolFilterNames() []string {
 	var names []string
 
-	for k, setting := range c.Settings {
+	for k, setting := range c.settings {
 		if setting.IsFlag && setting.Type == "bool" {
 			names = append(names, k)
 		}
@@ -125,7 +125,7 @@ func (c *Cfg) GetBoolFilterNames() []string {
 func (c *Cfg) GetIntFilterNames() []string {
 	var names []string
 
-	for k, setting := range c.Settings {
+	for k, setting := range c.settings {
 		if setting.IsFlag && setting.Type == "int" {
 			names = append(names, k)
 		}
@@ -138,7 +138,7 @@ func (c *Cfg) GetIntFilterNames() []string {
 func (c *Cfg) GetStringFilterNames() []string {
 	var names []string
 
-	for k, setting := range c.Settings {
+	for k, setting := range c.settings {
 		if setting.IsFlag && setting.Type == "string" {
 			names = append(names, k)
 		}
@@ -151,42 +151,42 @@ func (c *Cfg) GetStringFilterNames() []string {
 // Get returns the setting Value as an interface{}.
 // GetE returns the setting Value as an interface{}.
 func GetE(k string) (interface{}, error) {
-	_, ok := configs[app].Settings[k]
+	_, ok := configs[app].settings[k]
 	if !ok {
 		return nil, notFoundErr(k)
 	}
 
-	return configs[app].Settings[k].Value, nil
+	return configs[app].settings[k].Value, nil
 }
 
 // GetBoolE returns the setting Value as a bool.
 func GetBoolE(k string) (bool, error) {
-	_, ok := configs[app].Settings[k]
+	_, ok := configs[app].settings[k]
 	if !ok {
 		return false, notFoundErr(k)
 	}
 
-	return *configs[app].Settings[k].Value.(*bool), nil
+	return *configs[app].settings[k].Value.(*bool), nil
 }
 
 // GetIntE returns the setting Value as an int.
 func GetIntE(k string) (int, error) {
-	_, ok := configs[app].Settings[k]
+	_, ok := configs[app].settings[k]
 	if !ok {
 		return 0, notFoundErr(k)
 	}
 
-	return *configs[app].Settings[k].Value.(*int), nil
+	return *configs[app].settings[k].Value.(*int), nil
 }
 
 // GetStringE returns the setting Value as a string.
 func GetStringE(k string) (string, error) {
-	_, ok := configs[app].Settings[k]
+	_, ok := configs[app].settings[k]
 	if !ok {
 		return "", notFoundErr(k)
 	}
 
-	return configs[app].Settings[k].Value.(string), nil
+	return configs[app].settings[k].Value.(string), nil
 }
 
 // GetInterfaceE is a convenience wrapper function to Get
@@ -226,7 +226,7 @@ func GetInterface(k string) interface{} {
 func GetBoolFilterNames() []string {
 	var names []string
 
-	for k, setting := range configs[app].Settings {
+	for k, setting := range configs[app].settings {
 		if setting.IsFlag && setting.Type == "bool" {
 			names = append(names, k)
 		}
@@ -239,7 +239,7 @@ func GetBoolFilterNames() []string {
 func GetIntFilterNames() []string {
 	var names []string
 
-	for k, setting := range configs[app].Settings {
+	for k, setting := range configs[app].settings {
 		if setting.IsFlag && setting.Type == "int" {
 			names = append(names, k)
 		}
@@ -252,7 +252,7 @@ func GetIntFilterNames() []string {
 func GetStringFilterNames() []string {
 	var names []string
 
-	for k, setting := range configs[app].Settings {
+	for k, setting := range configs[app].settings {
 		if setting.IsFlag && setting.Type == "string" {
 			names = append(names, k)
 		}

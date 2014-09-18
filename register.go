@@ -42,7 +42,7 @@ func (c *Cfg) RegisterConfigFilename(k, v string) error {
 		return err
 	}
 
-	c.Settings[EnvCfgFormat].Value = format
+	c.settings[EnvCfgFormat].Value = format
 
 	// Now we can update the format, since it wasn't set before, it can be
 	// set now before it becomes read only.
@@ -55,31 +55,47 @@ func (c *Cfg) RegisterConfigFilename(k, v string) error {
 // new setting if it does not.
 func (c *Cfg) RegisterSetting(Type string, k string, v interface{}, Code string, IsCore, IsCfg, IsFlag bool) {
 	var update bool
-	_, ok := c.Settings[k]
+	_, ok := configs[app].settings[k]
 	if ok {
 		// Core Settings can't be re-registered.
-		if c.Settings[k].IsCore {
+		if configs[app].settings[k].IsCore {
 			return
 		}
 
-		if c.Settings[k].Value != nil {
+		if configs[app].settings[k].Value != nil {
 			return
 		}
 
 		update = true
 	}
 
+	// Keep track of whether or not a config is being used. If a setting is
+	// registered as a config setting, it is assumed a configuration source
+	// is being used.
+	if IsCfg {
+		c.useCfg = true
+	}
+
+	// Keep track of whether or not flags are being used. If a setting is
+	// registered as a flag setting, it is assumed that flags are being 
+	// used.
+	if IsFlag {
+		c.useFlags = true
+	}
+
+	// If the registered setting is allowed to be updated:
 	if update {
-		c.Settings[k].Type = Type
-		c.Settings[k].Value = v
-		c.Settings[k].Code = Code
-		c.Settings[k].IsCore = IsCore
-		c.Settings[k].IsCfg = IsCfg
-		c.Settings[k].IsFlag = IsFlag
+		configs[app].settings[k].Type = Type
+		configs[app].settings[k].Value = v
+		configs[app].settings[k].Code = Code
+		configs[app].settings[k].IsCore = IsCore
+		configs[app].settings[k].IsCfg = IsCfg
+		configs[app].settings[k].IsFlag = IsFlag
 		return
 	}
 
-	c.Settings[k] = &setting{
+	// Otherwise register it as a new setting.
+	configs[app].settings[k] = &setting{
 		Type:      Type,
 		Value:     v,
 		Code:      Code,
@@ -202,7 +218,7 @@ func RegisterConfigFilename(k, v string) error {
 		return err
 	}
 
-	configs[app].Settings[EnvCfgFormat].Value = format
+	configs[app].settings[EnvCfgFormat].Value = format
 
 	configs[app].RegisterString(EnvCfgFormat, format)
 
@@ -212,102 +228,61 @@ func RegisterConfigFilename(k, v string) error {
 // RegisterSetting checks to see if the entry already exists and adds the
 // new setting if it does not.
 func RegisterSetting(Type string, k string, v interface{}, Code string, IsCore, IsCfg, IsFlag bool) {
-	var update bool
-	_, ok := configs[app].Settings[k]
-	if ok {
-		// Core Settings can't be re-registered.
-		if configs[app].Settings[k].IsCore {
-			return
-		}
-
-		if configs[app].Settings[k].Value != nil {
-			return
-		}
-
-		update = true
-	}
-
-	if update {
-		configs[app].Settings[k].Type = Type
-		configs[app].Settings[k].Value = v
-		configs[app].Settings[k].Code = Code
-		configs[app].Settings[k].IsCore = IsCore
-		configs[app].Settings[k].IsCfg = IsCfg
-		configs[app].Settings[k].IsFlag = IsFlag
-		return
-	}
-
-	configs[app].Settings[k] = &setting{
-		Type:      Type,
-		Value:     v,
-		Code:      Code,
-		IsCore:    IsCore,
-		IsCfg:     IsCfg,
-		IsFlag:    IsFlag,
-	}
+	configs[app].RegisterSetting(Type, k, v, Code, IsCore, IsCfg, IsFlag)
 }
 
 // RegisterCoreBool adds the information to the AppsConfig struct, but does not
 // save it to its environment variable
 func RegisterCoreBool(k string, v bool) {
 	configs[app].RegisterSetting("bool", k, v, "", true, false, false)
-	return
 }
 
 // RegisterCoreInt adds the information to the AppsConfig struct, but does not
 // save it to its environment variable
 func RegisterCoreInt(k string, v int) {
 	configs[app].RegisterSetting("int", k, v, "", true, false, false)
-	return
 }
 
 // RegisterCoreString adds the information to the AppsConfig struct, but does not
 // save it to its environment variable
 func RegisterCoreString(k, v string) {
 	configs[app].RegisterSetting("string", k, v, "", true, false, false)
-	return
 }
 
 // RegisterConfBool adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func RegisterConfBool(k string, v bool) {
 	configs[app].RegisterSetting("bool", k, v, "", false, true, false)
-	return
 }
 
 // RegisterConfInt adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func RegisterConfInt(k string, v bool) {
 	configs[app].RegisterSetting("int", k, v, "", false, true, false)
-	return
 }
 
 // RegisterConfString adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func RegisterConfString(k string, v bool) {
 	configs[app].RegisterSetting("string", k, v, "", false, true, false)
-	return
 }
 
 // RegisterFlagBool adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func RegisterFlagBool(k string, v bool, f string) {
 	configs[app].RegisterSetting("bool", k, v, f, false, true, true)
-	return
 }
 
 // RegisterIntFlag adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func RegisterFlagInt(k string, v int, f string) {
 	configs[app].RegisterSetting("int", k, v, f, false, true, true)
-	return
 }
 
 // RegisterStringFlag adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func RegisterFlagString(k, v, f string) {
 	configs[app].RegisterSetting("string", k, v, f, false, true, true)
-	return
 }
 
 
@@ -315,19 +290,16 @@ func RegisterFlagString(k, v, f string) {
 // save it to its environment variable.
 func RegisterBool(k string, v bool) {
 	configs[app].RegisterSetting("bool", k, v, "", false, false, false)
-	return
 }
 
 // RegisterInt adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func RegisterInt(k string, v int) {
 	configs[app].RegisterSetting("int", k, v, "", false, false, false)
-	return
 }
 
 // RegisterString adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func RegisterString(k, v string) {
 	configs[app].RegisterSetting("string", k, v, "", false, false, false)
-	return
 }

@@ -37,6 +37,7 @@ var (
 func init() {
 	initConfigs()
 }
+
 // configFormat gets the configured config filename and returns the format
 // it is in, if it is a supported format; otherwise an error.
 func configFormat(s string) (string, error) {
@@ -125,7 +126,7 @@ func loadEnvs() {
 */
 // getCfgFile() is the entry point for reading the configuration file.
 func (c *Cfg) getFile() (map[string]interface{}, error) {
-	setting, ok := c.Settings["configfile"]
+	setting, ok := c.settings["configfile"]
 	if !ok {
 		// Wasn't configured, nothing to do. Not an error.
 		return nil, nil
@@ -142,7 +143,7 @@ func (c *Cfg) getFile() (map[string]interface{}, error) {
 
 	// This shouldn't happend, but lots of things happen that shouldn't.
 	// It should have been registered already. so if it doesn't exit, err.
-	if c.Settings[EnvCfgFormat].Value == nil {
+	if c.settings[EnvCfgFormat].Value == nil {
 		return nil, fmt.Errorf("Unable to load the cfg file, the configuration format type was not set")
 	}
 
@@ -152,14 +153,12 @@ func (c *Cfg) getFile() (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	fmt.Printf("%s read\n", fBytes)
 	cfg := make(map[string]interface{})
-	cfg, err = marshalFormatReader(c.Settings[EnvCfgFormat].Value.(string), bytes.NewReader(fBytes))
+	cfg, err = marshalFormatReader(c.settings[EnvCfgFormat].Value.(string), bytes.NewReader(fBytes))
 	if err != nil {
 		logger.Error(err)
 		return nil, err
 	}
-	fmt.Printf("%v\n",cfg)
 	return cfg, nil
 }
 
@@ -210,7 +209,7 @@ func marshalFormatReader(t string, r io.Reader) (map[string]interface{}, error) 
 func (c *Cfg) canUpdate(k string) bool {
 	// See if the key exists, if it doesn't already exist, it can't be
 	// updated.
-	_, ok := c.Settings[k]
+	_, ok := c.settings[k]
 	if !ok {
 		return false
 	}
@@ -218,13 +217,13 @@ func (c *Cfg) canUpdate(k string) bool {
 	// See if there are any settings that prevent it from being overridden.
 	// Core and Environment variables are never settable. Core must be set
 	// during registration.
-	if c.Settings[k].IsCore {
+	if c.settings[k].IsCore {
 		return false
 	}
 
 	// Only flags and conf types are updateable, otherwise they must be
 	// registered or set.
-	if c.Settings[k].IsCfg || c.Settings[k].IsFlag  {
+	if c.settings[k].IsCfg || c.settings[k].IsFlag  {
 		return true
 	}
 
@@ -241,7 +240,7 @@ func canUpdate(k string) bool {
 func (c *Cfg) canOverride(k string) bool {
 	// See if the key exists, if it doesn't already exist, it can't be
 	// overridden
-	_, ok := c.Settings[k]
+	_, ok := c.settings[k]
 	if !ok {
 		return false
 	}
@@ -249,7 +248,7 @@ func (c *Cfg) canOverride(k string) bool {
 	// See if there are any settings that prevent it from being overridden.
 	// Core can never be overridden
 	// Must be a flag to override.
-	if c.Settings[k].IsCore || !c.Settings[k].IsFlag {
+	if c.settings[k].IsCore || !c.settings[k].IsFlag {
 		return false
 	}
 

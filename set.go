@@ -48,7 +48,7 @@ func (c *Cfg) setCfg(cf map[string]interface{}) error {
 
 	for k, v := range cf {
 		// Find the key in the Settings
-		_, ok := c.Settings[k]
+		_, ok := c.settings[k]
 		if !ok {
 			// skip Settings that don't already exist
 			continue
@@ -72,14 +72,14 @@ func (c *Cfg) setCfg(cf map[string]interface{}) error {
 
 // SetSetting
 func (c *Cfg) SetSetting(Type, k string, v interface{}, Code string, IsCore, IsCfg, IsFlag bool) error {
-	_, ok := c.Settings[k]
+	_, ok := c.settings[k]
 	if ok {
 		err := fmt.Errorf("%s: key already exists, cannot add another setting with the same key")
 		logger.Error(err)
 		return err
 	}
 
-	c.Settings[k] = &setting{
+	c.settings[k] = &setting{
 		Type:	Type,
 		Value:	v,
 		Code:	Code,

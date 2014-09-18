@@ -23,8 +23,8 @@ func (c *Cfg) FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error)
 	var flags int
 
 	for _, name := range boolFilterNames {
-		if c.Settings[name].IsFlag {
-			boolFilters[flags] = flagSet.Bool(name, c.Settings[name].Value.(bool), fmt.Sprintf("filter %s", name))
+		if c.settings[name].IsFlag {
+			boolFilters[flags] = flagSet.Bool(name, c.settings[name].Value.(bool), fmt.Sprintf("filter %s", name))
 			bFilterNames[flags] = name
 			flags++
 		}
@@ -39,8 +39,8 @@ func (c *Cfg) FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error)
 	flags = 0
 
 	for _, name := range intFilterNames {
-		if c.Settings[name].IsFlag {
-			intFilters[flags] = flagSet.Int(name, c.Settings[name].Value.(int), fmt.Sprintf("filter %s", name))
+		if c.settings[name].IsFlag {
+			intFilters[flags] = flagSet.Int(name, c.settings[name].Value.(int), fmt.Sprintf("filter %s", name))
 			iFilterNames[flags] = name
 			flags++
 		}
@@ -54,9 +54,8 @@ func (c *Cfg) FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error)
 	flags = 0
 
 	for _, name := range stringFilterNames {
-		if c.Settings[name].IsFlag {
-			fmt.Println(flags)
-			stringFilters[flags] = flagSet.String(name, c.Settings[name].Value.(string), fmt.Sprintf("filter %s", name))
+		if c.settings[name].IsFlag {
+			stringFilters[flags] = flagSet.String(name, c.settings[name].Value.(string), fmt.Sprintf("filter %s", name))
 			sFilterNames[flags] = name
 			flags++
 		}
@@ -73,23 +72,24 @@ func (c *Cfg) FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error)
 
 	// Process the captured values
 	for i, v := range boolFilters {
-		if v != c.Settings[bFilterNames[i]].Value {
+		if v != c.settings[bFilterNames[i]].Value {
 			Override(bFilterNames[i], v)
 		}
 	}
 
 	for i, v := range intFilters {
-		if v != c.Settings[iFilterNames[i]].Value {
+		if v != c.settings[iFilterNames[i]].Value {
 			Override(iFilterNames[i], v)
 		}
 	}
 
 	for i, v := range stringFilters {
-		if v != c.Settings[sFilterNames[i]].Value {
+		if v != c.settings[sFilterNames[i]].Value {
 			Override(sFilterNames[i], v)
 		}
 	}
 
+	c.flagsSet = true	
 	return cmdArgs, nil
 }
 

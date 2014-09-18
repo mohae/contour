@@ -15,7 +15,7 @@ func (c *Cfg) Override(k string, v interface{}) error {
 		return nil
 	}
 	// If it can't be overriden, 
-	if c.Settings[k].IsCore || !c.Settings[k].IsFlag {
+	if c.settings[k].IsCore || !c.settings[k].IsFlag {
 		err := fmt.Errorf("%v: setting is not a flag. Only flags can be overridden", k)
 		logger.Warn(err)
 		return err
@@ -30,7 +30,7 @@ func (c *Cfg) Override(k string, v interface{}) error {
 	}
 */
 
-	c.Settings[k].Value = v
+	c.settings[k].Value = v
 	return nil
 }
 
