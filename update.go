@@ -56,35 +56,35 @@ func (c *Cfg) UpdateString(k, v string) {
 // UpdateBoolE adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func UpdateBoolE(k string, v bool) error {
-	return configs[app].updateE(k, v)
+	return configs[0].updateE(k, v)
 }
 
 // UpdateIntE adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func UpdateIntE(k string, v int) error {
-	return configs[app].updateE(k, v)
+	return configs[0].updateE(k, v)
 }
 
 // UpdateStringE adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func UpdateStringE(k, v string) error {
-	return configs[app].updateE(k, v)
+	return configs[0].updateE(k, v)
 }
 
 // UpdateBool adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func UpdateBool(k string, v bool) {
-	configs[app].UpdateBool(k, v)
+	configs[0].UpdateBool(k, v)
 }
 
 // UpdateInt adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func UpdateInt(k string, v int) {
-	configs[app].UpdateInt(k, v)
+	configs[0].UpdateInt(k, v)
 }
 
 // UpdateString adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func UpdateString(k, v string) {
-	configs[app].UpdateString(k, v)
+	configs[0].UpdateString(k, v)
 }

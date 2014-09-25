@@ -94,5 +94,5 @@ func (c *Cfg) FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error)
 }
 
 func FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error) {
-	return configs[app].FilterArgs(flagSet, args)
+	return configs[0].FilterArgs(flagSet, args)
 }

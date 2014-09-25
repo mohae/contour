@@ -53,7 +53,8 @@ func ParseFormat(s string) Format {
 // configs allows for support of multiple configurations. The main application
 // config is 'app'. Calling any of Contour's function versions of
 // config.method() is the equivelant of calling config[app].method().
-var configs map[string]*Cfg
+var configs []*Cfg
+var configNames []string
 
 // Contour ironment variable names for the pre-configured core setting names
 // that it comes with. These are public and are directly settable if you wish
@@ -274,7 +275,7 @@ func (c *Cfg) canUpdate(k string) bool {
 }
 
 func canUpdate(k string) bool {
-	return configs[app].canUpdate(k)
+	return configs[0].canUpdate(k)
 }
 
 // canOverride() checks to see if the setting can be overridden. Overrides
@@ -299,7 +300,7 @@ func (c *Cfg) canOverride(k string) bool {
 }
 
 func canOverride(k string) bool {
-	return configs[app].canOverride(k)
+	return configs[0].canOverride(k)
 }
 
 /*
@@ -350,7 +351,10 @@ func AddSettingAlias(setting, alias string) error {
 // initConfigs initializes the configs var. This can be called to reset it in
 // testing too.
 func initConfigs() {
-	configs = make(map[string]*Cfg)
+	configs = make([]*Cfg, 1)
+	configs[0] = &Cfg{name: app, settings: map[string]*setting{}}
+	configNames = make([]string, 1)
+	configNames[0] = app
 }
 
 // notFoundErr returns a standardized not found error.

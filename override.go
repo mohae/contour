@@ -39,6 +39,6 @@ func (c *Cfg) Override(k string, v interface{}) error {
 }
 
 func Override(k string, v interface{}) error {
-	return configs[app].Override(k, v)
+	return configs[0].Override(k, v)
 }
 

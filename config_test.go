@@ -34,7 +34,7 @@ func TestConfig(t *testing.T) {
 		Convey("calling Config", func() {
 			_, err := Config("test")
 			Convey("should result in an error", func() {
-				So(err.Error(), ShouldEqual, "test config was requested; it does not exist")
+				So(err.Error(), ShouldEqual, "\"test\" config not found")
 			})
 		})
 	})
@@ -91,7 +91,7 @@ func TestNewconfig(t *testing.T) {
 		Convey("calling NewConfig", func() {
 			_, err := NewConfig("test")
 			Convey("should result in an error", func() {
-				So(err.Error(), ShouldEqual, "unable to create a new config for test, it already exists")
+				So(err.Error(), ShouldEqual, "\"test\" configuration already exists")
 			})
 		})
 	})
