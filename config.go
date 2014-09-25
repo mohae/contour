@@ -3,6 +3,7 @@ package contour
 import (
 	"fmt"
 	_ "os"
+	"sync"
 )
 
 // Cfg is a group of Settings and holds all of the application setting
@@ -15,6 +16,7 @@ import (
 type Cfg struct {
 	name string
 
+	Lock sync.RWMutex
 	// code is the shortcode for this configuration. It is mostly used to
 	// prefix environment variables, when used.
 	code string

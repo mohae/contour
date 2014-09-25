@@ -53,8 +53,10 @@ func (c *Cfg) RegisterConfigFilename(k, v string) error {
 // new setting if it does not.
 func (c *Cfg) RegisterSetting(Type string, k string, v interface{}, Code string, IsCore, IsCfg, IsFlag bool) {
 	var update bool
+	c.Lock.RLock()
 	_, ok := configs[app].settings[k]
 	if ok {
+		c.Lock.RUnlock()
 		// Core Settings can't be re-registered.
 		if configs[app].settings[k].IsCore {
 			return
@@ -66,6 +68,10 @@ func (c *Cfg) RegisterSetting(Type string, k string, v interface{}, Code string,
 
 		update = true
 	}
+
+	c.Lock.RLock()
+	c.Lock.Lock()
+	defer c.Lock.Lock()
 
 	// Keep track of whether or not a config is being used. If a setting is
 	// registered as a config setting, it is assumed a configuration source
@@ -83,12 +89,12 @@ func (c *Cfg) RegisterSetting(Type string, k string, v interface{}, Code string,
 
 	// If the registered setting is allowed to be updated:
 	if update {
-		configs[app].settings[k].Type = Type
-		configs[app].settings[k].Value = v
-		configs[app].settings[k].Code = Code
-		configs[app].settings[k].IsCore = IsCore
-		configs[app].settings[k].IsCfg = IsCfg
-		configs[app].settings[k].IsFlag = IsFlag
+		c.settings[k].Type = Type
+		c.settings[k].Value = v
+		c.settings[k].Code = Code
+		c.settings[k].IsCore = IsCore
+		c.settings[k].IsCfg = IsCfg
+		c.settings[k].IsFlag = IsFlag
 		return
 	}
 
@@ -215,8 +221,6 @@ func RegisterConfigFilename(k, v string) error {
 	if err != nil {
 		return err
 	}
-
-//	configs[app].settings[CfgFormat].Value = format.String()
 
 	configs[app].RegisterString(CfgFormat, format.String())
 

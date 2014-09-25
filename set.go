@@ -47,8 +47,10 @@ func (c *Cfg) setCfg(cf map[string]interface{}) error {
 	}
 
 	for k, v := range cf {
+		c.Lock.RLock()
 		// Find the key in the settings
 		_, ok := c.settings[k]
+		c.Lock.RUnlock()
 		if !ok {
 			// skip settings that don't already exist
 			continue
@@ -72,13 +74,16 @@ func (c *Cfg) setCfg(cf map[string]interface{}) error {
 
 // SetSetting
 func (c *Cfg) SetSetting(Type, k string, v interface{}, Code string, IsCore, IsCfg, IsFlag bool) error {
+	c.Lock.Lock()
+	defer c.Lock.Unlock()
+
 	_, ok := c.settings[k]
 	if ok {
 		err := fmt.Errorf("%s: key already exists, cannot add another setting with the same key")
 		logger.Error(err)
 		return err
 	}
-
+	
 	c.settings[k] = &setting{
 		Type:	Type,
 		Value:	v,

@@ -14,6 +14,10 @@ func (c *Cfg) Override(k string, v interface{}) error {
 	if v == nil {
 		return nil
 	}
+
+	c.Lock.Lock()
+	defer c.Lock.Unlock()
+
 	// If it can't be overriden, 
 	if c.settings[k].IsCore || !c.settings[k].IsFlag {
 		err := fmt.Errorf("%v: setting is not a flag. Only flags can be overridden", k)

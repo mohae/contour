@@ -11,26 +11,29 @@ package contour
 // GetE returns the setting Value as an interface{}. If its not a valid
 // setting, an error is returned.
 func (c *Cfg) GetE(k string) (interface{}, error) {
+	c.Lock.RLock()
+	defer c.Lock.RUnlock()
+
 	_, ok := c.settings[k]
 	if !ok {
 		return nil, notFoundErr(k)
 	}
-
+	
 	return c.settings[k].Value, nil
 }
 
 // GetBoolE returns the setting Value as a bool.
 func (c *Cfg) GetBoolE(k string) (bool, error) {
-	_, ok := c.settings[k]
-	if !ok {
-		return false, notFoundErr(k)
+	v, err := c.GetE(k)
+	if err != nil {
+		return false, err
 	}
 
-	switch c.settings[k].Value.(type) {
+	switch v.(type) {
 	case bool:
-		return c.settings[k].Value.(bool), nil
+		return v.(bool), nil
 	case *bool:
-		return *c.settings[k].Value.(*bool), nil
+		return *v.(*bool), nil
 	}
 
 	// Should never happen, but since we know the setting is there and we
@@ -41,16 +44,16 @@ func (c *Cfg) GetBoolE(k string) (bool, error) {
 
 // GetIntE returns the setting Value as an int.
 func (c *Cfg) GetIntE(k string) (int, error) {
-	_, ok := c.settings[k]
-	if !ok {
-		return 0, notFoundErr(k)
+	v, err := c.GetE(k)
+	if err != nil {
+		return 0, err
 	}
 
-	switch c.settings[k].Value.(type) {
+	switch v.(type) {
 	case int:
-		return c.settings[k].Value.(int), nil
+		return v.(int), nil
 	case *int:
-		return *c.settings[k].Value.(*int), nil
+		return *v.(*int), nil
 	}
 
 	return 0, nil
@@ -58,16 +61,16 @@ func (c *Cfg) GetIntE(k string) (int, error) {
 
 // GetStringE returns the setting Value as a string.
 func (c *Cfg) GetStringE(k string) (string, error) {
-	_, ok := c.settings[k]
-	if !ok {
-		return "", notFoundErr(k)
+	v, err := c.GetE(k)
+	if err != nil {
+		return "", err
 	}
 
-	switch c.settings[k].Value.(type) {
+	switch v.(type) {
 	case string:
-		return c.settings[k].Value.(string), nil
+		return v.(string), nil
 	case *string:
-		return *c.settings[k].Value.(*string), nil
+		return *v.(*string), nil
 	}
 
 	return "", nil
@@ -161,32 +164,32 @@ func GetE(k string) (interface{}, error) {
 
 // GetBoolE returns the setting Value as a bool.
 func GetBoolE(k string) (bool, error) {
-	_, ok := configs[app].settings[k]
-	if !ok {
-		return false, notFoundErr(k)
+	v, err := GetE(k)
+	if err != nil {
+		return false, err
 	}
 
-	return *configs[app].settings[k].Value.(*bool), nil
+	return *v.(*bool), nil
 }
 
 // GetIntE returns the setting Value as an int.
 func GetIntE(k string) (int, error) {
-	_, ok := configs[app].settings[k]
-	if !ok {
-		return 0, notFoundErr(k)
+	v, err := GetE(k)
+	if err != nil {
+		return 0, err
 	}
 
-	return *configs[app].settings[k].Value.(*int), nil
+	return *v.(*int), nil
 }
 
 // GetStringE returns the setting Value as a string.
 func GetStringE(k string) (string, error) {
-	_, ok := configs[app].settings[k]
-	if !ok {
-		return "", notFoundErr(k)
+	v, err := GetE(k)
+	if err != nil {
+		return "", err
 	}
 
-	return configs[app].settings[k].Value.(string), nil
+	return v.(string), nil
 }
 
 // GetInterfaceE is a convenience wrapper function to Get
