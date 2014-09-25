@@ -49,30 +49,32 @@ func (c *Cfg) RegisterConfigFilename(k, v string) error {
 	return nil
 }
 
+func (c *Cfg) SettingExists(k string) bool {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	_, ok := configs[0].settings[k]
+
+	return ok
+}
+
 // RegisterSetting checks to see if the entry already exists and adds the
 // new setting if it does not.
 func (c *Cfg) RegisterSetting(Type string, k string, v interface{}, Code string, IsCore, IsCfg, IsFlag bool) {
 	var update bool
-	c.lock.RLock()
-	_, ok := configs[0].settings[k]
-	if ok {
+	if c.SettingExists(k) {
 		// Core Settings can't be re-registered.
-		if configs[0].settings[k].IsCore {
-			c.lock.RUnlock()
+		if c.settings[k].IsCore {
 			return
 		}
 
-		if configs[0].settings[k].Value != nil {
-			c.lock.RUnlock()
+		if c.settings[k].Value != nil {
 			return
 		}
 
 		update = true
 	}
-
-	c.lock.RUnlock()
 	c.lock.Lock()
-	defer c.lock.Lock()
+	defer c.lock.Unlock()
 
 	// Keep track of whether or not a config is being used. If a setting is
 	// registered as a config setting, it is assumed a configuration source

@@ -1,8 +1,9 @@
 package contour
 
 import (
-	"flag"
 	"fmt"
+
+	flag "github.com/ogier/pflag"
 )
 
 // FilterArgs takes the passed args and filter's the flags out of them.
@@ -24,7 +25,7 @@ func (c *Cfg) FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error)
 
 	for _, name := range boolFilterNames {
 		if c.settings[name].IsFlag {
-			boolFilters[flags] = flagSet.Bool(name, c.settings[name].Value.(bool), fmt.Sprintf("filter %s", name))
+			boolFilters[flags] = flagSet.BoolP(name, c.settings[name].Code, c.settings[name].Value.(bool), fmt.Sprintf("filter %s", name))
 			bFilterNames[flags] = name
 			flags++
 		}
@@ -40,7 +41,7 @@ func (c *Cfg) FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error)
 
 	for _, name := range intFilterNames {
 		if c.settings[name].IsFlag {
-			intFilters[flags] = flagSet.Int(name, c.settings[name].Value.(int), fmt.Sprintf("filter %s", name))
+			intFilters[flags] = flagSet.IntP(name, c.settings[name].Code, c.settings[name].Value.(int), fmt.Sprintf("filter %s", name))
 			iFilterNames[flags] = name
 			flags++
 		}
@@ -55,7 +56,7 @@ func (c *Cfg) FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error)
 
 	for _, name := range stringFilterNames {
 		if c.settings[name].IsFlag {
-			stringFilters[flags] = flagSet.String(name, c.settings[name].Value.(string), fmt.Sprintf("filter %s", name))
+			stringFilters[flags] = flagSet.StringP(name, c.settings[name].Code, c.settings[name].Value.(string), fmt.Sprintf("filter %s", name))
 			sFilterNames[flags] = name
 			flags++
 		}
