@@ -85,7 +85,7 @@ var jsonResults = map[string]interface{}{
 	},
 }
 
-var testConfig = &Cfg{Settings: map[string]*setting{
+var testConfig = &Cfg{settings: map[string]*setting{
 	"corebool":    &setting{
 		Type: "bool",
 		Value: true,
@@ -158,8 +158,8 @@ var testConfig = &Cfg{Settings: map[string]*setting{
 
 var emptyConfigs map[string]*Cfg
 var testConfigs = map[string]*Cfg{
-	app: &Cfg{Settings: map[string]*setting{}},
-	"test1": &Cfg{Settings: map[string]*setting{}},
+	app: &Cfg{settings: map[string]*setting{}},
+	"test1": &Cfg{settings: map[string]*setting{}},
 }
 
 
@@ -193,13 +193,13 @@ func TestConfigFormat(t *testing.T) {
 	tests := []basic{
 		{"an empty configfilename", "", "", "a config filename was expected, none received"},
 		{"a configfilename without an extension", "config", "", "unable to determine config format, the configuration file, config, doesn't have an extension"},
-		{"a configfilename with an invalid extension", "config.bmp", "", "bmp is an unsupported format for configuration files"},
+		{"a configfilename with an invalid extension", "config.bmp", "", "bmp is not a supported configuration file format"},
 		{"a configfilename with a json extension", "config.json", "json", ""},
 		{"a configfilename with a toml extension", "config.toml", "toml", ""},
 		{"a configfilename with a toml extension", "config.yaml", "yaml", ""},
-		{"a configfilename with a toml extension", "config.yml", "yml", ""},
+		{"a configfilename with a toml extension", "config.yml", "yaml", ""},
 		{"a configfilename with a toml extension", "config.xml", "xml", ""},
-		{"a configfilename with a toml extension", "config.ini", "ini", ""},
+		{"a configfilename with a toml extension", "config.ini", "", "ini is not a supported configuration file format"},
 	}
 
 	for _, test := range tests {
@@ -207,7 +207,7 @@ func TestConfigFormat(t *testing.T) {
 
 			Convey("Getting the config format", func() {
 				format, err := configFormat(test.value)
-				checkTestReturn(test, format, err)
+				checkTestReturn(test, format.String(), err)
 			})
 		})
 	}
@@ -223,17 +223,16 @@ func TestIsSupportedFormat(t *testing.T) {
 		{"yaml format test", "yaml", "true", ""},
 		{"yml format test", "yml", "true", ""},
 		{"xml format test", "xml", "true", ""},
-		{"ini format test", "ini", "true", ""},
 	}
 
 	for _, test := range tests {
 		Convey("Given some supported format tests", t, func() {
 
 			Convey(test.name, func() {
-				is := strconv.FormatBool(isSupportedFormat(test.value))
-
+				formatString := ParseFormat(test.value)
+				is := formatString.isSupported()
 				Convey("Should result in "+test.expected, func() {
-					So(is, ShouldEqual, test.expected)
+					So(strconv.FormatBool(is), ShouldEqual, test.expected)
 				})
 			})
 
@@ -253,8 +252,8 @@ func TestLoadEnvs(t *testing.T) {
 func TestLoadConfigFile(t *testing.T) {
 
 	Convey("Given an empty config filename", t, func() {
-		AppConfig.Settings[EnvConfigFilename] = &setting{Value: ""}
-		AppConfig.Settings[EnvConfigFormat] = &setting{Value: ""}
+		AppConfig.settings[EnvConfigFilename] = &setting{Value: ""}
+		AppConfig.settings[EnvConfigFormat] = &setting{Value: ""}
 
 		Convey("loading the config file", func() {
 			err := loadConfigFile()
@@ -268,8 +267,8 @@ func TestLoadConfigFile(t *testing.T) {
 	})
 
 	Convey("Given an invalid config filename", t, func() {
-		AppConfig.Settings[EnvConfigFilename] = &setting{Value: "holygrail"}
-		AppConfig.Settings[EnvConfigFormat] = &setting{Value: ""}
+		AppConfig.settings[EnvConfigFilename] = &setting{Value: "holygrail"}
+		AppConfig.settings[EnvConfigFormat] = &setting{Value: ""}
 		Convey("loading the config file", func() {
 			err := loadConfigFile()
 
@@ -400,8 +399,8 @@ func TestSetIdempotentString(t *testing.T) {
 					So(res, ShouldEqual, test.value)
 				})
 
-				Convey("and the AppConfig Settings for it", func() {
-					So(AppConfig.Settings[test.key], ShouldResemble, test.expected)
+				Convey("and the AppConfig settings for it", func() {
+					So(AppConfig.settings[test.key], ShouldResemble, test.expected)
 				})
 
 			})
@@ -433,7 +432,7 @@ func TestSetBoolFlag(t *testing.T) {
 			SetBoolFlag(test.key, test.value, test.b)
 
 			Convey("Should result in the setting be set", func() {
-				So(AppConfig.Settings[test.key], ShouldResemble, test.expected)
+				So(AppConfig.settings[test.key], ShouldResemble, test.expected)
 			})
 
 		})

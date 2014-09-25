@@ -1,7 +1,7 @@
 package contour
 
 // Set contains all of contour's Set functions.Calling Set
-// adds, or registers, the Settings information to the AppConfig variable.
+// adds, or registers, the settings information to the AppConfig variable.
 // The setting value, if there is one, is not saved to its environment
 // variable at this point.
 //
@@ -16,7 +16,7 @@ import (
 )
 
 /*
-// SetEnvs goes through AppConfig and saves all of the Settings to their
+// SetEnvs goes through AppConfig and saves all of the settings to their
 // environment variables.
 func Setenvs() error {
 	if !appConfig.UseEnv() {
@@ -25,7 +25,7 @@ func Setenvs() error {
 
 	var err error
 	// For each setting
-	for k, setting := range appConfig.Settings {
+	for k, setting := range appConfig.settings {
 		err = appConfig.Setenv(k, setting)
 		if err != nil {
 			return err
@@ -38,7 +38,7 @@ func Setenvs() error {
 }
 */
 
-// setEnvFromConfigFile goes through all the Settings in the configFile and
+// setEnvFromConfigFile goes through all the settings in the configFile and
 // checks to see if the setting is updateable; saving those that are to their
 // environment variable.
 func (c *Cfg) setCfg(cf map[string]interface{}) error {
@@ -47,10 +47,10 @@ func (c *Cfg) setCfg(cf map[string]interface{}) error {
 	}
 
 	for k, v := range cf {
-		// Find the key in the Settings
+		// Find the key in the settings
 		_, ok := c.settings[k]
 		if !ok {
-			// skip Settings that don't already exist
+			// skip settings that don't already exist
 			continue
 		}
 

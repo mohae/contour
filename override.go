@@ -3,10 +3,10 @@ package contour
 import "fmt"
 
 // Set contains all of contour's Override functions. Override can set both
-// Settings whose values were obtained from environment variables and regular
-// Settings that are also Flags. Override cannot set any configuration setting
+// settings whose values were obtained from environment variables and regular
+// settings that are also Flags. Override cannot set any configuration setting
 // that is not a flag. Also, override cannot set any Immutable or IsCore
-// Settings.
+// settings.
 //
 // A common use for overrides is to set values obtained by flags.
 

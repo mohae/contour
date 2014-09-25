@@ -17,7 +17,7 @@ func TestSetBoolE(t *testing.T) {
 			})
 
 			Convey("And the setting should exist", func() {
-				s, ok := c.Settings["flagBoolKey"]
+				s, ok := c.settings["flagBoolKey"]
 			
 				Convey("And the key should exist", func() {
 					So(ok, ShouldEqual, true)
@@ -62,7 +62,7 @@ func TestSetIntE(t *testing.T) {
 			})
 
 			Convey("And the setting should exist", func() {
-				s, ok := c.Settings["flagIntKey"]
+				s, ok := c.settings["flagIntKey"]
 			
 				Convey("And the key should exist", func() {
 					So(ok, ShouldEqual, true)
@@ -107,7 +107,7 @@ func TestSetStringE(t *testing.T) {
 			})
 
 			Convey("And the setting should exist", func() {
-				s, ok := c.Settings["flagStringKey"]
+				s, ok := c.settings["flagStringKey"]
 			
 				Convey("And the key should exist", func() {
 					So(ok, ShouldEqual, true)
@@ -149,7 +149,7 @@ func TestSetBool(t *testing.T) {
 			c.SetFlagBool("flagBoolKey", true, "b")
 
 			Convey("And the setting should exist", func() {
-				s, ok := c.Settings["flagBoolKey"]
+				s, ok := c.settings["flagBoolKey"]
 			
 				Convey("And the key should exist", func() {
 					So(ok, ShouldEqual, true)
@@ -191,7 +191,7 @@ func TestSetInt(t *testing.T) {
 			c.SetFlagInt("flagIntKey", 42, "i")
 
 			Convey("And the setting should exist", func() {
-				s, ok := c.Settings["flagIntKey"]
+				s, ok := c.settings["flagIntKey"]
 			
 				Convey("And the key should exist", func() {
 					So(ok, ShouldEqual, true)
@@ -233,7 +233,7 @@ func TestSetString(t *testing.T) {
 			c.SetFlagStringE("flagStringKey", "marvin", "s")
 			
 			Convey("And the setting should exist", func() {
-				s, ok := c.Settings["flagStringKey"]
+				s, ok := c.settings["flagStringKey"]
 			
 				Convey("And the key should exist", func() {
 					So(ok, ShouldEqual, true)

@@ -4,14 +4,14 @@ package contour
 import (
 	"bytes"
 	"encoding/json"
-	_"encoding/xml"
-	_"flag"
+	_ "encoding/xml"
+	_ "flag"
 	"fmt"
 	"io"
 	"io/ioutil"
-	_"os"
+	_ "os"
+	_ "strconv"
 	"strings"
-	_"strconv"
 
 	_ "code.google.com/p/gcfg"
 	"github.com/BurntSushi/toml"
@@ -19,19 +19,48 @@ import (
 
 const app = "app"
 
+const (
+	Unsupported Format = iota
+	JSON
+	TOML
+	YAML
+	XML
+)
+
+type Format int
+
+func ParseFormatE(s string) (Format, error) {
+	ls := strings.ToLower(s)
+	switch ls {
+	case "json":
+		return JSON, nil
+	case "toml":
+		return TOML, nil
+	case "yaml", "yml":
+		return YAML, nil
+	case "xml":
+		return XML, nil
+	}
+
+	return Unsupported, unsupportedFormatErr(ls)
+}
+
+func ParseFormat(s string) Format {
+	f, _ := ParseFormatE(s)
+	return f
+}
+
 // configs allows for support of multiple configurations. The main application
 // config is 'app'. Calling any of Contour's function versions of
 // config.method() is the equivelant of calling config[app].method().
 var configs map[string]*Cfg
 
-// Contour Environment variable names for the pre-configured core setting names
+// Contour ironment variable names for the pre-configured core setting names
 // that it comes with. These are public and are directly settable if you wish
 // to use your own values. Just set them before doing anything with Contour.
 var (
-	EnvCfgFile	string = "cfgfile"
-	EnvCfgFormat	string = "cfgformat"
-	EnvLogCfgFile	string = "logcfgfile"
-	EnvLogging	string = "logging"
+	CfgFile   string = "cfgfile"
+	CfgFormat string = "cfgformat"
 )
 
 func init() {
@@ -40,9 +69,9 @@ func init() {
 
 // configFormat gets the configured config filename and returns the format
 // it is in, if it is a supported format; otherwise an error.
-func configFormat(s string) (string, error) {
+func configFormat(s string) (Format, error) {
 	if s == "" {
-		return "", fmt.Errorf("a config filename was expected, none received")
+		return Unsupported, fmt.Errorf("a config filename was expected, none received")
 	}
 
 	parts := strings.Split(s, ".")
@@ -51,7 +80,7 @@ func configFormat(s string) (string, error) {
 	// case 0 has already been evaluated
 	switch len(parts) {
 	case 1:
-		return "", fmt.Errorf("unable to determine config format, the configuration file, " + strings.TrimSpace(s) + ", doesn't have an extension")
+		return Unsupported, fmt.Errorf("unable to determine config format, the configuration file, " + strings.TrimSpace(s) + ", doesn't have an extension")
 
 	case 2:
 		format = parts[1]
@@ -61,40 +90,55 @@ func configFormat(s string) (string, error) {
 		format = parts[len(parts)-1]
 	}
 
-	if !isSupportedFormat(format) {
-		return "", fmt.Errorf(format + " is an unsupported format for configuration files")
+	f := ParseFormat(format)
+	is := f.isSupported()
+	if !is {
+		err := unsupportedFormatErr(format)
+		logger.Error(err)
+		return Unsupported, err
 	}
 
-	return format, nil
+	return f, nil
 
 }
 
 // isSupportedFormat checks to see if the passed string represents a supported
 // config format.
-func isSupportedFormat(s string) bool {
-	switch s {
-	case "json":
+func (f Format) isSupported() bool {
+	switch f {
+	case YAML:
 		return true
-	case "toml":
+	case JSON:
 		return true
-	case "yaml", "yml":
+	case TOML:
 		return true
-	case "ini":
+	case XML:
 		return true
-	case "xml":
-		return true
-	default:
-		return false
 	}
 
 	return false
 }
 
+func (f Format) String() string {
+	switch f {
+	case YAML:
+		return "yaml"
+	case JSON:
+		return "json"
+	case TOML:
+		return "toml"
+	case XML:
+		return "xml"
+	}
+
+	return "unsupported"
+}
+
 /*
-// loadEnvs updates the configuration from the environment variable values.
+// loads updates the configuration from the environment variable values.
 // A setting is only updated if it IsUpdateable.
-func loadEnvs() {
-	if !appConfig.useEnv {
+func loads() {
+	if !appConfig.use {
 		return
 	}
 
@@ -119,14 +163,14 @@ func loadEnvs() {
 
 		// Gotten this far, set it
 		appConfig.settings[k].Value = v
-		appConfig.settings[k].IsEnv = true
+		appConfig.settings[k].Is = true
 	}
 
 }
 */
 // getCfgFile() is the entry point for reading the configuration file.
 func (c *Cfg) getFile() (map[string]interface{}, error) {
-	setting, ok := c.settings["configfile"]
+	setting, ok := c.settings[CfgFile]
 	if !ok {
 		// Wasn't configured, nothing to do. Not an error.
 		return nil, nil
@@ -143,18 +187,18 @@ func (c *Cfg) getFile() (map[string]interface{}, error) {
 
 	// This shouldn't happend, but lots of things happen that shouldn't.
 	// It should have been registered already. so if it doesn't exit, err.
-	if c.settings[EnvCfgFormat].Value == nil {
+	if c.settings[CfgFormat].Value == nil {
 		return nil, fmt.Errorf("Unable to load the cfg file, the configuration format type was not set")
 	}
 
-	fBytes, err := readCfgFile(n)
+	fBytes, err := readCfg(n)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
 	}
 
 	cfg := make(map[string]interface{})
-	cfg, err = marshalFormatReader(c.settings[EnvCfgFormat].Value.(string), bytes.NewReader(fBytes))
+	cfg, err = marshalFormatReader(ParseFormat(c.settings[CfgFormat].Value.(string)), bytes.NewReader(fBytes))
 	if err != nil {
 		logger.Error(err)
 		return nil, err
@@ -162,8 +206,8 @@ func (c *Cfg) getFile() (map[string]interface{}, error) {
 	return cfg, nil
 }
 
-// readCfgFile reads the configFile
-func readCfgFile(n string) ([]byte, error) {
+// readCfg reads the configFile
+func readCfg(n string) ([]byte, error) {
 	cfg, err := ioutil.ReadFile(n)
 	if err != nil {
 		logger.Error(err)
@@ -174,33 +218,32 @@ func readCfgFile(n string) ([]byte, error) {
 }
 
 // marshalFormatReader
-func marshalFormatReader(t string, r io.Reader) (map[string]interface{}, error) {
+func marshalFormatReader(f Format, r io.Reader) (map[string]interface{}, error) {
 	b := new(bytes.Buffer)
 	b.ReadFrom(r)
-	
+
 	ret := make(map[string]interface{})
-	switch t {
-	case "json":
+	switch f {
+	case JSON:
 		err := json.Unmarshal(b.Bytes(), &ret)
 		if err != nil {
 			logger.Error(err)
 			return nil, err
 		}
 
-	case "toml":
+	case TOML:
 		_, err := toml.Decode(b.String(), &ret)
 		if err != nil {
 			logger.Error(err)
-			return nil,  err
+			return nil, err
 		}
 	default:
-		err := fmt.Errorf("unsupported configuration file format type: %s", t)
+		err := fmt.Errorf("unsupported configuration file format type: %s", )
 		logger.Error(err)
 		return nil, err
 	}
 	return ret, nil
 }
-
 
 // canUpdate checks to see if the passed setting key is updateable.
 // TODO the logic flow is wonky because it could be simplified but
@@ -215,7 +258,7 @@ func (c *Cfg) canUpdate(k string) bool {
 	}
 
 	// See if there are any settings that prevent it from being overridden.
-	// Core and Environment variables are never settable. Core must be set
+	// Core and ironment variables are never settable. Core must be set
 	// during registration.
 	if c.settings[k].IsCore {
 		return false
@@ -223,7 +266,7 @@ func (c *Cfg) canUpdate(k string) bool {
 
 	// Only flags and conf types are updateable, otherwise they must be
 	// registered or set.
-	if c.settings[k].IsCfg || c.settings[k].IsFlag  {
+	if c.settings[k].IsCfg || c.settings[k].IsFlag {
 		return true
 	}
 
@@ -312,11 +355,15 @@ func initConfigs() {
 
 // notFoundErr returns a standardized not found error.
 func notFoundErr(k string) error {
-	return fmt.Errorf(k + " not found")
+	return fmt.Errorf("%s not found", k)
 }
 
 // settingNotFoundErr adds the suffix ": setting " to k before calling
 // notFoundErr
 func settingNotFoundErr(k string) error {
-	return notFoundErr(k + ": setting")
+	return notFoundErr(fmt.Sprintf("%s: setting", k))
+}
+
+func unsupportedFormatErr(k string) error {
+	return fmt.Errorf("%s is not a supported configuration file format", k)
 }
