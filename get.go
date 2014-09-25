@@ -11,8 +11,8 @@ package contour
 // GetE returns the setting Value as an interface{}. If its not a valid
 // setting, an error is returned.
 func (c *Cfg) GetE(k string) (interface{}, error) {
-	c.Lock.RLock()
-	defer c.Lock.RUnlock()
+	c.lock.RLock()
+	defer c.lock.RUnlock()
 
 	_, ok := c.settings[k]
 	if !ok {

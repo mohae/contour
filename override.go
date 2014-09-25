@@ -15,8 +15,8 @@ func (c *Cfg) Override(k string, v interface{}) error {
 		return nil
 	}
 
-	c.Lock.Lock()
-	defer c.Lock.Unlock()
+	c.lock.Lock()
+	defer c.lock.Unlock()
 
 	// If it can't be overriden, 
 	if c.settings[k].IsCore || !c.settings[k].IsFlag {

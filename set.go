@@ -47,10 +47,10 @@ func (c *Cfg) setCfg(cf map[string]interface{}) error {
 	}
 
 	for k, v := range cf {
-		c.Lock.RLock()
+		c.lock.RLock()
 		// Find the key in the settings
 		_, ok := c.settings[k]
-		c.Lock.RUnlock()
+		c.lock.RUnlock()
 		if !ok {
 			// skip settings that don't already exist
 			continue
@@ -74,8 +74,8 @@ func (c *Cfg) setCfg(cf map[string]interface{}) error {
 
 // SetSetting
 func (c *Cfg) SetSetting(Type, k string, v interface{}, Code string, IsCore, IsCfg, IsFlag bool) error {
-	c.Lock.Lock()
-	defer c.Lock.Unlock()
+	c.lock.Lock()
+	defer c.lock.Unlock()
 
 	_, ok := c.settings[k]
 	if ok {

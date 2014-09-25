@@ -6,8 +6,8 @@ import "fmt"
 // Flags must use Override* to update settings.
 // save it to its environment variable.
 func (c *Cfg) updateE(k string, v interface{}) error {
-	c.Lock.Lock()
-	defer c.Lock.Unlock()
+	c.lock.Lock()
+	defer c.lock.Unlock()
 	if !c.canUpdate(k) {
 		err := fmt.Errorf("config[%s]: %s is not updateable", c.name, k)
 		logger.Warn(err)
