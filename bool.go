@@ -28,6 +28,10 @@ func RegisterBoolConf(k string, v bool) {
 // save it to its ironment variable.
 func (c *Cfg) RegisterBoolFlag(k, s string, v bool) {
 	c.RegisterSetting("bool", k, s, v, "", "", false, true, true)
+	// Register the flag
+	c.addFilter(c.settingsCount-1)
+	temp := c.flagSet.BoolP(k, s, v, "set usage")
+	c.filters[c.filterCount-1].value = temp
 }
 
 // RegisterBoolFlag adds the information to the AppsConfig struct, but does not
@@ -106,3 +110,17 @@ func (c *Cfg) GetBool(k string) bool {
 func GetBool(k string) bool {
 	return configs[0].GetBool(k)
 }
+
+// TODO
+// argFilter.value is different than c.settings[i].Value
+func (c *Cfg) setFlagsFromFilters() {
+//	for i, argFilter := range c.filters {
+//		if argFilter.value != c.settings[argFilter.index].Value {
+//			Override(argFilter.index, argFilter.value)
+//		}
+//	}
+}
+
+
+
+

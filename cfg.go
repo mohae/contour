@@ -5,6 +5,8 @@ import (
 	"fmt"
 	_ "os"
 	"sync"
+
+	flag "github.com/ogier/pflag"
 )
 
 // AppConfig returns the configs[app]. If it doesn't exist, one is initialized
@@ -55,7 +57,7 @@ func NewConfig(k string) (c *Cfg, err error) {
 	}
 
 	configNames[configCount] = k
-	configs[configCount] = &Cfg{name: k, settings: make([]*setting, initSettingsCap)}
+	configs[configCount] = &Cfg{name: k, lock: sync.RWMutex{}, settings: make([]*setting, initSettingsCap)}
 	configCount++
 	return configs[configCount - 1], nil
 }
@@ -71,6 +73,7 @@ type Cfg struct {
 	name string
 
 	lock sync.RWMutex
+	flagSet *flag.FlagSet
 
 	// code is the shortcode for this configuration. It is mostly used to
 	// prefix environment variables, when used.
@@ -85,6 +88,10 @@ type Cfg struct {
 	// Settings contains a slice of the configuration settings
 	settings []*setting
 	settingsCount int
+
+	// Holds any filters that are applicable to this config.
+	filters []filter
+	filterCount int
 
 	// Whether configuration settings have been registered and set.
 	useCfg bool
@@ -205,8 +212,8 @@ func (c *Cfg) appendSetting(s *setting, pos int) {
 
 func (c *Cfg) deleteSetting(s string) {
 	c.lock.RLock()
-	for i, setting := range c.settings {
-		if setting.Name == s {
+	for i, v := range c.settings {
+		if v.Name == s {
 			// delete 
 			c.lock.RUnlock()
 			c.deleteSettingIndex(i)
@@ -228,8 +235,12 @@ func (c *Cfg) settingIndex(k string) (int, error) {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 
-	for i, setting := range c.settings {
-		if setting.Name == k {
+	for i, v := range c.settings {
+		if v == nil {
+			return -1, notFoundErr(k)
+		}
+
+		if v.Name == k {
 			return i, nil
 		}
 	}
@@ -379,29 +390,15 @@ func (c *Cfg) RegisterConfigFilename(k, v string) error {
 // new setting if it does not.
 func (c *Cfg) RegisterSetting(Type, k, Short string, v interface{}, Usage string, Default string, IsCore, IsCfg, IsFlag bool) error  {
 
-	// find the index for the setting. If its found, return an error
 	_, err := c.settingIndex(k)
 	if err == nil {
 		err := fmt.Errorf("cannot register %q, it is already registered")
 		logger.Error(err)
 		return err
 	}
+
 	c.lock.Lock()
 	defer c.lock.Unlock()
-
-	// Keep track of whether or not a config is being used. If a setting is
-	// registered as a config setting, it is assumed a configuration source
-	// is being used.
-	if IsCfg {
-		c.useCfg = true
-	}
-
-	// Keep track of whether or not flags are being used. If a setting is
-	// registered as a flag setting, it is assumed that flags are being 
-	// used.
-	if IsFlag {
-		c.useFlags = true
-	}
 
 	// Otherwise register it as a new setting.
 	c.settings[c.settingsCount] = &setting{
@@ -414,7 +411,28 @@ func (c *Cfg) RegisterSetting(Type, k, Short string, v interface{}, Usage string
 		IsCfg:     IsCfg,
 		IsFlag:    IsFlag,
 	}
-	
+
+
+	// Keep track of whether or not a config is being used. If a setting is
+	// registered as a config setting, it is assumed a configuration source
+	// is being used.
+	if IsCfg {
+		c.useCfg = true
+	}
+
+	// Keep track of whether or not flags are being used. If a setting is
+	// registered as a flag setting, it is assumed that flags are being 
+	// used.
+	if IsFlag {
+		if c.useFlags == false {
+			c.filters = []filter{}
+			c.flagSet = flag.NewFlagSet(c.name, flag.ContinueOnError)
+			c.useFlags = true
+		}
+		c.addFilter(c.settingsCount)
+	}
+
+	// Increment counter
 	c.settingsCount++
 	return nil
 }
@@ -575,7 +593,13 @@ func GetInterface(k string) interface{} {
 	return configs[0].Get(k)
 }
 
+func (c *Cfg) SetFlagSetUsage(f func()) {
+	c.flagSet.Usage = f
+}
 
+func SetFlagSetUsage(f func()) {
+	configs[0].SetFlagSetUsage(f)
+}
 
 /*
 // Set env accepts a key and value and sets a single environment variable from that

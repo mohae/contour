@@ -422,3 +422,7 @@ func settingNotFoundErr(k string) error {
 func unsupportedFormatErr(k string) error {
 	return fmt.Errorf("%s is not a supported configuration file format", k)
 }
+
+func unsupportedDataTypeErr(k string) error {
+	return fmt.Errorf("%s is not a supported data type", k)
+}
