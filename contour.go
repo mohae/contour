@@ -185,6 +185,42 @@ func (f Format) String() string {
 
 	return "unsupported"
 }
+// RegisterConfigFilename set's the configuration file's name. The name is
+// parsed for a valid extension--one that is a supported format--and saves
+// that value too. If it cannot be determined, the extension info is not set.
+// These are considered core values and cannot be changed from command-line
+// and configuration files. (IsCore == true).
+func RegisterConfigFilename(k, v string) error {
+	if v == "" {
+		return fmt.Errorf("A config filename was expected, none received")
+	}
+
+	if k == "" {
+		return fmt.Errorf("A key for the config filename setting was expected, none received")
+	}
+
+	configs[0].RegisterStringCore(k, v)
+
+	// TODO redo this given new paradigm
+	// Register it first. If a valid config format isn't found, an error
+	// will be returned, so registering it afterwords would mean the
+	// setting would not exist.
+	configs[0].RegisterString(CfgFormat, "")
+	format, err := configFormat(v)
+	if err != nil {
+		return err
+	}
+
+	configs[0].RegisterString(CfgFormat, format.String())
+
+	return nil
+}
+
+// RegisterSetting checks to see if the entry already exists and adds the
+// new setting if it does not.
+func RegisterSetting(Type string, k string, short string, v interface{}, Usage string, Default string, IsCore, IsCfg, IsFlag bool) {
+	configs[0].RegisterSetting(Type, k, short, v, Usage, Default, IsCore, IsCfg, IsFlag)
+}
 
 /*
 // loads updates the configuration from the environment variable values.
