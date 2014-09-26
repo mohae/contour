@@ -5,11 +5,20 @@ type setting struct {
 	// Type is the datatype for the setting
 	Type string
 
+	// Name
+	Name string
+
+	// The short code for the setting, if applicable
+	Short string
+
 	// The current value of the setting
 	Value interface{}
 
-	// Code of the setting
-	Code string
+	// Usage is the usage information for this setting
+	Usage string
+
+	// Default is the string version of the default, for usage
+	Default string
 
 	// IsCore: whether or not this is considered a core setting. Core
 	// settings if for things like application name, where you don't want
@@ -27,6 +36,6 @@ type setting struct {
 	// IsConfig will also be true since a Flag is a subset of Config.
 	IsFlag bool
 
-	//TODO enable source. Types are constants based on iota
-//	Source int
+	// Alias
+	Alias []string
 }

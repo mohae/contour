@@ -11,7 +11,7 @@ package contour
 
 
 import (
-	"fmt"
+	_ "fmt"
 	_ "strconv"
 )
 
@@ -37,54 +37,20 @@ func Setenvs() error {
 
 }
 */
-
-// setEnvFromConfigFile goes through all the settings in the configFile and
-// checks to see if the setting is updateable; saving those that are to their
-// environment variable.
-func (c *Cfg) setCfg(cf map[string]interface{}) error {
-	if !c.UseEnv() {
-		return nil
-	}
-
-	for k, v := range cf {
-		c.lock.RLock()
-		// Find the key in the settings
-		_, ok := c.settings[k]
-		c.lock.RUnlock()
-		if !ok {
-			// skip settings that don't already exist
-			continue
-		}
-
-//		err = appConfig.Setenv(k, v)
-//		if err != nil {
-//			return err
-//		}
-
-		err := c.updateE(k, v)
-		if err != nil {
-			return err
-		}
-
-	}
-
-	return nil
-}
-
-
+/*
 // SetSetting
-func (c *Cfg) SetSetting(Type, k string, v interface{}, Code string, IsCore, IsCfg, IsFlag bool) error {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-
-	_, ok := c.settings[k]
-	if ok {
+func (c *Cfg) SetSetting(Type, k string, short string, v interface{}, Usage string, Default string, IsCore, IsCfg, IsFlag bool) error {
+	idx, err := c.settingIndex(k)
+	if err == nil {
 		err := fmt.Errorf("%s: key already exists, cannot add another setting with the same key")
 		logger.Error(err)
 		return err
 	}
 	
-	c.settings[k] = &setting{
+	c.lock.Lock()
+	defer c.lock.Unlock()
+
+	c.settings[] = &setting{
 		Type:	Type,
 		Value:	v,
 		Code:	Code,
@@ -170,4 +136,4 @@ func SetFlagString(k, v, f string) {
 	configs[0].SetFlagStringE(k, v, f)
 }
 
-
+*/

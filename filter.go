@@ -16,48 +16,48 @@ import (
 //	at the cost of reflection)
 func (c *Cfg) FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error) {
 	// Get the flag filters from the config variable information.
-	boolFilterNames := c.GetBoolFilterNames()
+	boolFilterNames, boolFilterIndex := c.GetBoolFilterNames()
 
 	// Preallocate the worst case scenario.
 	boolFilters := make([]*bool, len(boolFilterNames))
 	bFilterNames := make([]string, len(boolFilterNames))
 	var flags int
 
-	for _, name := range boolFilterNames {
-		if c.settings[name].IsFlag {
-			boolFilters[flags] = flagSet.BoolP(name, c.settings[name].Code, c.settings[name].Value.(bool), fmt.Sprintf("filter %s", name))
-			bFilterNames[flags] = name
+	for i, idx := range boolFilterIndex {
+		if c.settings[idx].IsFlag {
+			boolFilters[flags] = flagSet.BoolP(boolFilterNames[i], string(c.settings[idx].Short), c.settings[idx].Value.(bool), fmt.Sprintf("filter %s", boolFilterNames[i]))
+			bFilterNames[flags] = boolFilterNames[i]
 			flags++
 		}
 	}
 
 	// Get the flag filters from the config variable information.
-	intFilterNames := c.GetIntFilterNames()
+	intFilterNames, intFilterIndex := c.GetIntFilterNames()
 
 	// Preallocate the worst case scenario.
 	intFilters := make([]*int, len(intFilterNames))
 	iFilterNames := make([]string, len(intFilterNames))
 	flags = 0
 
-	for _, name := range intFilterNames {
-		if c.settings[name].IsFlag {
-			intFilters[flags] = flagSet.IntP(name, c.settings[name].Code, c.settings[name].Value.(int), fmt.Sprintf("filter %s", name))
-			iFilterNames[flags] = name
+	for i, idx := range intFilterIndex {
+		if c.settings[idx].IsFlag {
+			intFilters[flags] = flagSet.IntP(intFilterNames[i], string(c.settings[idx].Short), c.settings[idx].Value.(int), fmt.Sprintf("filter %s", intFilterNames[i]))
+			iFilterNames[flags] = intFilterNames[i]
 			flags++
 		}
 	}
 	// Get the flag filters from the config variable information.
-	stringFilterNames := c.GetStringFilterNames()
+	stringFilterNames, stringFilterIndex := c.GetStringFilterNames()
 
 	// Preallocate the worst case scenario.
 	stringFilters := make([]*string, len(stringFilterNames))
 	sFilterNames := make([]string, len(stringFilterNames))
 	flags = 0
 
-	for _, name := range stringFilterNames {
-		if c.settings[name].IsFlag {
-			stringFilters[flags] = flagSet.StringP(name, c.settings[name].Code, c.settings[name].Value.(string), fmt.Sprintf("filter %s", name))
-			sFilterNames[flags] = name
+	for i, idx := range stringFilterIndex {
+		if c.settings[idx].IsFlag {
+			stringFilters[idx] = flagSet.StringP(stringFilterNames[i], string(c.settings[idx].Short), c.settings[idx].Value.(string), fmt.Sprintf("filter %s", stringFilterNames[i]))
+			sFilterNames[flags] = stringFilterNames[i]
 			flags++
 		}
 	}
@@ -71,6 +71,7 @@ func (c *Cfg) FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error)
 	// Get the remaining args
 	cmdArgs := flagSet.Args()
 
+	var name string
 	// Process the captured values
 	for i, v := range boolFilters {
 		if v != c.settings[bFilterNames[i]].Value {
@@ -79,12 +80,14 @@ func (c *Cfg) FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error)
 	}
 
 	for i, v := range intFilters {
+		name = iFilterNames[i]
 		if v != c.settings[iFilterNames[i]].Value {
 			Override(iFilterNames[i], v)
 		}
 	}
 
 	for i, v := range stringFilters {
+		name = sFilterNames[i]
 		if v != c.settings[sFilterNames[i]].Value {
 			Override(sFilterNames[i], v)
 		}
@@ -97,3 +100,54 @@ func (c *Cfg) FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error)
 func FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error) {
 	return configs[0].FilterArgs(flagSet, args)
 }
+
+// Filter Methods obtain a list of flags of the filter type, e.g. boolFilter
+// for bool flags, and returns them.
+// GetBoolFilterNames returns a list of filter names (flags).
+func (c *Cfg) GetBoolFilterNames() (names []string, index []int) {
+	for i, setting := range c.settings {
+		if setting.IsFlag && setting.Type == "bool" {
+			names = append(names, setting.Name)
+			index = append(index, i)
+		}
+	}
+
+	return names, index
+}
+
+// GetIntFilterNames returns a list of filter names (flags).
+func (c *Cfg) GetIntFilterNames() (names []string, index []int) {
+	for i, setting := range c.settings {
+		if setting.IsFlag && setting.Type == "int" {
+			names = append(names, setting.Name)
+			index = append(index, i)
+		}
+	}
+
+	return names, index
+}
+
+// GetStringFilterNames returns a list of filter names (flags).
+func (c *Cfg) GetStringFilterNames() (names []string, index []int) {
+	for i, setting := range c.settings {
+		if setting.IsFlag && setting.Type == "string" {
+			names = append(names, setting.Name)
+			index = append(index, i)
+		}
+	}
+
+	return names, index
+}
+
+// GetBoolFilterNames returns a list of filter names (flags).
+func GetBoolFilterNames() ([]string, []int) {
+	return configs[0].GetBoolFilterNames()
+}
+
+// GetIntFilterNames returns a list of filter names (flags).
+func GetIntFilterNames() ([]string, []int) {
+	return configs[0].GetIntFilterNames()}
+
+// GetStringFilterNames returns a list of filter names (flags).
+func GetStringFilterNames() ([]string, []int) {
+	return configs[0].GetStringFilterNames()}

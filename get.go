@@ -11,15 +11,16 @@ package contour
 // GetE returns the setting Value as an interface{}. If its not a valid
 // setting, an error is returned.
 func (c *Cfg) GetE(k string) (interface{}, error) {
+	idx, err := c.settingIndex(k)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 
-	_, ok := c.settings[k]
-	if !ok {
-		return nil, notFoundErr(k)
-	}
-	
-	return c.settings[k].Value, nil
+	return c.settings[idx].Value, nil
 }
 
 // GetBoolE returns the setting Value as a bool.
@@ -109,57 +110,17 @@ func (c *Cfg) GetInterface(k string) interface{} {
 	return c.Get(k)
 }
 
-// Filter Methods obtain a list of flags of the filter type, e.g. boolFilter
-// for bool flags, and returns them.
-// GetBoolFilterNames returns a list of filter names (flags).
-func (c *Cfg) GetBoolFilterNames() []string {
-	var names []string
-
-	for k, setting := range c.settings {
-		if setting.IsFlag && setting.Type == "bool" {
-			names = append(names, k)
-		}
-	}
-
-	return names
-}
-
-// GetIntFilterNames returns a list of filter names (flags).
-func (c *Cfg) GetIntFilterNames() []string {
-	var names []string
-
-	for k, setting := range c.settings {
-		if setting.IsFlag && setting.Type == "int" {
-			names = append(names, k)
-		}
-	}
-
-	return names
-}
-
-// GetStringFilterNames returns a list of filter names (flags).
-func (c *Cfg) GetStringFilterNames() []string {
-	var names []string
-
-	for k, setting := range c.settings {
-		if setting.IsFlag && setting.Type == "string" {
-			names = append(names, k)
-		}
-	}
-
-	return names
-}
-
 // Convenience functions for configs[app]
 // Get returns the setting Value as an interface{}.
 // GetE returns the setting Value as an interface{}.
 func GetE(k string) (interface{}, error) {
-	_, ok := configs[0].settings[k]
-	if !ok {
-		return nil, notFoundErr(k)
+	idx, err := configs[0].settingIndex(k)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
 	}
 
-	return configs[0].settings[k].Value, nil
+	return configs[0].settings[idx].Value, nil
 }
 
 // GetBoolE returns the setting Value as a bool.
@@ -223,43 +184,4 @@ func GetString(k string) string {
 // GetInterface is a convenience wrapper function to Get
 func GetInterface(k string) interface{} {
 	return configs[0].Get(k)
-}
-
-// GetBoolFilterNames returns a list of filter names (flags).
-func GetBoolFilterNames() []string {
-	var names []string
-
-	for k, setting := range configs[0].settings {
-		if setting.IsFlag && setting.Type == "bool" {
-			names = append(names, k)
-		}
-	}
-
-	return names
-}
-
-// GetIntFilterNames returns a list of filter names (flags).
-func GetIntFilterNames() []string {
-	var names []string
-
-	for k, setting := range configs[0].settings {
-		if setting.IsFlag && setting.Type == "int" {
-			names = append(names, k)
-		}
-	}
-
-	return names
-}
-
-// GetStringFilterNames returns a list of filter names (flags).
-func GetStringFilterNames() []string {
-	var names []string
-
-	for k, setting := range configs[0].settings {
-		if setting.IsFlag && setting.Type == "string" {
-			names = append(names, k)
-		}
-	}
-
-	return names
 }

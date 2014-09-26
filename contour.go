@@ -55,6 +55,7 @@ func ParseFormat(s string) Format {
 // config.method() is the equivelant of calling config[app].method().
 var configs []*Cfg
 var configNames []string
+var configCount int
 
 // Contour ironment variable names for the pre-configured core setting names
 // that it comes with. These are public and are directly settable if you wish
@@ -64,8 +65,58 @@ var (
 	CfgFormat string = "cfgformat"
 )
 
+// The following settings are used to gain better control over the configs
+// slice growth, to minimize garbage generation. Practically speaking, only
+// growthConfigIncrement makes any difference as the initConfigCap is used
+// during init() and any changes to it will not affect run-time behavior.
+// Instead, fork contour and customize that value for your application if you
+// expect your application to benefit from a different initConfigCap value.
+//
+// initConfigCap sets the initial capacity for configurations
+// growthConfigIncrement sets the amount to grow the config slice.
+var initConfigCap int = 4
+var growConfigIncrement int
+
+// The following settings are used to gain better control over the settings
+// slice growth, to minimize garbage generation.
+// initSettingsCap sets the initial capacity for settings.
+// growSettingsIncrement sets the amount to grow the settings slice.
+// These can be specified per Cfg too.
+var initSettingsCap int = 10
+var growSettingsIncrement int = 10
+
 func init() {
 	initConfigs()
+}
+
+// SetGrowthConfigIncrement sets the amount by which to grow the capacity of
+// the configs slice; 0 (zero) means double capacity each time, which is the
+// default.
+func SetGrowConfigIncrement(i int) {
+	if i < 0 {
+		i = 0
+	}
+
+	growConfigIncrement = i
+}
+
+// SetInitSettingsCap sets the initial capacity for the settings slice in new
+// configurations.
+func SetInitSettingsCap(i int) {
+	if i < 2 {
+		i = 2
+	}
+	initSettingsCap = i
+}
+
+// SetGrowSettingsIncrement sets the amount by which to grow the capacity of
+// the settings slice; 0 (zero) means double capacity each time.
+func SetGrowSettingsIncrement(i int) {
+	if i < 0 {
+		i = 0
+	}
+
+	growSettingsIncrement = i
 }
 
 // configFormat gets the configured config filename and returns the format
@@ -169,43 +220,6 @@ func loads() {
 
 }
 */
-// getCfgFile() is the entry point for reading the configuration file.
-func (c *Cfg) getFile() (map[string]interface{}, error) {
-	setting, ok := c.settings[CfgFile]
-	if !ok {
-		// Wasn't configured, nothing to do. Not an error.
-		return nil, nil
-	}
-
-	n := setting.Value.(string)
-	if n == "" {
-		// This isn't an error as config file is allowed to not exist
-		// TODO:
-		//	Possible add a ConfigFileRequired flag
-		//	Add logging support
-		return nil, nil
-	}
-
-	// This shouldn't happend, but lots of things happen that shouldn't.
-	// It should have been registered already. so if it doesn't exit, err.
-	if c.settings[CfgFormat].Value == nil {
-		return nil, fmt.Errorf("Unable to load the cfg file, the configuration format type was not set")
-	}
-
-	fBytes, err := readCfg(n)
-	if err != nil {
-		logger.Error(err)
-		return nil, err
-	}
-
-	cfg := make(map[string]interface{})
-	cfg, err = marshalFormatReader(ParseFormat(c.settings[CfgFormat].Value.(string)), bytes.NewReader(fBytes))
-	if err != nil {
-		logger.Error(err)
-		return nil, err
-	}
-	return cfg, nil
-}
 
 // readCfg reads the configFile
 func readCfg(n string) ([]byte, error) {
@@ -246,61 +260,12 @@ func marshalFormatReader(f Format, r io.Reader) (map[string]interface{}, error) 
 	return ret, nil
 }
 
-// canUpdate checks to see if the passed setting key is updateable.
-// TODO the logic flow is wonky because it could be simplified but
-// want hard check for core and not sure about conf/flag/env stuff yet.
-// so the wierdness sits for now.
-func (c *Cfg) canUpdate(k string) bool {
-	// See if the key exists, if it doesn't already exist, it can't be
-	// updated.
-	_, ok := c.settings[k]
-	if !ok {
-		return false
-	}
-
-	// See if there are any settings that prevent it from being overridden.
-	// Core and ironment variables are never settable. Core must be set
-	// during registration.
-	if c.settings[k].IsCore {
-		return false
-	}
-
-	// Only flags and conf types are updateable, otherwise they must be
-	// registered or set.
-	if c.settings[k].IsCfg || c.settings[k].IsFlag {
-		return true
-	}
-
-	return false
+func canUpdate(i int) bool {
+	return configs[0].canUpdate(i)
 }
 
-func canUpdate(k string) bool {
-	return configs[0].canUpdate(k)
-}
-
-// canOverride() checks to see if the setting can be overridden. Overrides
-// only come from flags. If it can't be overridden, it must be set via
-// application, environment variable, or cfg file.
-func (c *Cfg) canOverride(k string) bool {
-	// See if the key exists, if it doesn't already exist, it can't be
-	// overridden
-	_, ok := c.settings[k]
-	if !ok {
-		return false
-	}
-
-	// See if there are any settings that prevent it from being overridden.
-	// Core can never be overridden
-	// Must be a flag to override.
-	if c.settings[k].IsCore || !c.settings[k].IsFlag {
-		return false
-	}
-
-	return true
-}
-
-func canOverride(k string) bool {
-	return configs[0].canOverride(k)
+func canOverride(i int) bool {
+	return configs[0].canOverride(i)
 }
 
 /*
@@ -352,9 +317,59 @@ func AddSettingAlias(setting, alias string) error {
 // testing too.
 func initConfigs() {
 	configs = make([]*Cfg, 1)
-	configs[0] = &Cfg{name: app, settings: map[string]*setting{}}
+	configs[0] = &Cfg{name: app, settings: make([]*setting, initSettingsCap)}
 	configNames = make([]string, 1)
 	configNames[0] = app
+}
+
+// Convenience functions for the main config
+// Code returns the code for the config. If set, this is used as
+// the prefix for environment variables and configuration setting names.
+func Code() string {
+	return configs[0].code
+}
+
+func UseEnv() bool {
+	return configs[0].useEnv
+}
+
+// SetConfig goes through the initialized Settings and updates the updateable
+// Settings if a new, valid value is found. This applies to, in order: Env
+// variables and config files. For any that are not found, or that are
+// immutable, once set, the original initialization values are used.
+//
+// The merged configuration Settings are then  written to their respective
+// environment variables. At this point, only args, or in application setting
+// changes, can change the non-immutable Settings.
+func SetConfig() error {
+	return configs[0].SetConfig()
+}
+
+// SetCode set's the code for this configuration. This can only be done once.
+// If it is already set, it will return an error.
+func SetCode(s string) error {
+	if configs[0].code != "" {
+		return fmt.Errorf("appCode is already set. AppCode is immutable. Once set, it cannot be altered")
+	}
+
+	configs[0].code = s
+	return nil
+}
+
+// Config processed returns whether or not all of the config's settings have
+// been processed.
+func ConfigProcessed() bool {
+	return configs[0].ConfigProcessed()
+}
+
+func configIndex(k string) (int, error)  {
+	for i, v := range configNames {
+		if v == k {
+			return i, nil
+		}
+	}
+	
+	return -1, fmt.Errorf("%q config not found", k)
 }
 
 // notFoundErr returns a standardized not found error.
