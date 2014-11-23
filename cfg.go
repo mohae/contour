@@ -34,7 +34,6 @@ type Cfg struct {
 	useCfg bool
 	cfgSet bool
 
-
 	// useEnv: whether this config writes to and reads from environment
 	// variables. If false, Settings are stored only in Config.
 	useEnv bool
@@ -53,31 +52,12 @@ type Cfg struct {
 // should be used as one can just interact with contour, instead of directly
 // with the app config, which is also supported.
 func AppConfig() *Cfg {
-	return configs[0]
+	return appCfg
 }
 
-// Config returns the config for the passed key, if it exists, or an error.
-func Config(k string) (*Cfg, error) {
-	i, err := configIndex(k)
-	if err != nil {
-		return nil, err
-	}
-
-	return configs[i], nil
-}
-
-// NewConfig returns a *Cfg to the caller. This config is added to configs
-// using the passed key value. If a config using the requested key already
-// exists, an error is returned.
-func NewConfig(k string) (c *Cfg, err error) {
-	i, err := configIndex(k)
-	if err == nil {
-		return configs[i], fmt.Errorf("%q configuration already exists", k)
-	}
-
-	configs = append(configs, &Cfg{name: app, settings: map[string]*setting{}})
-	configNames = append(configNames, k)
-	return configs[len(configs) - 1], nil
+// NewConfig returns a *Cfg to the caller
+func NewConfig(name string) *Cfg {
+	return &Cfg{name: app, settings: map[string]*setting{}}
 }
 
 // Code returns the code for the config. If set, this is used as
@@ -211,11 +191,11 @@ func (c *Cfg) ConfigProcessed() bool {
 // Code returns the code for the config. If set, this is used as
 // the prefix for environment variables and configuration setting names.
 func Code() string {
-	return configs[0].code
+	return appCfg.code
 }
 
 func UseEnv() bool {
-	return configs[0].useEnv
+	return appCfg.useEnv
 }
 
 // SetConfig goes through the initialized Settings and updates the updateable
@@ -227,7 +207,7 @@ func UseEnv() bool {
 // environment variables. At this point, only args, or in application setting
 // changes, can change the non-immutable Settings.
 func SetConfig() error {
-	return configs[0].SetConfig()
+	return appCfg.SetConfig()
 }
 
 /*
@@ -262,26 +242,16 @@ func (c *Cfg) Setenv(k string, v interface{}) error {
 // SetCode set's the code for this configuration. This can only be done once.
 // If it is already set, it will return an error.
 func SetCode(s string) error {
-	if configs[0].code != "" {
+	if appCfg.code != "" {
 		return fmt.Errorf("appCode is already set. AppCode is immutable. Once set, it cannot be altered")
 	}
 
-	configs[0].code = s
+	appCfg.code = s
 	return nil
 }
 
 // Config processed returns whether or not all of the config's settings have
 // been processed.
 func ConfigProcessed() bool {
-	return configs[0].ConfigProcessed()
-}
-
-func configIndex(k string) (int, error)  {
-	for i, v := range configNames {
-		if v == k {
-			return i, nil
-		}
-	}
-	
-	return -1, fmt.Errorf("%q config not found", k)
+	return appCfg.ConfigProcessed()
 }

@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	_ "encoding/xml"
-	_"flag"
+	_ "flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -50,11 +50,8 @@ func ParseFormat(s string) Format {
 	return f
 }
 
-// configs allows for support of multiple configurations. The main application
-// config is 'app'. Calling any of Contour's function versions of
-// config.method() is the equivelant of calling config[app].method().
-var configs []*Cfg
-var configNames []string
+// appCfg: contour's global config; contour config functinos operate on this.
+var appCfg *Cfg
 
 // Contour ironment variable names for the pre-configured core setting names
 // that it comes with. These are public and are directly settable if you wish
@@ -239,7 +236,7 @@ func marshalFormatReader(f Format, r io.Reader) (map[string]interface{}, error) 
 			return nil, err
 		}
 	default:
-		err := fmt.Errorf("unsupported configuration file format type: %s", )
+		err := fmt.Errorf("unsupported configuration file format type: %s")
 		logger.Error(err)
 		return nil, err
 	}
@@ -275,7 +272,7 @@ func (c *Cfg) canUpdate(k string) bool {
 }
 
 func canUpdate(k string) bool {
-	return configs[0].canUpdate(k)
+	return appCfg.canUpdate(k)
 }
 
 // canOverride() checks to see if the setting can be overridden. Overrides
@@ -300,7 +297,7 @@ func (c *Cfg) canOverride(k string) bool {
 }
 
 func canOverride(k string) bool {
-	return configs[0].canOverride(k)
+	return appCfg.canOverride(k)
 }
 
 /*
@@ -351,10 +348,7 @@ func AddSettingAlias(setting, alias string) error {
 // initConfigs initializes the configs var. This can be called to reset it in
 // testing too.
 func initConfigs() {
-	configs = make([]*Cfg, 1)
-	configs[0] = &Cfg{name: app, settings: map[string]*setting{}}
-	configNames = make([]string, 1)
-	configNames[0] = app
+	appCfg = &Cfg{name: app, settings: map[string]*setting{}}
 }
 
 // notFoundErr returns a standardized not found error.

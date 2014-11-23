@@ -18,7 +18,7 @@ func (c *Cfg) GetE(k string) (interface{}, error) {
 	if !ok {
 		return nil, notFoundErr(k)
 	}
-	
+
 	return c.settings[k].Value, nil
 }
 
@@ -154,12 +154,12 @@ func (c *Cfg) GetStringFilterNames() []string {
 // Get returns the setting Value as an interface{}.
 // GetE returns the setting Value as an interface{}.
 func GetE(k string) (interface{}, error) {
-	_, ok := configs[0].settings[k]
+	_, ok := appCfg.settings[k]
 	if !ok {
 		return nil, notFoundErr(k)
 	}
 
-	return configs[0].settings[k].Value, nil
+	return appCfg.settings[k].Value, nil
 }
 
 // GetBoolE returns the setting Value as a bool.
@@ -194,42 +194,42 @@ func GetStringE(k string) (string, error) {
 
 // GetInterfaceE is a convenience wrapper function to Get
 func GetInterfaceE(k string) (interface{}, error) {
-	return configs[0].GetE(k)
+	return appCfg.GetE(k)
 }
 
 func Get(k string) interface{} {
-	s, _ := configs[0].GetE(k)
+	s, _ := appCfg.GetE(k)
 	return s
 }
 
 // GetBool returns the setting Value as a bool.
 func GetBool(k string) bool {
-	s, _ := configs[0].GetBoolE(k)
+	s, _ := appCfg.GetBoolE(k)
 	return s
 }
 
 // GetInt returns the setting Value as an int.
 func GetInt(k string) int {
-	s, _ := configs[0].GetIntE(k)
+	s, _ := appCfg.GetIntE(k)
 	return s
 }
 
 // GetString returns the setting Value as a string.
 func GetString(k string) string {
-	s, _ := configs[0].GetStringE(k)
+	s, _ := appCfg.GetStringE(k)
 	return s
 }
 
 // GetInterface is a convenience wrapper function to Get
 func GetInterface(k string) interface{} {
-	return configs[0].Get(k)
+	return appCfg.Get(k)
 }
 
 // GetBoolFilterNames returns a list of filter names (flags).
 func GetBoolFilterNames() []string {
 	var names []string
 
-	for k, setting := range configs[0].settings {
+	for k, setting := range appCfg.settings {
 		if setting.IsFlag && setting.Type == "bool" {
 			names = append(names, k)
 		}
@@ -242,7 +242,7 @@ func GetBoolFilterNames() []string {
 func GetIntFilterNames() []string {
 	var names []string
 
-	for k, setting := range configs[0].settings {
+	for k, setting := range appCfg.settings {
 		if setting.IsFlag && setting.Type == "int" {
 			names = append(names, k)
 		}
@@ -255,7 +255,7 @@ func GetIntFilterNames() []string {
 func GetStringFilterNames() []string {
 	var names []string
 
-	for k, setting := range configs[0].settings {
+	for k, setting := range appCfg.settings {
 		if setting.IsFlag && setting.Type == "string" {
 			names = append(names, k)
 		}

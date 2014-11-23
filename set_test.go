@@ -5,20 +5,19 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-
 func TestSetBoolE(t *testing.T) {
 	Convey("Given a new config", t, func() {
-		c, _ := NewConfig("setboole")
+		c := NewConfig("setboole")
 
 		Convey("Setting a boolean flag", func() {
-			err  := c.SetFlagBoolE("flagBoolKey", true, "b")
+			err := c.SetFlagBoolE("flagBoolKey", true, "b")
 			Convey("Should not error", func() {
 				So(err, ShouldBeNil)
 			})
 
 			Convey("And the setting should exist", func() {
 				s, ok := c.settings["flagBoolKey"]
-			
+
 				Convey("And the key should exist", func() {
 					So(ok, ShouldEqual, true)
 				})
@@ -53,17 +52,17 @@ func TestSetBoolE(t *testing.T) {
 
 func TestSetIntE(t *testing.T) {
 	Convey("Given a test config", t, func() {
-		c, _ := NewConfig("setinte")
+		c := NewConfig("setinte")
 
 		Convey("Setting an int flag", func() {
-			err  := c.SetFlagIntE("flagIntKey", 42, "i")
+			err := c.SetFlagIntE("flagIntKey", 42, "i")
 			Convey("Should not error", func() {
 				So(err, ShouldBeNil)
 			})
 
 			Convey("And the setting should exist", func() {
 				s, ok := c.settings["flagIntKey"]
-			
+
 				Convey("And the key should exist", func() {
 					So(ok, ShouldEqual, true)
 				})
@@ -98,17 +97,17 @@ func TestSetIntE(t *testing.T) {
 
 func TestSetStringE(t *testing.T) {
 	Convey("Given a test config", t, func() {
-		c, _ := NewConfig("setstringe")
+		c := NewConfig("setstringe")
 
 		Convey("Setting a string flag", func() {
-			err  := c.SetFlagStringE("flagStringKey", "marvin", "s")
+			err := c.SetFlagStringE("flagStringKey", "marvin", "s")
 			Convey("Should not error", func() {
 				So(err, ShouldBeNil)
 			})
 
 			Convey("And the setting should exist", func() {
 				s, ok := c.settings["flagStringKey"]
-			
+
 				Convey("And the key should exist", func() {
 					So(ok, ShouldEqual, true)
 				})
@@ -143,14 +142,14 @@ func TestSetStringE(t *testing.T) {
 
 func TestSetBool(t *testing.T) {
 	Convey("Given a new config", t, func() {
-		c, _ := NewConfig("setbool")
+		c := NewConfig("setbool")
 
 		Convey("Setting a boolean flag", func() {
 			c.SetFlagBool("flagBoolKey", true, "b")
 
 			Convey("And the setting should exist", func() {
 				s, ok := c.settings["flagBoolKey"]
-			
+
 				Convey("And the key should exist", func() {
 					So(ok, ShouldEqual, true)
 				})
@@ -185,14 +184,14 @@ func TestSetBool(t *testing.T) {
 
 func TestSetInt(t *testing.T) {
 	Convey("Given a test config", t, func() {
-		c, _ := NewConfig("setint")
+		c := NewConfig("setint")
 
 		Convey("Setting an int flag", func() {
 			c.SetFlagInt("flagIntKey", 42, "i")
 
 			Convey("And the setting should exist", func() {
 				s, ok := c.settings["flagIntKey"]
-			
+
 				Convey("And the key should exist", func() {
 					So(ok, ShouldEqual, true)
 				})
@@ -227,14 +226,14 @@ func TestSetInt(t *testing.T) {
 
 func TestSetString(t *testing.T) {
 	Convey("Given a test config", t, func() {
-		c, _ := NewConfig("setstring")
+		c := NewConfig("setstring")
 
 		Convey("Setting a string flag", func() {
 			c.SetFlagStringE("flagStringKey", "marvin", "s")
-			
+
 			Convey("And the setting should exist", func() {
 				s, ok := c.settings["flagStringKey"]
-			
+
 				Convey("And the key should exist", func() {
 					So(ok, ShouldEqual, true)
 				})

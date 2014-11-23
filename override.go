@@ -18,27 +18,26 @@ func (c *Cfg) Override(k string, v interface{}) error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	// If it can't be overriden, 
+	// If it can't be overriden,
 	if c.settings[k].IsCore || !c.settings[k].IsFlag {
 		err := fmt.Errorf("%v: setting is not a flag. Only flags can be overridden", k)
 		logger.Warn(err)
 		return err
 	}
 
-/*
-	// Write to environment variable
-	err := c.Setenv(k, v)
-	if err != nil {
-		logger.Error(err)
-		return err
-	}
-*/
+	/*
+		// Write to environment variable
+		err := c.Setenv(k, v)
+		if err != nil {
+			logger.Error(err)
+			return err
+		}
+	*/
 
 	c.settings[k].Value = v
 	return nil
 }
 
 func Override(k string, v interface{}) error {
-	return configs[0].Override(k, v)
+	return appCfg.Override(k, v)
 }
-

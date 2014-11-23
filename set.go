@@ -9,7 +9,6 @@ package contour
 // SetEnvs writes the current contents of AppConfig to their respective
 // environmnet variables.
 
-
 import (
 	"fmt"
 	_ "strconv"
@@ -56,10 +55,10 @@ func (c *Cfg) setCfg(cf map[string]interface{}) error {
 			continue
 		}
 
-//		err = appConfig.Setenv(k, v)
-//		if err != nil {
-//			return err
-//		}
+		//		err = appConfig.Setenv(k, v)
+		//		if err != nil {
+		//			return err
+		//		}
 
 		err := c.updateE(k, v)
 		if err != nil {
@@ -70,7 +69,6 @@ func (c *Cfg) setCfg(cf map[string]interface{}) error {
 
 	return nil
 }
-
 
 // SetSetting
 func (c *Cfg) SetSetting(Type, k string, v interface{}, Code string, IsCore, IsCfg, IsFlag bool) error {
@@ -83,14 +81,14 @@ func (c *Cfg) SetSetting(Type, k string, v interface{}, Code string, IsCore, IsC
 		logger.Error(err)
 		return err
 	}
-	
+
 	c.settings[k] = &setting{
-		Type:	Type,
-		Value:	v,
-		Code:	Code,
-		IsCore:	IsCore,
-		IsCfg:	IsCfg,
-		IsFlag:		IsFlag,
+		Type:   Type,
+		Value:  v,
+		Code:   Code,
+		IsCore: IsCore,
+		IsCfg:  IsCfg,
+		IsFlag: IsFlag,
 	}
 
 	return nil
@@ -137,37 +135,35 @@ func (c *Cfg) SetFlagString(k, v, f string) {
 // SetFlagBoolE adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func SetFlagBoolE(k string, v bool, f string) error {
-	return configs[0].SetSetting("bool", k, v, f, false, true, true)
+	return appCfg.SetSetting("bool", k, v, f, false, true, true)
 }
 
 // SetFlagIntE adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func SetFlagIntE(k string, v int, f string) error {
-	return configs[0].SetSetting("int", k, v, f, false, true, true)
+	return appCfg.SetSetting("int", k, v, f, false, true, true)
 }
 
 // SetFlagStringE adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func SetFlagStringE(k, v, f string) error {
-	return configs[0].SetSetting("string", k, v, f, false, true, true)
+	return appCfg.SetSetting("string", k, v, f, false, true, true)
 }
 
 // SetFlagBool adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func SetFlagBool(k string, v bool, f string) {
-	configs[0].SetFlagBoolE(k, v, f)
+	appCfg.SetFlagBoolE(k, v, f)
 }
 
 // SetFlagInt adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func SetFlagInt(k string, v int, f string) {
-	configs[0].SetFlagIntE(k, v, f)
+	appCfg.SetFlagIntE(k, v, f)
 }
 
 // SetFlagString adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func SetFlagString(k, v, f string) {
-	configs[0].SetFlagStringE(k, v, f)
+	appCfg.SetFlagStringE(k, v, f)
 }
-
-

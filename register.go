@@ -10,11 +10,9 @@ package contour
 // These should be called at app startup to register all configuration
 // Settings that the application uses.
 
-
 import (
 	"fmt"
 )
-
 
 // Config methods
 // RegisterConfigFilename set's the configuration file's name. The name is
@@ -31,7 +29,7 @@ func (c *Cfg) RegisterConfigFilename(k, v string) error {
 		return fmt.Errorf("A key for the config filename setting was expected, none received")
 	}
 
-	c.RegisterCoreString(k, v)
+	c.RegisterStringCore(k, v)
 
 	// Register it first. If a valid config format isn't found, an error
 	// will be returned, so registering it afterwords would mean the
@@ -54,15 +52,15 @@ func (c *Cfg) RegisterConfigFilename(k, v string) error {
 func (c *Cfg) RegisterSetting(Type string, k string, v interface{}, Code string, IsCore, IsCfg, IsFlag bool) {
 	var update bool
 	c.lock.RLock()
-	_, ok := configs[0].settings[k]
+	_, ok := appCfg.settings[k]
 	if ok {
 		// Core Settings can't be re-registered.
-		if configs[0].settings[k].IsCore {
+		if appCfg.settings[k].IsCore {
 			c.lock.RUnlock()
 			return
 		}
 
-		if configs[0].settings[k].Value != nil {
+		if appCfg.settings[k].Value != nil {
 			c.lock.RUnlock()
 			return
 		}
@@ -72,7 +70,7 @@ func (c *Cfg) RegisterSetting(Type string, k string, v interface{}, Code string,
 
 	c.lock.RUnlock()
 	c.lock.Lock()
-	defer c.lock.Lock()
+	defer c.lock.Unlock()
 
 	// Keep track of whether or not a config is being used. If a setting is
 	// registered as a config setting, it is assumed a configuration source
@@ -82,7 +80,7 @@ func (c *Cfg) RegisterSetting(Type string, k string, v interface{}, Code string,
 	}
 
 	// Keep track of whether or not flags are being used. If a setting is
-	// registered as a flag setting, it is assumed that flags are being 
+	// registered as a flag setting, it is assumed that flags are being
 	// used.
 	if IsFlag {
 		c.useFlags = true
@@ -100,54 +98,54 @@ func (c *Cfg) RegisterSetting(Type string, k string, v interface{}, Code string,
 	}
 
 	// Otherwise register it as a new setting.
-	configs[0].settings[k] = &setting{
-		Type:      Type,
-		Value:     v,
-		Code:      Code,
-		IsCore:    IsCore,
-		IsCfg:     IsCfg,
-		IsFlag:    IsFlag,
+	c.settings[k] = &setting{
+		Type:   Type,
+		Value:  v,
+		Code:   Code,
+		IsCore: IsCore,
+		IsCfg:  IsCfg,
+		IsFlag: IsFlag,
 	}
 }
 
-// RegisterCoreBool adds the information to the AppsConfig struct, but does not
+// RegisterBoolCore adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable
-func (c *Cfg) RegisterCoreBool(k string, v bool) {
+func (c *Cfg) RegisterBoolCore(k string, v bool) {
 	c.RegisterSetting("bool", k, v, "", true, false, false)
 	return
 }
 
-// RegisterCoreInt adds the information to the AppsConfig struct, but does not
+// RegisterIntCore adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable
-func (c *Cfg) RegisterCoreInt(k string, v int) {
+func (c *Cfg) RegisterIntCore(k string, v int) {
 	c.RegisterSetting("int", k, v, "", true, false, false)
 	return
 }
 
-// RegisterCoreString adds the information to the AppsConfig struct, but does not
+// RegisterStringCore adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable
-func (c *Cfg) RegisterCoreString(k, v string) {
+func (c *Cfg) RegisterStringCore(k, v string) {
 	c.RegisterSetting("string", k, v, "", true, false, false)
 	return
 }
 
-// RegisterConfBool adds the information to the AppsConfig struct, but does not
+// RegisterBoolConf adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable.
-func (c *Cfg) RegisterConfBool(k string, v bool) {
+func (c *Cfg) RegisterBoolConf(k string, v bool) {
 	c.RegisterSetting("bool", k, v, "", false, true, false)
 	return
 }
 
-// RegisterConfInt adds the information to the AppsConfig struct, but does not
+// RegisterIntConf adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable.
-func (c *Cfg) RegisterConfInt(k string, v bool) {
+func (c *Cfg) RegisterIntConf(k string, v bool) {
 	c.RegisterSetting("int", k, v, "", false, true, false)
 	return
 }
 
-// RegisterConfString adds the information to the AppsConfig struct, but does not
+// RegisterStringConf adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable.
-func (c *Cfg) RegisterConfString(k string, v bool) {
+func (c *Cfg) RegisterStringConf(k string, v bool) {
 	c.RegisterSetting("string", k, v, "", false, true, false)
 	return
 }
@@ -161,18 +159,17 @@ func (c *Cfg) RegisterFlagBool(k string, v bool, f string) {
 
 // RegisterIntFlag adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable.
-func (c *Cfg) RegisterFlagInt(k string, v int, f string) {
+func (c *Cfg) RegisterIntFlag(k string, v int, f string) {
 	c.RegisterSetting("int", k, v, f, false, true, true)
 	return
 }
 
 // RegisterStringFlag adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable.
-func (c *Cfg) RegisterFlagString(k, v, f string) {
+func (c *Cfg) RegisterStringFlag(k, v, f string) {
 	c.RegisterSetting("string", k, v, f, false, true, true)
 	return
 }
-
 
 // RegisterBool adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable.
@@ -211,19 +208,19 @@ func RegisterConfigFilename(k, v string) error {
 		return fmt.Errorf("A key for the config filename setting was expected, none received")
 	}
 
-	configs[0].RegisterCoreString(k, v)
+	appCfg.RegisterStringCore(k, v)
 
 	// TODO redo this given new paradigm
 	// Register it first. If a valid config format isn't found, an error
 	// will be returned, so registering it afterwords would mean the
 	// setting would not exist.
-	configs[0].RegisterString(CfgFormat, "")
+	appCfg.RegisterString(CfgFormat, "")
 	format, err := configFormat(v)
 	if err != nil {
 		return err
 	}
 
-	configs[0].RegisterString(CfgFormat, format.String())
+	appCfg.RegisterString(CfgFormat, format.String())
 
 	return nil
 }
@@ -231,78 +228,77 @@ func RegisterConfigFilename(k, v string) error {
 // RegisterSetting checks to see if the entry already exists and adds the
 // new setting if it does not.
 func RegisterSetting(Type string, k string, v interface{}, Code string, IsCore, IsCfg, IsFlag bool) {
-	configs[0].RegisterSetting(Type, k, v, Code, IsCore, IsCfg, IsFlag)
+	appCfg.RegisterSetting(Type, k, v, Code, IsCore, IsCfg, IsFlag)
 }
 
-// RegisterCoreBool adds the information to the AppsConfig struct, but does not
+// RegisterBoolCore adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable
-func RegisterCoreBool(k string, v bool) {
-	configs[0].RegisterSetting("bool", k, v, "", true, false, false)
+func RegisterBoolCore(k string, v bool) {
+	appCfg.RegisterSetting("bool", k, v, "", true, false, false)
 }
 
-// RegisterCoreInt adds the information to the AppsConfig struct, but does not
+// RegisterIntCore adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable
-func RegisterCoreInt(k string, v int) {
-	configs[0].RegisterSetting("int", k, v, "", true, false, false)
+func RegisterIntCore(k string, v int) {
+	appCfg.RegisterSetting("int", k, v, "", true, false, false)
 }
 
-// RegisterCoreString adds the information to the AppsConfig struct, but does not
+// RegisterStringCore adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable
-func RegisterCoreString(k, v string) {
-	configs[0].RegisterSetting("string", k, v, "", true, false, false)
+func RegisterStringCore(k, v string) {
+	appCfg.RegisterSetting("string", k, v, "", true, false, false)
 }
 
 // RegisterConfBool adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable.
-func RegisterConfBool(k string, v bool) {
-	configs[0].RegisterSetting("bool", k, v, "", false, true, false)
+func RegisteeBoolCore(k string, v bool) {
+	appCfg.RegisterSetting("bool", k, v, "", false, true, false)
 }
 
-// RegisterConfInt adds the information to the AppsConfig struct, but does not
+// RegisterIntConf adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable.
-func RegisterConfInt(k string, v bool) {
-	configs[0].RegisterSetting("int", k, v, "", false, true, false)
+func RegisterIntConf(k string, v bool) {
+	appCfg.RegisterSetting("int", k, v, "", false, true, false)
 }
 
-// RegisterConfString adds the information to the AppsConfig struct, but does not
+// RegisterStringConf adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable.
-func RegisterConfString(k string, v bool) {
-	configs[0].RegisterSetting("string", k, v, "", false, true, false)
+func RegisterStringConf(k string, v bool) {
+	appCfg.RegisterSetting("string", k, v, "", false, true, false)
 }
 
-// RegisterFlagBool adds the information to the AppsConfig struct, but does not
+// RegisterBoolFlag adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable.
-func RegisterFlagBool(k string, v bool, f string) {
-	configs[0].RegisterSetting("bool", k, v, f, false, true, true)
+func RegisterBoolFlag(k string, v bool, f string) {
+	appCfg.RegisterSetting("bool", k, v, f, false, true, true)
 }
 
 // RegisterIntFlag adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable.
-func RegisterFlagInt(k string, v int, f string) {
-	configs[0].RegisterSetting("int", k, v, f, false, true, true)
+func RegisterIntFlag(k string, v int, f string) {
+	appCfg.RegisterSetting("int", k, v, f, false, true, true)
 }
 
 // RegisterStringFlag adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable.
-func RegisterFlagString(k, v, f string) {
-	configs[0].RegisterSetting("string", k, v, f, false, true, true)
+func RegisterStringFlag(k, v, f string) {
+	appCfg.RegisterSetting("string", k, v, f, false, true, true)
 }
-
 
 // RegisterBool adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable.
 func RegisterBool(k string, v bool) {
-	configs[0].RegisterSetting("bool", k, v, "", false, false, false)
+	appCfg.RegisterSetting("bool", k, v, "", false, false, false)
 }
 
 // RegisterInt adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable.
 func RegisterInt(k string, v int) {
-	configs[0].RegisterSetting("int", k, v, "", false, false, false)
+	appCfg.RegisterSetting("int", k, v, "", false, false, false)
 }
 
 // RegisterString adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable.
 func RegisterString(k, v string) {
-	configs[0].RegisterSetting("string", k, v, "", false, false, false)
+	appCfg.RegisterSetting("string", k, v, "", false, false, false)
 }
