@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	_ "encoding/xml"
-	_ "flag"
+	_"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
