@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/json"
 	_ "encoding/xml"
-	_ "flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -13,7 +12,6 @@ import (
 	_ "strconv"
 	"strings"
 
-	_ "code.google.com/p/gcfg"
 	"github.com/BurntSushi/toml"
 )
 
@@ -89,8 +87,7 @@ func configFormat(s string) (Format, error) {
 	}
 
 	f := ParseFormat(format)
-	is := f.isSupported()
-	if !is {
+	if !f.isSupported() {
 		err := unsupportedFormatErr(format)
 		logger.Error(err)
 		return Unsupported, err

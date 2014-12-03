@@ -1,9 +1,6 @@
 package contour
 
-import (
-	"flag"
-	"fmt"
-)
+import "fmt"
 
 // FilterArgs takes the passed args and filter's the flags out of them.
 // The populated flags override their settings, according to the override
@@ -13,7 +10,7 @@ import (
 // Any args left, after filtering, are returned to the caller.
 // TODO: refactor this for greater abstraction (as long as it doesn't come
 //	at the cost of reflection)
-func (c *Cfg) FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error) {
+func (c *Cfg) FilterArgs(args []string) ([]string, error) {
 	// Get the flag filters from the config variable information.
 	boolFilterNames := c.GetBoolFilterNames()
 
@@ -24,7 +21,7 @@ func (c *Cfg) FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error)
 
 	for _, name := range boolFilterNames {
 		if c.settings[name].IsFlag {
-			boolFilters[flags] = flagSet.Bool(name, c.settings[name].Value.(bool), fmt.Sprintf("filter %s", name))
+			boolFilters[flags] = c.flagSet.Bool(name, c.settings[name].Value.(bool), fmt.Sprintf("filter %s", name))
 			bFilterNames[flags] = name
 			flags++
 		}
@@ -40,7 +37,7 @@ func (c *Cfg) FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error)
 
 	for _, name := range intFilterNames {
 		if c.settings[name].IsFlag {
-			intFilters[flags] = flagSet.Int(name, c.settings[name].Value.(int), fmt.Sprintf("filter %s", name))
+			intFilters[flags] = c.flagSet.Int(name, c.settings[name].Value.(int), fmt.Sprintf("filter %s", name))
 			iFilterNames[flags] = name
 			flags++
 		}
@@ -55,20 +52,20 @@ func (c *Cfg) FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error)
 
 	for _, name := range stringFilterNames {
 		if c.settings[name].IsFlag {
-			stringFilters[flags] = flagSet.String(name, c.settings[name].Value.(string), fmt.Sprintf("filter %s", name))
+			stringFilters[flags] = c.flagSet.String(name, c.settings[name].Value.(string), fmt.Sprintf("filter %s", name))
 			sFilterNames[flags] = name
 			flags++
 		}
 	}
 
 	// Parse args for flags
-	err := flagSet.Parse(args)
+	err := c.flagSet.Parse(args)
 	if err != nil {
 		return nil, fmt.Errorf("parse of command-line arguments failed: %s", err)
 	}
 
 	// Get the remaining args
-	cmdArgs := flagSet.Args()
+	cmdArgs := c.flagSet.Args()
 
 	// Process the captured values
 	for i, v := range boolFilters {
@@ -93,6 +90,6 @@ func (c *Cfg) FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error)
 	return cmdArgs, nil
 }
 
-func FilterArgs(flagSet *flag.FlagSet, args []string) ([]string, error) {
-	return appCfg.FilterArgs(flagSet, args)
+func FilterArgs(args []string) ([]string, error) {
+	return appCfg.FilterArgs(args)
 }

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	_ "os"
 	"sync"
+
+	"github.com/mohae/flag"
 )
 
 // Cfg is a group of Settings and holds all of the application setting
@@ -16,7 +18,8 @@ import (
 type Cfg struct {
 	name string
 
-	lock sync.RWMutex
+	lock    sync.RWMutex
+	flagSet *flag.FlagSet
 	// code is the shortcode for this configuration. It is mostly used to
 	// prefix environment variables, when used.
 	code string
@@ -44,19 +47,18 @@ type Cfg struct {
 	flagsSet bool
 }
 
-// AppConfig returns the configs[app]. If it doesn't exist, one is initialized
-// and returned.
+// AppCfg returns the global cfg.
 //
 // Contour has a set of functions that implicitly interact with configs[app].
 // If the application is only going to use one configuration, this is what
 // should be used as one can just interact with contour, instead of directly
 // with the app config, which is also supported.
-func AppConfig() *Cfg {
+func AppCfg() *Cfg {
 	return appCfg
 }
 
 // NewConfig returns a *Cfg to the caller
-func NewConfig(name string) *Cfg {
+func NewCfg(name string) *Cfg {
 	return &Cfg{name: app, settings: map[string]*setting{}}
 }
 
@@ -254,4 +256,14 @@ func SetCode(s string) error {
 // been processed.
 func ConfigProcessed() bool {
 	return appCfg.ConfigProcessed()
+}
+
+// SetFlagSetUsage sets flagSet.Usage
+func (c *Cfg) SetFlagSetUsage(f func()) {
+	c.flagSet.Usage = f
+}
+
+// SetFlagSetUsage sets flagSet.Usage
+func SetFlagSetUsage(f func()) {
+	appCfg.SetFlagSetUsage(f)
 }
