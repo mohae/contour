@@ -9,9 +9,9 @@ import (
 func TestConfig(t *testing.T) {
 	initConfigs()
 	Convey("Calling NewConfig", t, func() {
-		c := NewConfig("test")
+		c := NewCfg("test")
 		Convey("should result in an config with name 'test'", func() {
-			So(c.Code(), ShouldEqual, "")
+			So(c.name, ShouldEqual, "test")
 		})
 	})
 

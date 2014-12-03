@@ -1,7 +1,7 @@
 package contour
 
 import (
-	_"bytes"
+	_ "bytes"
 	_ "os"
 	"strconv"
 	"testing"
@@ -86,82 +86,81 @@ var jsonResults = map[string]interface{}{
 }
 
 var testConfig = &Cfg{settings: map[string]*setting{
-	"corebool":    &setting{
-		Type: "bool",
+	"corebool": &setting{
+		Type:   "bool",
+		Value:  true,
+		IsCore: true,
+	},
+	"coreint": &setting{
+		Type:   "int",
+		Value:  42,
+		IsCore: true,
+	},
+	"corestring": &setting{
+		Type:   "string",
+		Value:  "a core string",
+		IsCore: true,
+	},
+	"configbool": &setting{
+		Type:  "bool",
 		Value: true,
-		IsCore: true,
-	},
-	"coreint":    &setting{
-		Type: "int",
-		Value: 42,
-		IsCore: true,
-	},
-	"corestring":    &setting{
-		Type: "string",
-		Value: "a core string",
-		IsCore: true,
-	},
-	"configbool":    &setting{
-		Type: "bool",
-		Value: true,
-		Code: "",
+		Short: "",
 		IsCfg: true,
 	},
-	"configint":    &setting{
-		Type: "int",
+	"configint": &setting{
+		Type:  "int",
 		Value: 42,
 		IsCfg: true,
 	},
-	"configstring":    &setting{
-		Type: "string",
+	"configstring": &setting{
+		Type:  "string",
 		Value: "a config string",
-		Code: "",
+		Short: "",
 		IsCfg: true,
 	},
-	"flagbool":    &setting{
-		Type: "bool",
+	"flagbool": &setting{
+		Type:   "bool",
+		Value:  true,
+		Short:  "b",
+		IsFlag: true,
+		IsCfg:  true,
+	},
+	"flagint": &setting{
+		Type:   "int",
+		Value:  42,
+		Short:  "i",
+		IsFlag: true,
+		IsCfg:  true,
+	},
+	"flagstring": &setting{
+		Type:   "string",
+		Value:  "a flag string",
+		Short:  "s",
+		IsFlag: true,
+		IsCfg:  true,
+	},
+	"bool": &setting{
+		Type:  "bool",
 		Value: true,
-		Code: "b",
-		IsFlag: true,
-		IsCfg: true,
+		Short: "b",
 	},
-	"flagint":    &setting{
-		Type: "int",
+	"int": &setting{
+		Type:  "int",
 		Value: 42,
-		Code: "i",
-		IsFlag: true,
-		IsCfg: true,
+		Short: "i",
 	},
-	"flagstring":    &setting{
-		Type: "string",
-		Value: "a flag string",
-		Code: "s",
-		IsFlag: true,
-		IsCfg: true,
-	},
-	"bool":    &setting{
-		Type: "bool",
-		Value: true,
-		Code: "b",
-	},
-	"int":    &setting{
-		Type: "int",
-		Value: 42,
-		Code: "i",
-	},
-	"string":    &setting{
-		Type: "string",
+	"string": &setting{
+		Type:  "string",
 		Value: "a string",
-		Code: "s",
+		Short: "s",
 	},
 }}
 
 var emptyConfigs map[string]*Cfg
 var testConfigs = map[string]*Cfg{
-	app: &Cfg{settings: map[string]*setting{}},
+	app:     &Cfg{settings: map[string]*setting{}},
 	"test1": &Cfg{settings: map[string]*setting{}},
 }
-
 
 // helper function
 func checkTestReturn(test basic, format string, err error) {
@@ -188,7 +187,7 @@ func checkTestReturn(test basic, format string, err error) {
 	}
 }
 
-// Testing 
+// Testing
 func TestConfigFormat(t *testing.T) {
 	tests := []basic{
 		{"an empty configfilename", "", "", "a config filename was expected, none received"},
@@ -450,10 +449,10 @@ func TestNotFoundErr(t *testing.T) {
 
 	for _, test := range tests {
 
-		Convey(test.name + "  given a string", t, func() {
+		Convey(test.name+"  given a string", t, func() {
 			Convey("calling notFoundErr with it", func() {
 				err := notFoundErr(test.value)
-				Convey("should result in an error", func () {
+				Convey("should result in an error", func() {
 					So(err, ShouldNotBeNil)
 					Convey("with the error message", func() {
 						So(err.Error(), ShouldEqual, test.expected)
@@ -462,7 +461,7 @@ func TestNotFoundErr(t *testing.T) {
 			})
 		})
 	}
-				
+
 }
 
 func TestSettingNotFoundErr(t *testing.T) {
@@ -473,10 +472,10 @@ func TestSettingNotFoundErr(t *testing.T) {
 
 	for _, test := range tests {
 
-		Convey(test.name + "  given a string", t, func() {
+		Convey(test.name+"  given a string", t, func() {
 			Convey("calling notFoundErr with it", func() {
 				err := settingNotFoundErr(test.value)
-				Convey("should result in an error", func () {
+				Convey("should result in an error", func() {
 					So(err, ShouldNotBeNil)
 					Convey("with the error message", func() {
 						So(err.Error(), ShouldEqual, test.expected)
@@ -485,5 +484,5 @@ func TestSettingNotFoundErr(t *testing.T) {
 			})
 		})
 	}
-				
+
 }

@@ -59,7 +59,7 @@ func AppCfg() *Cfg {
 
 // NewConfig returns a *Cfg to the caller
 func NewCfg(name string) *Cfg {
-	return &Cfg{name: app, settings: map[string]*setting{}}
+	return &Cfg{name: name, settings: map[string]*setting{}}
 }
 
 // Code returns the code for the config. If set, this is used as

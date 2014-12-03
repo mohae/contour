@@ -7,10 +7,10 @@ import (
 
 func TestSetBoolE(t *testing.T) {
 	Convey("Given a new config", t, func() {
-		c := NewConfig("setboole")
+		c := NewCfg("setboole")
 
 		Convey("Setting a boolean flag", func() {
-			err := c.SetFlagBoolE("flagBoolKey", true, "b")
+			err := c.SetFlagBoolE("flagBoolKey", "b", true, true, "")
 			Convey("Should not error", func() {
 				So(err, ShouldBeNil)
 			})
@@ -27,7 +27,7 @@ func TestSetBoolE(t *testing.T) {
 				})
 
 				Convey("And the code should be set", func() {
-					So(s.Code, ShouldEqual, "b")
+					So(s.Short, ShouldEqual, "b")
 				})
 
 				Convey("And the type should be bool", func() {
@@ -52,10 +52,10 @@ func TestSetBoolE(t *testing.T) {
 
 func TestSetIntE(t *testing.T) {
 	Convey("Given a test config", t, func() {
-		c := NewConfig("setinte")
+		c := NewCfg("setinte")
 
 		Convey("Setting an int flag", func() {
-			err := c.SetFlagIntE("flagIntKey", 42, "i")
+			err := c.SetFlagIntE("flagIntKey", "i", 42, 0, "")
 			Convey("Should not error", func() {
 				So(err, ShouldBeNil)
 			})
@@ -72,7 +72,7 @@ func TestSetIntE(t *testing.T) {
 				})
 
 				Convey("And the code should be set", func() {
-					So(s.Code, ShouldEqual, "i")
+					So(s.Short, ShouldEqual, "i")
 				})
 
 				Convey("And the type should be int", func() {
@@ -97,10 +97,10 @@ func TestSetIntE(t *testing.T) {
 
 func TestSetStringE(t *testing.T) {
 	Convey("Given a test config", t, func() {
-		c := NewConfig("setstringe")
+		c := NewCfg("setstringe")
 
 		Convey("Setting a string flag", func() {
-			err := c.SetFlagStringE("flagStringKey", "marvin", "s")
+			err := c.SetFlagStringE("flagStringKey", "s", "marvin", "", "")
 			Convey("Should not error", func() {
 				So(err, ShouldBeNil)
 			})
@@ -117,7 +117,7 @@ func TestSetStringE(t *testing.T) {
 				})
 
 				Convey("And the code should be set", func() {
-					So(s.Code, ShouldEqual, "s")
+					So(s.Short, ShouldEqual, "s")
 				})
 
 				Convey("And the type should be string", func() {
@@ -142,10 +142,10 @@ func TestSetStringE(t *testing.T) {
 
 func TestSetBool(t *testing.T) {
 	Convey("Given a new config", t, func() {
-		c := NewConfig("setbool")
+		c := NewCfg("setbool")
 
 		Convey("Setting a boolean flag", func() {
-			c.SetFlagBool("flagBoolKey", true, "b")
+			c.SetFlagBool("flagBoolKey", "b", true, true, "")
 
 			Convey("And the setting should exist", func() {
 				s, ok := c.settings["flagBoolKey"]
@@ -159,7 +159,7 @@ func TestSetBool(t *testing.T) {
 				})
 
 				Convey("And the code should be set", func() {
-					So(s.Code, ShouldEqual, "b")
+					So(s.Short, ShouldEqual, "b")
 				})
 
 				Convey("And the type should be bool", func() {
@@ -184,10 +184,10 @@ func TestSetBool(t *testing.T) {
 
 func TestSetInt(t *testing.T) {
 	Convey("Given a test config", t, func() {
-		c := NewConfig("setint")
+		c := NewCfg("setint")
 
 		Convey("Setting an int flag", func() {
-			c.SetFlagInt("flagIntKey", 42, "i")
+			c.SetFlagInt("flagIntKey", "i", 42, 42, "")
 
 			Convey("And the setting should exist", func() {
 				s, ok := c.settings["flagIntKey"]
@@ -201,7 +201,7 @@ func TestSetInt(t *testing.T) {
 				})
 
 				Convey("And the code should be set", func() {
-					So(s.Code, ShouldEqual, "i")
+					So(s.Short, ShouldEqual, "i")
 				})
 
 				Convey("And the type should be int", func() {
@@ -226,10 +226,10 @@ func TestSetInt(t *testing.T) {
 
 func TestSetString(t *testing.T) {
 	Convey("Given a test config", t, func() {
-		c := NewConfig("setstring")
+		c := NewCfg("setstring")
 
 		Convey("Setting a string flag", func() {
-			c.SetFlagStringE("flagStringKey", "marvin", "s")
+			c.SetFlagStringE("flagStringKey", "s", "marvin", "", "")
 
 			Convey("And the setting should exist", func() {
 				s, ok := c.settings["flagStringKey"]
@@ -243,7 +243,7 @@ func TestSetString(t *testing.T) {
 				})
 
 				Convey("And the code should be set", func() {
-					So(s.Code, ShouldEqual, "s")
+					So(s.Short, ShouldEqual, "s")
 				})
 
 				Convey("And the type should be string", func() {
