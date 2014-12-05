@@ -72,7 +72,7 @@ func (c *Cfg) UseEnv() bool {
 	return c.useEnv
 }
 
-// SetConfig goes through the initialized Settings and updates the updateable
+// SetCfg goes through the initialized Settings and updates the updateable
 // Settings if a new, valid value is found. This applies to, in order: Env
 // variables and config files. For any that are not found, or that are
 // immutable, once set, the original initialization values are used.
@@ -80,7 +80,7 @@ func (c *Cfg) UseEnv() bool {
 // The merged configuration Settings are then  written to their respective
 // environment variables. At this point, only args, or in application setting
 // changes, can change the non-immutable Settings.
-func (c *Cfg) SetConfig() error {
+func (c *Cfg) SetCfg() error {
 	// Load any set environment variables into appConfig. Core and already
 	// set Write Once Settings are not updated from env.
 	//	c.loadEnvs()
@@ -169,9 +169,9 @@ func (c *Cfg) SetCode(s string) error {
 	return nil
 }
 
-// ConfigProcessed determines whether, or not, all of the configurations, for a
+// CfgProcessed determines whether, or not, all of the configurations, for a
 // given config, have been processed.
-func (c *Cfg) ConfigProcessed() bool {
+func (c *Cfg) CfgProcessed() bool {
 	if c.useCfg && !c.cfgSet {
 		return false
 	}
@@ -200,7 +200,7 @@ func UseEnv() bool {
 	return appCfg.useEnv
 }
 
-// SetConfig goes through the initialized Settings and updates the updateable
+// SetCfg goes through the initialized Settings and updates the updateable
 // Settings if a new, valid value is found. This applies to, in order: Env
 // variables and config files. For any that are not found, or that are
 // immutable, once set, the original initialization values are used.
@@ -208,8 +208,8 @@ func UseEnv() bool {
 // The merged configuration Settings are then  written to their respective
 // environment variables. At this point, only args, or in application setting
 // changes, can change the non-immutable Settings.
-func SetConfig() error {
-	return appCfg.SetConfig()
+func SetCfg() error {
+	return appCfg.SetCfg()
 }
 
 /*
@@ -254,8 +254,8 @@ func SetCode(s string) error {
 
 // Config processed returns whether or not all of the config's settings have
 // been processed.
-func ConfigProcessed() bool {
-	return appCfg.ConfigProcessed()
+func CfgProcessed() bool {
+	return appCfg.CfgProcessed()
 }
 
 // SetFlagSetUsage sets flagSet.Usage

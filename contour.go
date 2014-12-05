@@ -60,12 +60,12 @@ var (
 )
 
 func init() {
-	initConfigs()
+	initCfgs()
 }
 
-// configFormat gets the configured config filename and returns the format
+// cfgFormat gets the configured config filename and returns the format
 // it is in, if it is a supported format; otherwise an error.
-func configFormat(s string) (Format, error) {
+func cfgFormat(s string) (Format, error) {
 	if s == "" {
 		return Unsupported, fmt.Errorf("a config filename was expected, none received")
 	}
@@ -344,7 +344,7 @@ func AddSettingAlias(setting, alias string) error {
 
 // initConfigs initializes the configs var. This can be called to reset it in
 // testing too.
-func initConfigs() {
+func initCfgs() {
 	appCfg = &Cfg{name: app, settings: map[string]*setting{}}
 }
 

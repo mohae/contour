@@ -7,7 +7,7 @@ import (
 )
 
 func TestConfig(t *testing.T) {
-	initConfigs()
+	initCfgs()
 	Convey("Calling NewConfig", t, func() {
 		c := NewCfg("test")
 		Convey("should result in an config with name 'test'", func() {

@@ -205,7 +205,7 @@ func TestConfigFormat(t *testing.T) {
 		Convey("Given "+test.name+" Test", t, func() {
 
 			Convey("Getting the config format", func() {
-				format, err := configFormat(test.value)
+				format, err := cfgFormat(test.value)
 				checkTestReturn(test, format.String(), err)
 			})
 		})

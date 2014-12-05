@@ -35,7 +35,7 @@ func (c *Cfg) RegisterConfigFilename(k, v string) error {
 	// will be returned, so registering it afterwords would mean the
 	// setting would not exist.
 	c.RegisterString(CfgFormat, "")
-	format, err := configFormat(v)
+	format, err := cfgFormat(v)
 	if err != nil {
 		return err
 	}
@@ -197,7 +197,7 @@ func RegisterConfigFilename(k, v string) error {
 	// will be returned, so registering it afterwords would mean the
 	// setting would not exist.
 	appCfg.RegisterString(CfgFormat, "")
-	format, err := configFormat(v)
+	format, err := cfgFormat(v)
 	if err != nil {
 		return err
 	}
