@@ -18,7 +18,7 @@ type setting struct {
 	Usage string
 
 	// Default is the string version of the default, for usage
-	Default interface{}
+	Default string
 
 	// IsCore: whether or not this is considered a core setting. Core
 	// settings if for things like application name, where you don't want

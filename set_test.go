@@ -10,7 +10,7 @@ func TestSetBoolE(t *testing.T) {
 		c := NewCfg("setboole")
 
 		Convey("Setting a boolean flag", func() {
-			err := c.SetFlagBoolE("flagBoolKey", "b", true, true, "")
+			err := c.SetFlagBoolE("flagBoolKey", "b", true, "true", "")
 			Convey("Should not error", func() {
 				So(err, ShouldBeNil)
 			})
@@ -55,7 +55,7 @@ func TestSetIntE(t *testing.T) {
 		c := NewCfg("setinte")
 
 		Convey("Setting an int flag", func() {
-			err := c.SetFlagIntE("flagIntKey", "i", 42, 0, "")
+			err := c.SetFlagIntE("flagIntKey", "i", 42, "42", "")
 			Convey("Should not error", func() {
 				So(err, ShouldBeNil)
 			})
@@ -145,7 +145,7 @@ func TestSetBool(t *testing.T) {
 		c := NewCfg("setbool")
 
 		Convey("Setting a boolean flag", func() {
-			c.SetFlagBool("flagBoolKey", "b", true, true, "")
+			c.SetFlagBool("flagBoolKey", "b", true, "true", "")
 
 			Convey("And the setting should exist", func() {
 				s, ok := c.settings["flagBoolKey"]
@@ -187,7 +187,7 @@ func TestSetInt(t *testing.T) {
 		c := NewCfg("setint")
 
 		Convey("Setting an int flag", func() {
-			c.SetFlagInt("flagIntKey", "i", 42, 42, "")
+			c.SetFlagInt("flagIntKey", "i", 42, "42", "")
 
 			Convey("And the setting should exist", func() {
 				s, ok := c.settings["flagIntKey"]
