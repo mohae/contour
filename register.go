@@ -20,7 +20,7 @@ import (
 // that value too. If it cannot be determined, the extension info is not set.
 // These are considered core values and cannot be changed from command-line
 // and configuration files. (IsCore == true).
-func (c *Cfg) RegisterConfigFilename(k, v string) error {
+func (c *Cfg) RegisterCfgFilename(k, v string) error {
 	if v == "" {
 		return fmt.Errorf("A config filename was expected, none received")
 	}
@@ -45,6 +45,10 @@ func (c *Cfg) RegisterConfigFilename(k, v string) error {
 	c.UpdateString(CfgFormat, format.String())
 	fmt.Printf("FORMAT %s\n", format.String())
 	return nil
+}
+
+func RegisterCfgFilename(k, v string) error {
+	return appCfg.RegisterCfgFilename(k, v)
 }
 
 // RegisterSetting checks to see if the entry already exists and adds the
