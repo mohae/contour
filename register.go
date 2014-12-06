@@ -109,6 +109,13 @@ func (c *Cfg) RegisterIntCore(k string, v int) {
 	return
 }
 
+// RegisterInt64Core adds the information to the AppsConfig struct, but does not
+// save it to its ironment variable
+func (c *Cfg) RegisterInt64Core(k string, v int64) {
+	c.RegisterSetting("int64", k, "", v, strconv.FormatInt(v, 10), "", true, false, false)
+	return
+}
+
 // RegisterStringCore adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable
 func (c *Cfg) RegisterStringCore(k, v string) {
@@ -127,6 +134,13 @@ func (c *Cfg) RegisterBoolConf(k string, v bool) {
 // save it to its ironment variable.
 func (c *Cfg) RegisterIntConf(k string, v int) {
 	c.RegisterSetting("int", k, "", v, strconv.Itoa(v), "", false, true, false)
+	return
+}
+
+// RegisterInt64Conf adds the information to the AppsConfig struct, but does not
+// save it to its ironment variable.
+func (c *Cfg) RegisterInt64Conf(k string, v int64) {
+	c.RegisterSetting("int64", k, "", v, strconv.FormatInt(v, 10), "", false, true, false)
 	return
 }
 
@@ -151,6 +165,13 @@ func (c *Cfg) RegisterIntFlag(k, s string, v int, dflt, usage string) {
 	return
 }
 
+// RegisterInt64Flag adds the information to the AppsConfig struct, but does not
+// save it to its ironment variable.
+func (c *Cfg) RegisterInt64Flag(k, s string, v int64, dflt, usage string) {
+	c.RegisterSetting("int64", k, s, v, dflt, usage, false, true, true)
+	return
+}
+
 // RegisterStringFlag adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable.
 func (c *Cfg) RegisterStringFlag(k, s, v, dflt, usage string) {
@@ -169,6 +190,13 @@ func (c *Cfg) RegisterBool(k string, v bool) {
 // save it to its ironment variable.
 func (c *Cfg) RegisterInt(k string, v int) {
 	c.RegisterSetting("int", k, "", v, strconv.Itoa(v), "", false, false, false)
+	return
+}
+
+// RegisterInt64 adds the information to the AppsConfig struct, but does not
+// save it to its ironment variable.
+func (c *Cfg) RegisterInt64(k string, v int64) {
+	c.RegisterSetting("int64", k, "", v, strconv.FormatInt(v, 10), "", false, false, false)
 	return
 }
 
@@ -230,6 +258,12 @@ func RegisterIntCore(k string, v int) {
 	appCfg.RegisterIntCore(k, v)
 }
 
+// RegisterInt64Core adds the information to the AppsConfig struct, but does not
+// save it to its ironment variable
+func RegisterInt64Core(k string, v int64) {
+	appCfg.RegisterInt64Core(k, v)
+}
+
 // RegisterStringCore adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable
 func RegisterStringCore(k, v string) {
@@ -246,6 +280,12 @@ func RegisteeBoolCore(k string, v bool) {
 // save it to its ironment variable.
 func RegisterIntConf(k string, v int) {
 	appCfg.RegisterIntConf(k, v)
+}
+
+// RegisterInt64Conf adds the information to the AppsConfig struct, but does not
+// save it to its ironment variable.
+func RegisterInt64Conf(k string, v int64) {
+	appCfg.RegisterInt64Conf(k, v)
 }
 
 // RegisterStringConf adds the information to the AppsConfig struct, but does not
@@ -266,6 +306,12 @@ func RegisterIntFlag(k, s string, v int, dflt, u string) {
 	appCfg.RegisterIntFlag(k, s, v, dflt, u)
 }
 
+// RegisterInt64Flag adds the information to the AppsConfig struct, but does not
+// save it to its ironment variable.
+func RegisterInt64Flag(k, s string, v int64, dflt, u string) {
+	appCfg.RegisterInt64Flag(k, s, v, dflt, u)
+}
+
 // RegisterStringFlag adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable.
 func RegisterStringFlag(k, s, v, dflt, u string) {
@@ -282,6 +328,12 @@ func RegisterBool(k string, v bool) {
 // save it to its ironment variable.
 func RegisterInt(k string, v int) {
 	appCfg.RegisterInt(k, v)
+}
+
+// RegisterInt64 adds the information to the AppsConfig struct, but does not
+// save it to its ironment variable.
+func RegisterInt64(k string, v int64) {
+	appCfg.RegisterInt64(k, v)
 }
 
 // RegisterString adds the information to the AppsConfig struct, but does not

@@ -59,6 +59,23 @@ func (c *Cfg) GetIntE(k string) (int, error) {
 	return 0, nil
 }
 
+// GetInt64E returns the setting Value as an int.
+func (c *Cfg) GetInt64E(k string) (int64, error) {
+	v, err := c.GetE(k)
+	if err != nil {
+		return 0, err
+	}
+
+	switch v.(type) {
+	case int64:
+		return v.(int64), nil
+	case *int64:
+		return *v.(*int64), nil
+	}
+
+	return 0, nil
+}
+
 // GetStringE returns the setting Value as a string.
 func (c *Cfg) GetStringE(k string) (string, error) {
 	v, err := c.GetE(k)
@@ -98,6 +115,12 @@ func (c *Cfg) GetInt(k string) int {
 	return s
 }
 
+// GetInt64 returns the setting Value as an int.
+func (c *Cfg) GetInt64(k string) int64 {
+	s, _ := c.GetInt64E(k)
+	return s
+}
+
 // GetString returns the setting Value as a string.
 func (c *Cfg) GetString(k string) string {
 	s, _ := c.GetStringE(k)
@@ -130,6 +153,19 @@ func (c *Cfg) GetIntFilterNames() []string {
 
 	for k, setting := range c.settings {
 		if setting.IsFlag && setting.Type == "int" {
+			names = append(names, k)
+		}
+	}
+
+	return names
+}
+
+// GetInt64FilterNames returns a list of filter names (flags).
+func (c *Cfg) GetInt64FilterNames() []string {
+	var names []string
+
+	for k, setting := range c.settings {
+		if setting.IsFlag && setting.Type == "int64" {
 			names = append(names, k)
 		}
 	}
@@ -182,6 +218,16 @@ func GetIntE(k string) (int, error) {
 	return *v.(*int), nil
 }
 
+// GetInt64E returns the setting Value as an int.
+func GetInt64E(k string) (int64, error) {
+	v, err := GetE(k)
+	if err != nil {
+		return 0, err
+	}
+
+	return *v.(*int64), nil
+}
+
 // GetStringE returns the setting Value as a string.
 func GetStringE(k string) (string, error) {
 	v, err := GetE(k)
@@ -211,6 +257,12 @@ func GetBool(k string) bool {
 // GetInt returns the setting Value as an int.
 func GetInt(k string) int {
 	s, _ := appCfg.GetIntE(k)
+	return s
+}
+
+// GetInt64 returns the setting Value as an int.
+func GetInt64(k string) int64 {
+	s, _ := appCfg.GetInt64E(k)
 	return s
 }
 
@@ -244,6 +296,19 @@ func GetIntFilterNames() []string {
 
 	for k, setting := range appCfg.settings {
 		if setting.IsFlag && setting.Type == "int" {
+			names = append(names, k)
+		}
+	}
+
+	return names
+}
+
+// GetInt64FilterNames returns a list of filter names (flags).
+func GetInt64FilterNames() []string {
+	var names []string
+
+	for k, setting := range appCfg.settings {
+		if setting.IsFlag && setting.Type == "int64" {
 			names = append(names, k)
 		}
 	}

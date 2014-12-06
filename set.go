@@ -109,6 +109,12 @@ func (c *Cfg) SetFlagIntE(k, s string, v int, dflt, u string) error {
 	return c.SetSetting("int", k, s, v, dflt, u, false, true, true)
 }
 
+// SetFlagInt64E adds the information to the AppsConfig struct, but does not
+// save it to its environment variable.
+func (c *Cfg) SetFlagInt64E(k, s string, v int64, dflt, u string) error {
+	return c.SetSetting("int64", k, s, v, dflt, u, false, true, true)
+}
+
 // SetFlagStringE adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
 func (c *Cfg) SetFlagStringE(k, s, v, dflt, u string) error {
@@ -125,6 +131,12 @@ func (c *Cfg) SetFlagBool(k, s string, v bool, dflt, u string) {
 // save it to its environment variable.
 func (c *Cfg) SetFlagInt(k, s string, v int, dflt, u string) {
 	c.SetFlagIntE(k, s, v, dflt, u)
+}
+
+// SetFlagInt64 adds the information to the AppsConfig struct, but does not
+// save it to its environment variable.
+func (c *Cfg) SetFlagInt64(k, s string, v int64, dflt, u string) {
+	c.SetFlagInt64E(k, s, v, dflt, u)
 }
 
 // SetFlagString adds the information to the AppsConfig struct, but does not
@@ -163,6 +175,12 @@ func SetFlagBool(k, s string, v bool, dflt, u string) {
 // save it to its environment variable.
 func SetFlagInt(k, s string, v int, dflt, u string) {
 	appCfg.SetFlagIntE(k, s, v, dflt, u)
+}
+
+// SetFlagInt64 adds the information to the AppsConfig struct, but does not
+// save it to its environment variable.
+func SetFlagInt64(k, s string, v int64, dflt, u string) {
+	appCfg.SetFlagInt64(k, s, v, dflt, u)
 }
 
 // SetFlagString adds the information to the AppsConfig struct, but does not
