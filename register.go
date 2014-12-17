@@ -36,20 +36,15 @@ func (c *Cfg) RegisterCfgFilename(k, v string) error {
 	// will be returned, so registering it afterwords would mean the
 	// setting would not exist.
 	c.RegisterString(CfgFormat, "")
-	format, err := cfgFormat(v)
+	format, err := formatFromFilename(v)
 	if err != nil {
 		return err
 	}
-
+	fmt.Println("format: ", format)
 	// Now we can update the format, since it wasn't set before, it can be
 	// set now before it becomes read only.
 	c.UpdateString(CfgFormat, format.String())
-	fmt.Printf("FORMAT %s\n", format.String())
 	return nil
-}
-
-func RegisterCfgFilename(k, v string) error {
-	return appCfg.RegisterCfgFilename(k, v)
 }
 
 // RegisterSetting checks to see if the entry already exists and adds the
@@ -203,41 +198,19 @@ func (c *Cfg) RegisterInt64(k string, v int64) {
 // RegisterString adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable.
 func (c *Cfg) RegisterString(k, v string) {
-	c.RegisterSetting("string", "", k, v, v, "", false, false, false)
+	c.RegisterSetting("string", k, "", v, v, "", false, false, false)
 	return
 }
 
 // Convenience functions for interacting with the configs[app] configuration.
 
-// RegisterConfigFilename set's the configuration file's name. The name is
+// RegisterCfgFilename set's the configuration file's name. The name is
 // parsed for a valid extension--one that is a supported format--and saves
 // that value too. If it cannot be determined, the extension info is not set.
 // These are considered core values and cannot be changed from command-line
 // and configuration files. (IsCore == true).
-func RegisterConfigFilename(k, v string) error {
-	if v == "" {
-		return fmt.Errorf("A config filename was expected, none received")
-	}
-
-	if k == "" {
-		return fmt.Errorf("A key for the config filename setting was expected, none received")
-	}
-
-	appCfg.RegisterStringCore(k, v)
-
-	// TODO redo this given new paradigm
-	// Register it first. If a valid config format isn't found, an error
-	// will be returned, so registering it afterwords would mean the
-	// setting would not exist.
-	appCfg.RegisterString(CfgFormat, "")
-	format, err := cfgFormat(v)
-	if err != nil {
-		return err
-	}
-
-	appCfg.RegisterString(CfgFormat, format.String())
-
-	return nil
+func RegisterCfgFilename(k, v string) error {
+	return appCfg.RegisterCfgFilename(k, v)
 }
 
 // RegisterSetting checks to see if the entry already exists and adds the

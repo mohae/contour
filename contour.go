@@ -55,17 +55,19 @@ var appCfg *Cfg
 // that it comes with. These are public and are directly settable if you wish
 // to use your own values. Just set them before doing anything with Contour.
 var (
-	CfgFile   string = "cfgfile"
-	CfgFormat string = "cfgformat"
+	CfgFilename string = "cfgfilename"
+	CfgFormat   string = "cfgformat"
 )
 
 func init() {
 	initCfgs()
 }
 
-// cfgFormat gets the configured config filename and returns the format
-// it is in, if it is a supported format; otherwise an error.
-func cfgFormat(s string) (Format, error) {
+// formatFromFilename gets the format from the passed filename.
+// If the returned format is not supported, or there isn't a file
+// extension, an error is returned. If the passed string has
+// multiple dots, the last dot is assumed to be the extension.
+func formatFromFilename(s string) (Format, error) {
 	if s == "" {
 		return Unsupported, fmt.Errorf("a config filename was expected, none received")
 	}
@@ -86,6 +88,7 @@ func cfgFormat(s string) (Format, error) {
 		format = parts[len(parts)-1]
 	}
 
+	fmt.Println(parts)
 	f := ParseFormat(format)
 	if !f.isSupported() {
 		err := unsupportedFormatErr(format)
@@ -94,7 +97,6 @@ func cfgFormat(s string) (Format, error) {
 	}
 
 	return f, nil
-
 }
 
 // isSupportedFormat checks to see if the passed string represents a supported
@@ -108,7 +110,7 @@ func (f Format) isSupported() bool {
 	case TOML:
 		return true
 	case XML:
-		return true
+		return false
 	}
 
 	return false
@@ -165,7 +167,7 @@ func loads() {
 */
 // getCfgFile() is the entry point for reading the configuration file.
 func (c *Cfg) getFile() (map[string]interface{}, error) {
-	setting, ok := c.settings[CfgFile]
+	setting, ok := c.settings[CfgFilename]
 	if !ok {
 		// Wasn't configured, nothing to do. Not an error.
 		return nil, nil
@@ -180,9 +182,14 @@ func (c *Cfg) getFile() (map[string]interface{}, error) {
 		return nil, nil
 	}
 
+	fmt.Printf("%#v\n", c.settings)
 	// This shouldn't happend, but lots of things happen that shouldn't.
 	// It should have been registered already. so if it doesn't exit, err.
-	if c.settings[CfgFormat].Value == nil {
+	format, ok := c.settings[CfgFormat]
+	if !ok {
+		return nil, fmt.Errorf("Unable to load the cfg file, the configuration format type was not set")
+	}
+	if format.Value.(string) == "" {
 		return nil, fmt.Errorf("Unable to load the cfg file, the configuration format type was not set")
 	}
 
@@ -193,7 +200,8 @@ func (c *Cfg) getFile() (map[string]interface{}, error) {
 	}
 
 	cfg := make(map[string]interface{})
-	cfg, err = marshalFormatReader(ParseFormat(c.settings[CfgFormat].Value.(string)), bytes.NewReader(fBytes))
+	format, _ = c.settings[CfgFormat]
+	cfg, err = marshalFormatReader(ParseFormat(format.Value.(string)), bytes.NewReader(fBytes))
 	if err != nil {
 		logger.Error(err)
 		return nil, err

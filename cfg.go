@@ -265,5 +265,6 @@ func (c *Cfg) SetFlagSetUsage(f func()) {
 
 // SetFlagSetUsage sets flagSet.Usage
 func SetFlagSetUsage(f func()) {
-	appCfg.SetFlagSetUsage(f)
+	//	appCfg.SetFlagSetUsage(f)
+	appCfg.flagSet.Usage = f
 }
