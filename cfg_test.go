@@ -2,17 +2,27 @@ package contour
 
 import (
 	"testing"
-
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestConfig(t *testing.T) {
 	initCfgs()
-	Convey("Calling NewConfig", t, func() {
-		c := NewCfg("test")
-		Convey("should result in an config with name 'test'", func() {
-			So(c.name, ShouldEqual, "test")
-		})
-	})
+
+	c := NewCfg("test")
+	if c == nil {
+		t.Errorf("New test cfg was nil")
+	} else {
+		if c.name != "test" {
+			t.Errorf("Expected test got %s", c.name)
+		}
+	}
+
+	a := AppCfg()
+	if a == nil {
+		t.Errorf("New test cfg was nil")
+	} else {
+		if a.name != "app" {
+			t.Errorf("Expected app got %s", a.name)
+		}
+	}
 
 }

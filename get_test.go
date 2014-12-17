@@ -1,14 +1,14 @@
 package contour
 
 import (
-	"testing"
 	. "github.com/smartystreets/goconvey/convey"
+	"testing"
 )
 
 func TestGetsE(t *testing.T) {
-	Convey("Given a configuration with settings", t, func() {
+	Convey("Given a cfguration with settings", t, func() {
 		Convey("Getting an interface", func() {
-			rif, err :=  testConfig.GetE("corebool")
+			rif, err := testCfg.GetE("corebool")
 			Convey("Should not result in an error", func() {
 				So(err, ShouldBeNil)
 			})
@@ -16,19 +16,19 @@ func TestGetsE(t *testing.T) {
 				So(rif.(bool), ShouldEqual, true)
 			})
 		})
- 
+
 		Convey("Getting a bool", func() {
-			rb, err :=  testConfig.GetBoolE("corebool")
+			rb, err := testCfg.GetBoolE("corebool")
 			Convey("Should not result in an error", func() {
 				So(err, ShouldBeNil)
 			})
 			Convey("Should result in a value", func() {
 				So(rb, ShouldEqual, true)
 			})
-		}) 
+		})
 
 		Convey("Getting an int", func() {
-			ri, err :=  testConfig.GetIntE("coreint")
+			ri, err := testCfg.GetIntE("coreint")
 			Convey("Should not result in an error", func() {
 				So(err, ShouldBeNil)
 			})
@@ -38,17 +38,17 @@ func TestGetsE(t *testing.T) {
 		})
 
 		Convey("Getting a string", func() {
-			rb, err :=  testConfig.GetStringE("corestring")
+			rb, err := testCfg.GetStringE("corestring")
 			Convey("Should not result in an error", func() {
 				So(err, ShouldBeNil)
 			})
 			Convey("Should result in a value", func() {
 				So(rb, ShouldEqual, "a core string")
 			})
-		}) 
+		})
 
 		Convey("Getting an interface", func() {
-			rinter, err :=  testConfig.GetInterfaceE("corebool")
+			rinter, err := testCfg.GetInterfaceE("corebool")
 			Convey("Should not result in an error", func() {
 				So(err, ShouldBeNil)
 			})
@@ -60,37 +60,37 @@ func TestGetsE(t *testing.T) {
 }
 
 func TestGets(t *testing.T) {
-	Convey("Given a configuration with settings", t, func() {
+	Convey("Given a cfguration with settings", t, func() {
 		Convey("Getting an interface", func() {
-			rif :=  testConfig.Get("corebool")
+			rif := testCfg.Get("corebool")
 			Convey("Should result in a value", func() {
 				So(rif.(bool), ShouldEqual, true)
 			})
 		})
- 
+
 		Convey("Getting a bool", func() {
-			rb :=  testConfig.GetBool("corebool")
+			rb := testCfg.GetBool("corebool")
 			Convey("Should result in a value", func() {
 				So(rb, ShouldEqual, true)
 			})
-		}) 
+		})
 
 		Convey("Getting an int", func() {
-			ri :=  testConfig.GetInt("coreint")
+			ri := testCfg.GetInt("coreint")
 			Convey("Should result in a value", func() {
 				So(ri, ShouldEqual, 42)
 			})
 		})
 
 		Convey("Getting a string", func() {
-			rb :=  testConfig.GetString("corestring")
+			rb := testCfg.GetString("corestring")
 			Convey("Should result in a value", func() {
 				So(rb, ShouldEqual, "a core string")
 			})
-		}) 
+		})
 
 		Convey("Getting an interface", func() {
-			rinter :=  testConfig.GetInterface("corebool")
+			rinter := testCfg.GetInterface("corebool")
 			Convey("Should result in a value", func() {
 				So(rinter.(bool), ShouldEqual, true)
 			})
@@ -98,25 +98,25 @@ func TestGets(t *testing.T) {
 	})
 }
 
-func TestGetFilterNames(t * testing.T) {
-	Convey("Given a configuration with settings", t, func() {
+func TestGetFilterNames(t *testing.T) {
+	Convey("Given a cfguration with settings", t, func() {
 		Convey("Getting a list of Bool Filters", func() {
-			boolFilters := testConfig.GetBoolFilterNames()
-			Convey("Should result in a list of bool filters for this config", func() {
+			boolFilters := testCfg.GetBoolFilterNames()
+			Convey("Should result in a list of bool filters for this cfg", func() {
 				So(toString.Get(boolFilters), ShouldEqual, "[\"flagbool\"]")
 			})
 		})
 
 		Convey("Getting a list of int Filters", func() {
-			intFilters := testConfig.GetIntFilterNames()
-			Convey("Should result in a list of bool filters for this config", func() {
+			intFilters := testCfg.GetIntFilterNames()
+			Convey("Should result in a list of bool filters for this cfg", func() {
 				So(toString.Get(intFilters), ShouldEqual, "[\"flagint\"]")
 			})
 		})
 
 		Convey("Getting a list of string Filters", func() {
-			stringFilters := testConfig.GetStringFilterNames()
-			Convey("Should result in a list of string filters for this config", func() {
+			stringFilters := testCfg.GetStringFilterNames()
+			Convey("Should result in a list of string filters for this cfg", func() {
 				So(toString.Get(stringFilters), ShouldEqual, "[\"flagstring\"]")
 			})
 		})
