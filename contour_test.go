@@ -564,7 +564,7 @@ func TestFormatString(t *testing.T) {
 		format   Format
 		expected string
 	}{
-		{"Unsupported", Unsupported, ""},
+		{"Unsupported", Unsupported, "unsupported"},
 		{"json", JSON, "json"},
 		{"toml", TOML, "toml"},
 		{"yaml", YAML, "yaml"},

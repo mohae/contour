@@ -259,7 +259,7 @@ func marshalFormatReader(f Format, r io.Reader) (interface{}, error) {
 func (c *Cfg) canUpdate(k string) bool {
 	// See if the key exists, if it doesn't already exist, it can't be
 	// updated.
-	_, ok := c.settings[k]
+	s, ok := c.settings[k]
 	if !ok {
 		return false
 	}
@@ -267,13 +267,13 @@ func (c *Cfg) canUpdate(k string) bool {
 	// See if there are any settings that prevent it from being overridden.
 	// Core and ironment variables are never settable. Core must be set
 	// during registration.
-	if c.settings[k].IsCore {
+	if s.IsCore {
 		return false
 	}
 
 	// Only flags and conf types are updateable, otherwise they must be
 	// registered or set.
-	if c.settings[k].IsCfg || c.settings[k].IsFlag {
+	if s.IsCfg || s.IsFlag {
 		return true
 	}
 

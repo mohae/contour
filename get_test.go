@@ -1,8 +1,8 @@
 package contour
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestGetsE(t *testing.T) {
@@ -13,7 +13,7 @@ func TestGetsE(t *testing.T) {
 				So(err, ShouldBeNil)
 			})
 			Convey("Should result in a value", func() {
-				So(rif.(bool), ShouldEqual, true)
+				So(rif.(string), ShouldEqual, "true")
 			})
 		})
 
@@ -23,7 +23,7 @@ func TestGetsE(t *testing.T) {
 				So(err, ShouldBeNil)
 			})
 			Convey("Should result in a value", func() {
-				So(rb, ShouldEqual, true)
+				So(rb, ShouldEqual, "true")
 			})
 		})
 
@@ -53,7 +53,7 @@ func TestGetsE(t *testing.T) {
 				So(err, ShouldBeNil)
 			})
 			Convey("Should result in a value", func() {
-				So(rinter.(bool), ShouldEqual, true)
+				So(rinter.(string), ShouldEqual, "true")
 			})
 		})
 	})
@@ -64,14 +64,14 @@ func TestGets(t *testing.T) {
 		Convey("Getting an interface", func() {
 			rif := testCfg.Get("corebool")
 			Convey("Should result in a value", func() {
-				So(rif.(bool), ShouldEqual, true)
+				So(rif.(string), ShouldEqual, "true")
 			})
 		})
 
 		Convey("Getting a bool", func() {
 			rb := testCfg.GetBool("corebool")
 			Convey("Should result in a value", func() {
-				So(rb, ShouldEqual, true)
+				So(rb, ShouldEqual, "true")
 			})
 		})
 
@@ -92,7 +92,7 @@ func TestGets(t *testing.T) {
 		Convey("Getting an interface", func() {
 			rinter := testCfg.GetInterface("corebool")
 			Convey("Should result in a value", func() {
-				So(rinter.(bool), ShouldEqual, true)
+				So(rinter.(string), ShouldEqual, "true")
 			})
 		})
 	})
