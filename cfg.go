@@ -1,11 +1,10 @@
 package contour
 
 import (
+	"flag"
 	"fmt"
 	_ "os"
 	"sync"
-
-	"github.com/mohae/flag"
 )
 
 // Cfg is a group of Settings and holds all of the application setting
@@ -59,7 +58,7 @@ func AppCfg() *Cfg {
 
 // NewConfig returns a *Cfg to the caller
 func NewCfg(name string) *Cfg {
-	return &Cfg{name: name, settings: map[string]*setting{}}
+	return &Cfg{name: name, flagSet: flag.NewFlagSet(name, flag.ContinueOnError), settings: map[string]*setting{}}
 }
 
 // Code returns the code for the config. If set, this is used as
@@ -108,6 +107,10 @@ func (c *Cfg) setFromFile() error {
 		fmt.Println(err)
 		logger.Error(err)
 		return err
+	}
+	// if nothing was returned and no error, nothing to do
+	if f == nil {
+		return nil
 	}
 
 	// Go through the file contents and update the Cfg
@@ -265,6 +268,5 @@ func (c *Cfg) SetFlagSetUsage(f func()) {
 
 // SetFlagSetUsage sets flagSet.Usage
 func SetFlagSetUsage(f func()) {
-	//	appCfg.SetFlagSetUsage(f)
 	appCfg.flagSet.Usage = f
 }

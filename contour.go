@@ -66,7 +66,7 @@ func init() {
 // initConfigs initializes the configs var. This can be called to reset it in
 // testing too.
 func initCfgs() {
-	appCfg = &Cfg{name: app, settings: map[string]*setting{}}
+	appCfg = NewCfg(app)
 }
 
 // formatFromFilename gets the format from the passed filename.
@@ -187,7 +187,6 @@ func (c *Cfg) getFile() (cfg interface{}, err error) {
 		return nil, nil
 	}
 
-	fmt.Printf("%#v\n", c.settings)
 	// This shouldn't happend, but lots of things happen that shouldn't.
 	// It should have been registered already. so if it doesn't exit, err.
 	format, ok := c.settings[CfgFormat]

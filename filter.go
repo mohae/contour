@@ -15,13 +15,13 @@ func (c *Cfg) FilterArgs(args []string) ([]string, error) {
 	boolFilterNames := c.GetBoolFilterNames()
 
 	// Preallocate the worst case scenario.
-	boolFilters := make([]*bool, len(boolFilterNames))
+	boolFilters := make([]*string, len(boolFilterNames))
 	bFilterNames := make([]string, len(boolFilterNames))
 	var flags int
 
 	for _, name := range boolFilterNames {
 		if c.settings[name].IsFlag {
-			boolFilters[flags] = c.flagSet.Bool(name, c.settings[name].Value.(bool), fmt.Sprintf("filter %s", name))
+			boolFilters[flags] = c.flagSet.String(name, c.settings[name].Value.(string), fmt.Sprintf("filter %s", name))
 			bFilterNames[flags] = name
 			flags++
 		}
@@ -69,7 +69,7 @@ func (c *Cfg) FilterArgs(args []string) ([]string, error) {
 
 	// Process the captured values
 	for i, v := range boolFilters {
-		if v != c.settings[bFilterNames[i]].Value {
+		if v != c.settings[bFilterNames[i]].Value && *v != "" {
 			Override(bFilterNames[i], v)
 		}
 	}
