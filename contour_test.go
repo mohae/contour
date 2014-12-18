@@ -1,8 +1,7 @@
 package contour
 
 import (
-	_ "bytes"
-	_ "os"
+	"bytes"
 	"strconv"
 	"testing"
 
@@ -22,7 +21,7 @@ var toString = customjson.NewMarshalString()
 var tomlExample = []byte(`
 appVar1 = true
 appVar2 = false
-appVar3 = 42
+appVar3 = "42"
 appVar4 = "zip"
 appVar5 = [
 	"less",
@@ -41,7 +40,7 @@ var jsonExample = []byte(`
 {
 	"appVar1": true,
 	"appVar2": false,
-	"appVar3": 42,
+	"appVar3": "42",
 	"appVar4": "zip",
 	"appVar5": [
 		"less",
@@ -57,10 +56,44 @@ var jsonExample = []byte(`
 }
 `)
 
+var yamlExample = []byte(`
+appVar1: true
+appVar2: false
+appVar3: 42
+appVar4: zip
+appVar5:
+  - less
+  -	iass
+  -	scss
+
+
+logging:
+  - Logging: true
+  - LogCfg: test/test.yaml
+  - LogFileLevel: debug
+  - LogStdoutLevel: error
+`)
+
+var xmlExample = []byte(`
+<appVar1>true</appVar1>
+<appVar2>false</appVar2>
+<appVar3>42</appVar3>
+<appVar4>zip</appVar4>
+<appVar5>less</appVar5>
+<appVar5>sass</appVar5>
+<appVar5>scss</appVar5>
+<logging>
+	<logging>true</logging>
+	<logcfg>test/test.toml</logcfg>
+	<logfilelevel>debug</logfilelevel>
+	<logstdoutlevel>error</logstdoutlevel>
+</logging>
+`)
+
 var tomlResults = map[string]interface{}{
 	"appVar1": true,
 	"appVar2": false,
-	"appVar3": 42,
+	"appVar3": "42",
 	"appVar4": "zip",
 	"appVar5": []string{"less", "sass", "scss"},
 	"logging": map[string]interface{}{
@@ -74,7 +107,7 @@ var tomlResults = map[string]interface{}{
 var jsonResults = map[string]interface{}{
 	"appVar1": true,
 	"appVar2": false,
-	"appVar3": 42,
+	"appVar3": "42",
 	"appVar4": "zip",
 	"appVar5": []string{"less", "sass", "scss"},
 	"logging": map[string]interface{}{
@@ -85,6 +118,33 @@ var jsonResults = map[string]interface{}{
 	},
 }
 
+var yamlResults = map[string]interface{}{
+	"appVar1": true,
+	"appVar2": false,
+	"appVar3": "42",
+	"appVar4": "zip",
+	"appVar5": []string{"less", "sass", "scss"},
+	"logging": map[string]interface{}{
+		"logging":        true,
+		"logcfg":         "test/test.toml",
+		"logfilelevel":   "debug",
+		"logstdoutlevel": "error",
+	},
+}
+
+var xmlResults = map[string]interface{}{
+	"appVar1": true,
+	"appVar2": false,
+	"appVar3": "42",
+	"appVar4": "zip",
+	"appVar5": []string{"less", "sass", "scss"},
+	"logging": map[string]interface{}{
+		"logging":        true,
+		"logcfg":         "test/test.toml",
+		"logfilelevel":   "debug",
+		"logstdoutlevel": "error",
+	},
+}
 var testCfg = &Cfg{settings: map[string]*setting{
 	"corebool": &setting{
 		Type:   "bool",
@@ -192,18 +252,18 @@ func TestFormatFromFilename(t *testing.T) {
 	tests := []basic{
 		{"an empty cfgfilename", "", "", "a config filename was expected, none received"},
 		{"a cfgfilename without an extension", "cfg", "", "unable to determine config format, the configuration file, cfg, doesn't have an extension"},
-		{"a cfgfilename with an invalid extension", "cfg.bmp", "", "bmp is not a supported configuration file format"},
+		{"a cfgfilename with an invalid extension", "cfg.bmp", "", "unsupported configuration file format: bmp"},
 		{"a cfgfilename with a json extension", "cfg.json", "json", ""},
+		{"a path and multi dot cfgfilename with a json extension", "path/to/custom.cfg.json", "json", ""},
 		{"a cfgfilename with a toml extension", "cfg.toml", "toml", ""},
 		{"a cfgfilename with a toml extension", "cfg.yaml", "yaml", ""},
 		{"a cfgfilename with a toml extension", "cfg.yml", "yaml", ""},
-		{"a cfgfilename with a toml extension", "cfg.xml", "xml", "xml is not a supported configuration file format"},
-		{"a cfgfilename with a toml extension", "cfg.ini", "", "ini is not a supported configuration file format"},
+		{"a cfgfilename with a toml extension", "cfg.xml", "xml", "unsupported configuration file format: xml"},
+		{"a cfgfilename with a toml extension", "cfg.ini", "", "unsupported configuration file format: ini"},
 	}
 
 	for _, test := range tests {
 		Convey("Given "+test.name+" Test", t, func() {
-
 			Convey("Getting the cfg format", func() {
 				format, err := formatFromFilename(test.value)
 				checkTestReturn(test, format.String(), err)
@@ -280,53 +340,73 @@ func TestLoadCfgFile(t *testing.T) {
 	})
 
 }
-
+*/
 func TestMarshalFormatReader(t *testing.T) {
+	tests := []struct {
+		name        string
+		format      Format
+		value       []byte
+		expected    interface{}
+		expectedErr string
+	}{
+		{"json cfg", JSON, jsonExample, jsonResults, ""},
+		{"toml cfg", TOML, tomlExample, tomlResults, ""},
+		{"yaml cfg", YAML, yamlExample, []byte(""), "unsupported configuration file format: yaml"},
+		{"xml cfg", XML, xmlExample, []byte(""), "unsupported configuration file format: xml"},
+		{"unsupported cfg", Unsupported, []byte(""), []byte(""), "unsupported configuration file format: unsupported"},
+	}
 
-	Convey("Given an JSON cfg", t, func() {
-
-		Convey("Given a []byte", func() {
-
-			Convey("marshalling it should result in", func() {
-				r := bytes.NewReader(jsonExample)
-				err := marshalFormatReader("json", r)
-
-				Convey("Should not error", func() {
-					So(err, ShouldBeNil)
-				})
-
-				Convey("Should equal our expectations", func() {
-					So(toString.Get(cfgFile), ShouldEqual, toString.Get(jsonResults))
-				})
-
-			})
-
-		})
-
-	})
-
-	Convey("Given an TOML cfg", t, func() {
-
-		Convey("Given a []byte", func() {
-
-			Convey("marshalling it should result in", func() {
-				r := bytes.NewReader(tomlExample)
-				err := marshalFormatReader("toml", r)
-
-				Convey("Should not error", func() {
-					So(err, ShouldBeNil)
-				})
-
-				Convey("Should equal our expectations", func() {
-					So(toString.Get(cfgFile), ShouldEqual, toString.Get(tomlResults))
-				})
-
-			})
-
-		})
-
-	})
-
+	for _, test := range tests {
+		r := bytes.NewReader([]byte(test.value))
+		ires, err := marshalFormatReader(test.format, r)
+		if err != nil {
+			if test.expectedErr == "" {
+				t.Errorf("%s: expected nil for error; got %q", test.name, err)
+				continue
+			}
+			if err.Error() != test.expectedErr {
+				t.Errorf("%s: expected %q; got %q", test.name, test.expectedErr, err)
+				continue
+			}
+		} else {
+			val, ok := ires.(map[string]interface{})["appVar1"]
+			if !ok {
+				t.Errorf("appVar1 not found")
+			} else {
+				if val != test.expected.(map[string]interface{})["appVar1"] {
+					t.Errorf("appVar1: expected %q, got %q", test.expected.(map[string]interface{})["appVar1"], val)
+				}
+			}
+			val, ok = ires.(map[string]interface{})["appVar2"]
+			if !ok {
+				t.Errorf("appVar2 not found")
+			} else {
+				if val != test.expected.(map[string]interface{})["appVar2"] {
+					t.Errorf("appVar2: expected %q, got %q", test.expected.(map[string]interface{})["appVar2"], val)
+				}
+			}
+			val, ok = ires.(map[string]interface{})["appVar3"]
+			if !ok {
+				t.Errorf("appVar3 not found")
+			} else {
+				if val != test.expected.(map[string]interface{})["appVar3"] {
+					t.Errorf("appVar3: expected %q, got %q", test.expected.(map[string]interface{})["appVar3"], val)
+				}
+			}
+			val, ok = ires.(map[string]interface{})["appVar4"]
+			if !ok {
+				t.Errorf("appVar4 not found")
+			} else {
+				if val != test.expected.(map[string]interface{})["appVar4"] {
+					t.Errorf("appVar4: expected %q, got %q", test.expected.(map[string]interface{})["appVar4"], val)
+				}
+			}
+			val, ok = ires.(map[string]interface{})["appVar5"]
+			if !ok {
+				t.Errorf("appVar5 not found")
+			}
+		}
+	}
 }
 
 func TestCanUpdate(t *testing.T) {
@@ -343,13 +423,13 @@ func TestCanUpdate(t *testing.T) {
 		{"update a setting that does not exist", "arr", "", "false"},
 	}
 
-	AppCfg = testCfg
+	appCfg = testCfg
 
 	Convey("Given some CanUpdate tests", t, func() {
 		for _, test := range tests {
 
 			Convey("Given a setting test: "+test.name, func() {
-				res := utils.BoolToString(canUpdate(test.name))
+				res := strconv.FormatBool(canUpdate(test.name))
 
 				Convey("Should result in "+test.expected, func() {
 					So(res, ShouldEqual, test.expected)

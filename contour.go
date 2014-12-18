@@ -88,7 +88,6 @@ func formatFromFilename(s string) (Format, error) {
 		format = parts[len(parts)-1]
 	}
 
-	fmt.Println(parts)
 	f := ParseFormat(format)
 	if !f.isSupported() {
 		err := unsupportedFormatErr(format)
@@ -166,7 +165,7 @@ func loads() {
 }
 */
 // getCfgFile() is the entry point for reading the configuration file.
-func (c *Cfg) getFile() (map[string]interface{}, error) {
+func (c *Cfg) getFile() (cfg interface{}, err error) {
 	setting, ok := c.settings[CfgFilename]
 	if !ok {
 		// Wasn't configured, nothing to do. Not an error.
@@ -199,7 +198,6 @@ func (c *Cfg) getFile() (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	cfg := make(map[string]interface{})
 	format, _ = c.settings[CfgFormat]
 	cfg, err = marshalFormatReader(ParseFormat(format.Value.(string)), bytes.NewReader(fBytes))
 	if err != nil {
@@ -221,11 +219,11 @@ func readCfg(n string) ([]byte, error) {
 }
 
 // marshalFormatReader
-func marshalFormatReader(f Format, r io.Reader) (map[string]interface{}, error) {
+func marshalFormatReader(f Format, r io.Reader) (interface{}, error) {
 	b := new(bytes.Buffer)
 	b.ReadFrom(r)
 
-	ret := make(map[string]interface{})
+	var ret interface{}
 	switch f {
 	case JSON:
 		err := json.Unmarshal(b.Bytes(), &ret)
@@ -241,7 +239,7 @@ func marshalFormatReader(f Format, r io.Reader) (map[string]interface{}, error) 
 			return nil, err
 		}
 	default:
-		err := fmt.Errorf("unsupported configuration file format type: %s")
+		err := unsupportedFormatErr(f.String())
 		logger.Error(err)
 		return nil, err
 	}
@@ -368,5 +366,5 @@ func settingNotFoundErr(k string) error {
 }
 
 func unsupportedFormatErr(k string) error {
-	return fmt.Errorf("%s is not a supported configuration file format", k)
+	return fmt.Errorf("unsupported configuration file format: %s", k)
 }

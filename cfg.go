@@ -111,7 +111,7 @@ func (c *Cfg) setFromFile() error {
 	}
 
 	// Go through the file contents and update the Cfg
-	for k, v := range f {
+	for k, v := range f.(map[string]interface{}) {
 		// Find the key in the settings
 		_, ok := c.settings[k]
 		if !ok {
@@ -162,7 +162,7 @@ func (c *Cfg) Setenv(k string, v interface{}) error {
 // If it is already set, it will return an error.
 func (c *Cfg) SetCode(s string) error {
 	if c.code != "" {
-		return fmt.Errorf("appCode is already set. AppCode is immutable. Once set, it cannot be altered")
+		return fmt.Errorf("this configuration's code is already set and cannot be overridden")
 	}
 
 	c.code = s
@@ -245,7 +245,7 @@ func (c *Cfg) Setenv(k string, v interface{}) error {
 // If it is already set, it will return an error.
 func SetCode(s string) error {
 	if appCfg.code != "" {
-		return fmt.Errorf("appCode is already set. AppCode is immutable. Once set, it cannot be altered")
+		return fmt.Errorf("this configuration's code is already set and cannot be overridden")
 	}
 
 	appCfg.code = s
