@@ -277,7 +277,7 @@ func (c *Cfg) canUpdate(k string) bool {
 		return true
 	}
 
-	return false
+	return true
 }
 
 func canUpdate(k string) bool {

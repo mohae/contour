@@ -49,7 +49,7 @@ func TestRegisterCfgFilename(t *testing.T) {
 			t.Errorf("RegisterCfgFilename format %s: unexpected error retrieving ext, %q", test.name, err)
 			continue
 		}
-		if format != test.filename {
+		if format != test.format {
 			t.Errorf("RegisterCfgFilename format %s: expected %q got %q", test.name, test.format, format)
 		}
 	}

@@ -417,8 +417,8 @@ func TestCanUpdate(t *testing.T) {
 		expected string
 	}{
 		{"update a core setting", "cfgfilename", "another.file", "false"},
-		{"update an immutable setting with value", "logcfgfilename", "logcfg.xml", "false"},
-		{"update an immutable setting without a value", "unsetimmutable", "json", "true"},
+		{"update a cfg setting with value", "logcfgfilename", "logcfg.xml", "false"},
+		{"update a cfg setting without a value", "unsetimmutable", "json", "true"},
 		{"update a setting", "logging", "true", "true"},
 		{"update a setting that does not exist", "arr", "", "false"},
 	}
