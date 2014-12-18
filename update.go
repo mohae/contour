@@ -1,6 +1,9 @@
 package contour
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 // Only non-core settings are updateable.
 // Flags must use Override* to update settings.
@@ -18,7 +21,13 @@ func (c *Cfg) updateE(k string, v interface{}) error {
 	return nil
 }
 
-func (c *Cfg) UpdateBoolE(k string, v bool) error {
+func (c *Cfg) UpdateBoolE(k, v string) error {
+	if v != "" {
+		_, err := strconv.ParseBool(v)
+		if err != nil {
+			v = ""
+		}
+	}
 	return c.updateE(k, v)
 }
 
@@ -36,7 +45,7 @@ func (c *Cfg) UpdateStringE(k, v string) error {
 
 // UpdateBool adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func (c *Cfg) UpdateBool(k string, v bool) {
+func (c *Cfg) UpdateBool(k, v string) {
 	c.UpdateBoolE(k, v)
 }
 
@@ -54,7 +63,7 @@ func (c *Cfg) UpdateString(k, v string) {
 
 // UpdateBoolE adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func UpdateBoolE(k string, v bool) error {
+func UpdateBoolE(k, v string) error {
 	return appCfg.updateE(k, v)
 }
 
@@ -72,7 +81,7 @@ func UpdateStringE(k, v string) error {
 
 // UpdateBool adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func UpdateBool(k string, v bool) {
+func UpdateBool(k, v string) {
 	appCfg.UpdateBool(k, v)
 }
 

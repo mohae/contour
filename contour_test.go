@@ -148,7 +148,7 @@ var xmlResults = map[string]interface{}{
 var testCfg = &Cfg{settings: map[string]*setting{
 	"corebool": &setting{
 		Type:   "bool",
-		Value:  true,
+		Value:  "true",
 		IsCore: true,
 	},
 	"coreint": &setting{
@@ -163,7 +163,7 @@ var testCfg = &Cfg{settings: map[string]*setting{
 	},
 	"cfgbool": &setting{
 		Type:  "bool",
-		Value: true,
+		Value: "true",
 		Short: "",
 		IsCfg: true,
 	},
@@ -180,7 +180,7 @@ var testCfg = &Cfg{settings: map[string]*setting{
 	},
 	"flagbool": &setting{
 		Type:   "bool",
-		Value:  true,
+		Value:  "true",
 		Short:  "b",
 		IsFlag: true,
 		IsCfg:  true,

@@ -40,10 +40,9 @@ func (c *Cfg) RegisterCfgFilename(k, v string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("format: ", format)
 	// Now we can update the format, since it wasn't set before, it can be
 	// set now before it becomes read only.
-	c.UpdateString(CfgFormat, format.String())
+	c.SetString(CfgFormat, format.String())
 	return nil
 }
 
