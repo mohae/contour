@@ -23,23 +23,21 @@ func (c *Cfg) GetE(k string) (interface{}, error) {
 }
 
 // GetBoolE returns the setting Value as a bool.
-func (c *Cfg) GetBoolE(k string) (bool, error) {
+func (c *Cfg) GetBoolE(k string) (string, error) {
 	v, err := c.GetE(k)
 	if err != nil {
-		return false, err
+		return "", err
 	}
 
 	switch v.(type) {
-	case bool:
-		return v.(bool), nil
-	case *bool:
-		return *v.(*bool), nil
+	case string:
+		return v.(string), nil
+	case *string:
+		return *v.(*string), nil
 	}
 
-	// Should never happen, but since we know the setting is there and we
-	// expect it to be bool, given this method was called, we assume any
-	// non-bool/*bool type == false.
-	return false, nil
+	// Should never happen, getting here counts as unset
+	return "", nil
 }
 
 // GetIntE returns the setting Value as an int.
@@ -104,7 +102,7 @@ func (c *Cfg) Get(k string) interface{} {
 }
 
 // GetBool returns the setting Value as a bool.
-func (c *Cfg) GetBool(k string) bool {
+func (c *Cfg) GetBool(k string) string {
 	s, _ := c.GetBoolE(k)
 	return s
 }
@@ -199,13 +197,13 @@ func GetE(k string) (interface{}, error) {
 }
 
 // GetBoolE returns the setting Value as a bool.
-func GetBoolE(k string) (bool, error) {
+func GetBoolE(k string) (string, error) {
 	v, err := GetE(k)
 	if err != nil {
-		return false, err
+		return "", err
 	}
 
-	return *v.(*bool), nil
+	return *v.(*string), nil
 }
 
 // GetIntE returns the setting Value as an int.
@@ -249,7 +247,7 @@ func Get(k string) interface{} {
 }
 
 // GetBool returns the setting Value as a bool.
-func GetBool(k string) bool {
+func GetBool(k string) string {
 	s, _ := appCfg.GetBoolE(k)
 	return s
 }

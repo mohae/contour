@@ -51,7 +51,7 @@ func (c *Cfg) RegisterCfgFilename(k, v string) error {
 // new setting if it does not.
 func (c *Cfg) RegisterSetting(typ, name, short string, value interface{}, dflt string, usage string, IsCore, IsCfg, IsFlag bool) {
 	c.lock.RLock()
-	_, ok := appCfg.settings[name]
+	_, ok := c.settings[name]
 	if ok {
 		// Settings can't be re-registered.
 		c.lock.RUnlock()
@@ -92,8 +92,14 @@ func (c *Cfg) RegisterSetting(typ, name, short string, value interface{}, dflt s
 
 // RegisterBoolCore adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable
-func (c *Cfg) RegisterBoolCore(k string, v bool) {
-	c.RegisterSetting("bool", k, "", v, strconv.FormatBool(v), "", true, false, false)
+func (c *Cfg) RegisterBoolCore(k, v string) {
+	if v != "" {
+		_, err := strconv.ParseBool(v)
+		if err != nil {
+			v = "" // if the parse error'd set to "", or unset
+		}
+	}
+	c.RegisterSetting("bool", k, "", v, v, "", true, false, false)
 	return
 }
 
@@ -120,8 +126,14 @@ func (c *Cfg) RegisterStringCore(k, v string) {
 
 // RegisterBoolConf adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable.
-func (c *Cfg) RegisterBoolConf(k string, v bool) {
-	c.RegisterSetting("bool", k, "", v, strconv.FormatBool(v), "", false, true, false)
+func (c *Cfg) RegisterBoolConf(k, v string) {
+	if v != "" {
+		_, err := strconv.ParseBool(v)
+		if err != nil {
+			v = "" // if parse results in error, don't set
+		}
+	}
+	c.RegisterSetting("bool", k, "", v, v, "", false, true, false)
 	return
 }
 
@@ -148,7 +160,7 @@ func (c *Cfg) RegisterStringConf(k string, v string) {
 
 // RegisterBoolFlag adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable.
-func (c *Cfg) RegisterBoolFlag(k, s string, v bool, dflt, usage string) {
+func (c *Cfg) RegisterBoolFlag(k, s, v, dflt, usage string) {
 	c.RegisterSetting("bool", k, s, v, dflt, usage, false, true, true)
 	return
 }
@@ -176,8 +188,14 @@ func (c *Cfg) RegisterStringFlag(k, s, v, dflt, usage string) {
 
 // RegisterBool adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable.
-func (c *Cfg) RegisterBool(k string, v bool) {
-	c.RegisterSetting("bool", k, "", v, strconv.FormatBool(v), "", false, false, false)
+func (c *Cfg) RegisterBool(k, v string) {
+	if v != "" {
+		_, err := strconv.ParseBool(v)
+		if err != nil {
+			v = "" // parse error == unset
+		}
+	}
+	c.RegisterSetting("bool", k, "", v, v, "", false, false, false)
 	return
 }
 
@@ -221,7 +239,7 @@ func RegisterSetting(typ, name, short string, value interface{}, dflt, usage str
 
 // RegisterBoolCore adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable
-func RegisterBoolCore(k string, v bool) {
+func RegisterBoolCore(k, v string) {
 	appCfg.RegisterBoolCore(k, v)
 }
 
@@ -245,7 +263,7 @@ func RegisterStringCore(k, v string) {
 
 // RegisterConfBool adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable.
-func RegisteeBoolCore(k string, v bool) {
+func RegisteeBoolCore(k, v string) {
 	appCfg.RegisterBoolCore(k, v)
 }
 
@@ -269,7 +287,7 @@ func RegisterStringConf(k, v string) {
 
 // RegisterBoolFlag adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable.
-func RegisterBoolFlag(k, s string, v bool, dflt, u string) {
+func RegisterBoolFlag(k, s, v, dflt, u string) {
 	appCfg.RegisterBoolFlag(k, s, v, dflt, u)
 }
 
@@ -293,7 +311,7 @@ func RegisterStringFlag(k, s, v, dflt, u string) {
 
 // RegisterBool adds the information to the AppsConfig struct, but does not
 // save it to its ironment variable.
-func RegisterBool(k string, v bool) {
+func RegisterBool(k, v string) {
 	appCfg.RegisterBool(k, v)
 }
 

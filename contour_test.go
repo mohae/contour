@@ -551,18 +551,30 @@ func TestSettingNotFoundErr(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		err := settingNotFoundErr(test.value)
+		if err.Error() != test.expected {
+			t.Errorf("%s: expected %q got %q", test.name, test.expected, err)
+		}
+	}
+}
 
-		Convey(test.name+"  given a string", t, func() {
-			Convey("calling notFoundErr with it", func() {
-				err := settingNotFoundErr(test.value)
-				Convey("should result in an error", func() {
-					So(err, ShouldNotBeNil)
-					Convey("with the error message", func() {
-						So(err.Error(), ShouldEqual, test.expected)
-					})
-				})
-			})
-		})
+func TestFormatString(t *testing.T) {
+	tests := []struct {
+		name     string
+		format   Format
+		expected string
+	}{
+		{"Unsupported", Unsupported, ""},
+		{"json", JSON, "json"},
+		{"toml", TOML, "toml"},
+		{"yaml", YAML, "yaml"},
+		{"xml", XML, "xml"},
 	}
 
+	for _, test := range tests {
+		s := test.format.String()
+		if s != test.expected {
+			t.Errorf("format %s: expected %s got %s", test.name, test.expected, s)
+		}
+	}
 }

@@ -63,6 +63,12 @@ func init() {
 	initCfgs()
 }
 
+// initConfigs initializes the configs var. This can be called to reset it in
+// testing too.
+func initCfgs() {
+	appCfg = &Cfg{name: app, settings: map[string]*setting{}}
+}
+
 // formatFromFilename gets the format from the passed filename.
 // If the returned format is not supported, or there isn't a file
 // extension, an error is returned. If the passed string has
@@ -347,12 +353,6 @@ func AddSettingAlias(setting, alias string) error {
 
 
 */
-
-// initConfigs initializes the configs var. This can be called to reset it in
-// testing too.
-func initCfgs() {
-	appCfg = &Cfg{name: app, settings: map[string]*setting{}}
-}
 
 // notFoundErr returns a standardized not found error.
 func notFoundErr(k string) error {
