@@ -1,6 +1,9 @@
 package contour
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+)
 
 // Set contains all of contour's Override functions. Override can set both
 // settings whose values were obtained from environment variables and regular
@@ -21,7 +24,7 @@ func (c *Cfg) Override(k string, v interface{}) error {
 	// If it can't be overriden,
 	if c.settings[k].IsCore || !c.settings[k].IsFlag {
 		err := fmt.Errorf("%v: setting is not a flag. Only flags can be overridden", k)
-		logger.Warn(err)
+		log.Print(err)
 		return err
 	}
 

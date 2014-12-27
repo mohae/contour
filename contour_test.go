@@ -2,12 +2,18 @@ package contour
 
 import (
 	"bytes"
+	"io/ioutil"
+	"log"
 	"strconv"
 	"testing"
 
 	"github.com/mohae/customjson"
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+func init() {
+	log.SetOutput(ioutil.Discard)
+}
 
 type basic struct {
 	name        string

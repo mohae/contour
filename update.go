@@ -2,6 +2,7 @@ package contour
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 )
 
@@ -13,7 +14,7 @@ func (c *Cfg) updateE(k string, v interface{}) error {
 	defer c.lock.Unlock()
 	if !c.canUpdate(k) {
 		err := fmt.Errorf("config[%s]: %q is not updateable", c.name, k)
-		logger.Warn(err)
+		log.Print(err)
 		return err
 	}
 

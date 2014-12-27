@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	_ "os"
 	_ "strconv"
 	"strings"
@@ -97,7 +98,7 @@ func formatFromFilename(s string) (Format, error) {
 	f := ParseFormat(format)
 	if !f.isSupported() {
 		err := unsupportedFormatErr(format)
-		logger.Error(err)
+		log.Print(err)
 		return Unsupported, err
 	}
 
@@ -199,14 +200,14 @@ func (c *Cfg) getFile() (cfg interface{}, err error) {
 
 	fBytes, err := readCfg(n)
 	if err != nil {
-		logger.Error(err)
+		log.Print(err)
 		return nil, err
 	}
 
 	format, _ = c.settings[CfgFormat]
 	cfg, err = marshalFormatReader(ParseFormat(format.Value.(string)), bytes.NewReader(fBytes))
 	if err != nil {
-		logger.Error(err)
+		log.Print(err)
 		return nil, err
 	}
 	return cfg, nil
@@ -216,7 +217,7 @@ func (c *Cfg) getFile() (cfg interface{}, err error) {
 func readCfg(n string) ([]byte, error) {
 	cfg, err := ioutil.ReadFile(n)
 	if err != nil {
-		logger.Error(err)
+		log.Print(err)
 		return nil, err
 	}
 
@@ -233,19 +234,19 @@ func marshalFormatReader(f Format, r io.Reader) (interface{}, error) {
 	case JSON:
 		err := json.Unmarshal(b.Bytes(), &ret)
 		if err != nil {
-			logger.Error(err)
+			log.Print(err)
 			return nil, err
 		}
 
 	case TOML:
 		_, err := toml.Decode(b.String(), &ret)
 		if err != nil {
-			logger.Error(err)
+			log.Print(err)
 			return nil, err
 		}
 	default:
 		err := unsupportedFormatErr(f.String())
-		logger.Error(err)
+		log.Print(err)
 		return nil, err
 	}
 	return ret, nil

@@ -11,6 +11,7 @@ package contour
 
 import (
 	"fmt"
+	"log"
 	_ "strconv"
 )
 
@@ -78,7 +79,7 @@ func (c *Cfg) SetSetting(typ, name, short string, v interface{}, dflt, usage str
 	_, ok := c.settings[name]
 	if ok {
 		err := fmt.Errorf("%s: key already exists, cannot add another setting with the same key")
-		logger.Error(err)
+		log.Print(err)
 		return err
 	}
 
