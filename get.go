@@ -1,5 +1,9 @@
 package contour
 
+import (
+	"strconv"
+)
+
 // E versions, these return the error. Non-e versions are just wrapped calls to
 // these functions with the error dropped.
 
@@ -23,21 +27,23 @@ func (c *Cfg) GetE(k string) (interface{}, error) {
 }
 
 // GetBoolE returns the setting Value as a bool.
-func (c *Cfg) GetBoolE(k string) (string, error) {
+func (c *Cfg) GetBoolE(k string) (bool, error) {
 	v, err := c.GetE(k)
 	if err != nil {
-		return "", err
+		return false, err
 	}
 
 	switch v.(type) {
 	case string:
-		return v.(string), nil
+		b, _ := strconv.ParseBool(v.(string))
+		return b, nil
 	case *string:
-		return *v.(*string), nil
+		b, _ := strconv.ParseBool(*v.(*string))
+		return b, nil
 	}
 
 	// Should never happen, getting here counts as unset
-	return "", nil
+	return false, nil
 }
 
 // GetIntE returns the setting Value as an int.
@@ -102,7 +108,7 @@ func (c *Cfg) Get(k string) interface{} {
 }
 
 // GetBool returns the setting Value as a bool.
-func (c *Cfg) GetBool(k string) string {
+func (c *Cfg) GetBool(k string) bool {
 	s, _ := c.GetBoolE(k)
 	return s
 }
@@ -188,52 +194,27 @@ func (c *Cfg) GetStringFilterNames() []string {
 // Get returns the setting Value as an interface{}.
 // GetE returns the setting Value as an interface{}.
 func GetE(k string) (interface{}, error) {
-	_, ok := appCfg.settings[k]
-	if !ok {
-		return nil, notFoundErr(k)
-	}
-
-	return appCfg.settings[k].Value, nil
+	return appCfg.GetE(k)
 }
 
 // GetBoolE returns the setting Value as a bool.
-func GetBoolE(k string) (string, error) {
-	v, err := GetE(k)
-	if err != nil {
-		return "", err
-	}
-
-	return *v.(*string), nil
+func GetBoolE(k string) (bool, error) {
+	return appCfg.GetBoolE(k)
 }
 
 // GetIntE returns the setting Value as an int.
 func GetIntE(k string) (int, error) {
-	v, err := GetE(k)
-	if err != nil {
-		return 0, err
-	}
-
-	return *v.(*int), nil
+	return appCfg.GetIntE(k)
 }
 
 // GetInt64E returns the setting Value as an int.
 func GetInt64E(k string) (int64, error) {
-	v, err := GetE(k)
-	if err != nil {
-		return 0, err
-	}
-
-	return *v.(*int64), nil
+	return appCfg.GetInt64E(k)
 }
 
 // GetStringE returns the setting Value as a string.
 func GetStringE(k string) (string, error) {
-	v, err := GetE(k)
-	if err != nil {
-		return "", err
-	}
-
-	return v.(string), nil
+	return appCfg.GetStringE(k)
 }
 
 // GetInterfaceE is a convenience wrapper function to Get
@@ -247,9 +228,9 @@ func Get(k string) interface{} {
 }
 
 // GetBool returns the setting Value as a bool.
-func GetBool(k string) string {
-	s, _ := appCfg.GetBoolE(k)
-	return s
+func GetBool(k string) bool {
+	b, _ := appCfg.GetBoolE(k)
+	return b
 }
 
 // GetInt returns the setting Value as an int.
