@@ -52,12 +52,12 @@ func ParseFormat(s string) Format {
 // appCfg: contour's global config; contour config functinos operate on this.
 var appCfg *Cfg
 
-// Contour ironment variable names for the pre-configured core setting names
+// Contour variable names for the pre-configured core setting names
 // that it comes with. These are public and are directly settable if you wish
 // to use your own values. Just set them before doing anything with Contour.
 var (
-	CfgFilename string = "cfgfilename"
-	CfgFormat   string = "cfgformat"
+	CfgFile   string = "cfgfile"
+	CfgFormat string = "cfgformat"
 )
 
 func init() {
@@ -173,7 +173,7 @@ func loads() {
 */
 // getCfgFile() is the entry point for reading the configuration file.
 func (c *Cfg) getFile() (cfg interface{}, err error) {
-	setting, ok := c.settings[CfgFilename]
+	setting, ok := c.settings[CfgFile]
 	if !ok {
 		// Wasn't configured, nothing to do. Not an error.
 		return nil, nil

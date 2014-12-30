@@ -2,7 +2,7 @@ package contour
 
 import (
 	"fmt"
-	"strconv"
+	_ "strconv"
 )
 
 // FilterArgs takes the passed args and filter's the flags out of them.
@@ -16,16 +16,15 @@ import (
 func (c *Cfg) FilterArgs(args []string) ([]string, error) {
 	// Get the flag filters from the config variable information.
 	boolFilterNames := c.GetBoolFilterNames()
+	var flags int // counter, gets reset with each type
 
 	// Preallocate the worst case scenario.
-	boolFilters := make([]*string, len(boolFilterNames))
+	boolFilters := make([]*bool, len(boolFilterNames))
 	bFilterNames := make([]string, len(boolFilterNames))
-	var flags int
 
 	for _, name := range boolFilterNames {
 		if c.settings[name].IsFlag {
-
-			boolFilters[flags] = c.flagSet.String(name, strconv.FormatBool(c.settings[name].Value.(bool)), fmt.Sprintf("filter %s", name))
+			boolFilters[flags] = c.flagSet.Bool(name, c.settings[name].Value.(bool), fmt.Sprintf("filter %s", name))
 			bFilterNames[flags] = name
 			flags++
 		}
@@ -73,12 +72,8 @@ func (c *Cfg) FilterArgs(args []string) ([]string, error) {
 
 	// Process the captured values
 	for i, v := range boolFilters {
-		if v != c.settings[bFilterNames[i]].Value && *v != "" {
-			val, err := strconv.ParseBool(*v)
-			if err != nil {
-				panic(err)
-			}
-			Override(bFilterNames[i], val)
+		if v != c.settings[bFilterNames[i]].Value {
+			Override(bFilterNames[i], v)
 		}
 	}
 
