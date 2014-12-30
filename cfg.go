@@ -1,11 +1,12 @@
 package contour
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	_ "os"
 	"sync"
+
+	"github.com/mohae/flag"
 )
 
 // Cfg is a group of Settings and holds all of the application setting

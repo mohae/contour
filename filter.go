@@ -1,6 +1,9 @@
 package contour
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 // FilterArgs takes the passed args and filter's the flags out of them.
 // The populated flags override their settings, according to the override
@@ -21,7 +24,8 @@ func (c *Cfg) FilterArgs(args []string) ([]string, error) {
 
 	for _, name := range boolFilterNames {
 		if c.settings[name].IsFlag {
-			boolFilters[flags] = c.flagSet.String(name, c.settings[name].Value.(string), fmt.Sprintf("filter %s", name))
+
+			boolFilters[flags] = c.flagSet.String(name, strconv.FormatBool(c.settings[name].Value.(bool)), fmt.Sprintf("filter %s", name))
 			bFilterNames[flags] = name
 			flags++
 		}
@@ -70,7 +74,11 @@ func (c *Cfg) FilterArgs(args []string) ([]string, error) {
 	// Process the captured values
 	for i, v := range boolFilters {
 		if v != c.settings[bFilterNames[i]].Value && *v != "" {
-			Override(bFilterNames[i], v)
+			val, err := strconv.ParseBool(*v)
+			if err != nil {
+				panic(err)
+			}
+			Override(bFilterNames[i], val)
 		}
 	}
 
