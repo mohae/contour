@@ -204,13 +204,13 @@ func (c *Cfg) RegisterString(k, v string) {
 
 // Convenience functions for interacting with the configs[app] configuration.
 
-// RegisterCfgFilename set's the configuration file's name. The name is
+// RegisterCfgFile set's the configuration file's name. The name is
 // parsed for a valid extension--one that is a supported format--and saves
 // that value too. If it cannot be determined, the extension info is not set.
 // These are considered core values and cannot be changed from command-line
 // and configuration files. (IsCore == true).
-func RegisterCfgFilename(k, v string) error {
-	return appCfg.RegisterCfgFilename(k, v)
+func RegisterCfgFile(k, v string) error {
+	return appCfg.RegisterCfgFile(k, v)
 }
 
 // RegisterSetting checks to see if the entry already exists and adds the
