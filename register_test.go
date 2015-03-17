@@ -1,11 +1,11 @@
-package contour
+Vendpackage contour
 
 import (
 	"strconv"
 	"testing"
 )
 
-func TestRegisterCfgFilename(t *testing.T) {
+func TestRegisterCfgFile(t *testing.T) {
 	tests := []struct {
 		name     string
 		filename string
@@ -23,7 +23,7 @@ func TestRegisterCfgFilename(t *testing.T) {
 
 	for _, test := range tests {
 		cfg := NewCfg(test.name)
-		err := cfg.RegisterCfgFilename(CfgFilename, test.filename)
+		err := cfg.RegisterCfgFile(CfgFilename, test.filename)
 		if err != nil {
 			if test.err == "" {
 				t.Errorf("RegisterCfgFilename %s: unexpected error: %q", test.name, err)
