@@ -16,12 +16,12 @@ import (
 )
 
 // Config methods
-// RegisterConfigFilename set's the configuration file's name. The name is
+// RegisterConfigFilen set's the configuration file's name. The name is
 // parsed for a valid extension--one that is a supported format--and saves
 // that value too. If it cannot be determined, the extension info is not set.
 // These are considered core values and cannot be changed from command-line
 // and configuration files. (IsCore == true).
-func (c *Cfg) RegisterCfgFilename(k, v string) error {
+func (c *Cfg) RegisterCfgFile(k, v string) error {
 	if v == "" {
 		return fmt.Errorf("A config filename was expected, none received")
 	}
