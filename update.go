@@ -23,13 +23,15 @@ func (c *Cfg) updateE(k string, v interface{}) error {
 }
 
 func (c *Cfg) UpdateBoolE(k, v string) error {
-	if v != "" {
-		_, err := strconv.ParseBool(v)
-		if err != nil {
-			v = ""
-		}
+	if v == "" {
+		return fmt.Errorf("%s is not a bool", v)
 	}
-	return c.updateE(k, v)
+
+	b, err := strconv.ParseBool(v)
+	if err != nil {
+		return err
+	}
+	return c.updateE(k, b)
 }
 
 // UpdateInt adds the information to the AppsConfig struct, but does not

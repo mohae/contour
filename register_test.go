@@ -1,4 +1,4 @@
-Vendpackage contour
+package contour
 
 import (
 	"strconv"
@@ -23,7 +23,7 @@ func TestRegisterCfgFile(t *testing.T) {
 
 	for _, test := range tests {
 		cfg := NewCfg(test.name)
-		err := cfg.RegisterCfgFile(CfgFilename, test.filename)
+		err := cfg.RegisterCfgFile(CfgFile, test.filename)
 		if err != nil {
 			if test.err == "" {
 				t.Errorf("RegisterCfgFilename %s: unexpected error: %q", test.name, err)
@@ -35,7 +35,7 @@ func TestRegisterCfgFile(t *testing.T) {
 		cont:
 			continue
 		}
-		fname, err := cfg.GetStringE(CfgFilename)
+		fname, err := cfg.GetStringE(CfgFile)
 		if err != nil {
 			t.Errorf("RegisterCfgFilename %s: unexpected error retrieving filename, %q", test.name, err)
 			continue
@@ -57,13 +57,13 @@ func TestRegisterCfgFile(t *testing.T) {
 
 func TestRegisterCoreSettings(t *testing.T) {
 	cfg := NewCfg("test register")
-	cfg.RegisterBoolCore("corebool", "true")
+	cfg.RegisterBoolCore("corebool", true)
 	b, err := cfg.GetBoolE("corebool")
 	if err != nil {
 		t.Errorf("%s corebool: unexpected error %q", cfg.name, err)
 	} else {
-		if b != "true" {
-			t.Errorf("%s corebool: expected \"true\" got %q", cfg.name, b)
+		if b != true {
+			t.Errorf("%s corebool: expected \"true\" got %q", cfg.name, strconv.FormatBool(b))
 		}
 	}
 
@@ -101,20 +101,10 @@ func TestRegisterCoreSettings(t *testing.T) {
 
 func TestRegisterSettings(t *testing.T) {
 	cfg := NewCfg("test register")
-	cfg.RegisterBool("settingbool", "true")
+	cfg.RegisterBool("settingbool", true)
 	b, err := cfg.GetBoolE("settingbool")
 	if err != nil {
 		t.Errorf("%s settingbool: unexpected error %q", cfg.name, err)
-	} else {
-		bl, err := strconv.ParseBool(b)
-		if err != nil {
-			t.Errorf("%s settingbool: unexpected error %q", cfg.name, err)
-
-		} else {
-			if !bl {
-				t.Errorf("%s settingbool: expected true got %q", cfg.name, b)
-			}
-		}
 	}
 
 	cfg.RegisterInt("settingint", 42)
@@ -151,19 +141,13 @@ func TestRegisterSettings(t *testing.T) {
 
 func TestRegisterConfSettings(t *testing.T) {
 	cfg := NewCfg("test register Conf")
-	cfg.RegisterBoolConf("settingbool", "true")
+	cfg.RegisterBoolConf("settingbool", true)
 	b, err := cfg.GetBoolE("settingbool")
 	if err != nil {
 		t.Errorf("%s settingbool: unexpected error %q", cfg.name, err)
 	} else {
-		bl, err := strconv.ParseBool(b)
-		if err != nil {
-			t.Errorf("%s settingbool: unexpected error %q", cfg.name, err)
-
-		} else {
-			if !bl {
-				t.Errorf("%s settingbool: expected true got %q", cfg.name, b)
-			}
+		if !b {
+			t.Error("Expected true got false")
 		}
 	}
 
@@ -201,19 +185,13 @@ func TestRegisterConfSettings(t *testing.T) {
 
 func TestRegisterFlagSettings(t *testing.T) {
 	cfg := NewCfg("test register flag")
-	cfg.RegisterBoolFlag("settingbool", "b", "true", "true", "usage")
+	cfg.RegisterBoolFlag("settingbool", "b", true, "true", "usage")
 	b, err := cfg.GetBoolE("settingbool")
 	if err != nil {
 		t.Errorf("%s settingbool: unexpected error %q", cfg.name, err)
 	} else {
-		bl, err := strconv.ParseBool(b)
-		if err != nil {
-			t.Errorf("%s settingbool: unexpected error %q", cfg.name, err)
-
-		} else {
-			if !bl {
-				t.Errorf("%s settingbool: expected true got %q", cfg.name, b)
-			}
+		if !b {
+			t.Errorf("%s settingbool: expected true got false", cfg.name)
 		}
 	}
 

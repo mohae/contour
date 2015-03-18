@@ -7,20 +7,21 @@ import (
 
 func TestUpdates(t *testing.T) {
 	bTests := []struct {
-		name  string
-		key   string
-		value string
-		err   string
+		name     string
+		key      string
+		value    string
+		expected bool
+		err      string
 	}{
-		{"false", "corebool", "false", "config[update]: \"corebool\" is not updateable"},
-		{"true", "corebool", "t", "config[update]: \"corebool\" is not updateable"},
-		{"unset", "", "", "config[update]: \"\" is not updateable"},
-		{"false", "flagbool", "false", ""},
-		{"true", "flagbool", "t", ""},
-		{"false", "cfgbool", "false", ""},
-		{"true", "cfgbool", "t", ""},
-		{"false", "bool", "false", ""},
-		{"true", "bool", "t", ""},
+		{"false", "corebool", "false", false, "config[update]: \"corebool\" is not updateable"},
+		{"true", "corebool", "t", true, "config[update]: \"corebool\" is not updateable"},
+		{"unset", "", "", false, "config[update]: \"\" is not updateable"},
+		{"false", "flagbool", "false", false, ""},
+		{"true", "flagbool", "t", true, ""},
+		{"false", "cfgbool", "false", false, ""},
+		{"true", "cfgbool", "t", true, ""},
+		{"false", "bool", "false", false, ""},
+		{"true", "bool", "t", true, ""},
 	}
 
 	cfg := testCfg
@@ -49,8 +50,8 @@ func TestUpdates(t *testing.T) {
 			}
 			continue
 		}
-		if b != test.value {
-			t.Errorf("%s: expected %q got %q", test.name, test.value, b)
+		if b != test.expected {
+			t.Errorf("%s: expected %q got %q", test.name, test.value, strconv.FormatBool(b))
 		}
 	}
 
