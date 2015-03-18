@@ -1,9 +1,5 @@
 package contour
 
-import (
-	"strconv"
-)
-
 // E versions, these return the error. Non-e versions are just wrapped calls to
 // these functions with the error dropped.
 
@@ -34,15 +30,13 @@ func (c *Cfg) GetBoolE(k string) (bool, error) {
 	}
 
 	switch v.(type) {
-	case string:
-		b, _ := strconv.ParseBool(v.(string))
-		return b, nil
-	case *string:
-		b, _ := strconv.ParseBool(*v.(*string))
-		return b, nil
+	case bool:
+		return v.(bool), nil
+	case *bool:
+		return *v.(*bool), nil
 	}
 
-	// Should never happen, getting here counts as unset
+	// Should never happen, getting here counts as false
 	return false, nil
 }
 

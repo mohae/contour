@@ -5,23 +5,22 @@ import (
 	"testing"
 )
 
-func TestUpdates(t *testing.T) {
+func TestUpdateBools(t *testing.T) {
 	bTests := []struct {
 		name     string
 		key      string
-		value    string
+		value    bool
 		expected bool
 		err      string
 	}{
-		{"false", "corebool", "false", false, "config[update]: \"corebool\" is not updateable"},
-		{"true", "corebool", "t", true, "config[update]: \"corebool\" is not updateable"},
-		{"unset", "", "", false, "config[update]: \"\" is not updateable"},
-		{"false", "flagbool", "false", false, ""},
-		{"true", "flagbool", "t", true, ""},
-		{"false", "cfgbool", "false", false, ""},
-		{"true", "cfgbool", "t", true, ""},
-		{"false", "bool", "false", false, ""},
-		{"true", "bool", "t", true, ""},
+		{"false", "corebool", false, false, "config[update]: \"corebool\" is not updateable"},
+		{"true", "corebool", true, true, "config[update]: \"corebool\" is not updateable"},
+		{"false", "flagbool", false, false, ""},
+		{"true", "flagbool", true, true, ""},
+		{"false", "cfgbool", false, false, ""},
+		{"true", "cfgbool", true, true, ""},
+		{"false", "bool", false, false, ""},
+		{"true", "bool", true, true, ""},
 	}
 
 	cfg := testCfg
@@ -51,10 +50,11 @@ func TestUpdates(t *testing.T) {
 			continue
 		}
 		if b != test.expected {
-			t.Errorf("%s: expected %q got %q", test.name, test.value, strconv.FormatBool(b))
+			t.Errorf("%s: expected %t got %t", test.name, test.value, b)
 		}
 	}
-
+}
+func TestUpdateStrings(t *testing.T) {
 	sTests := []struct {
 		name  string
 		key   string
@@ -71,6 +71,10 @@ func TestUpdates(t *testing.T) {
 		{"false", "string", "false", ""},
 		{"true", "string", "t", ""},
 	}
+
+	cfg := testCfg
+	cfg.name = "update"
+
 	for _, test := range sTests {
 		err := cfg.UpdateStringE(test.key, test.value)
 		if err != nil {
@@ -95,10 +99,12 @@ func TestUpdates(t *testing.T) {
 			continue
 		}
 		if s != test.value {
-			t.Errorf("%s: expected %q got %q", test.name, test.value, s)
+			t.Errorf("%s: expected %t got %s", test.name, test.value, s)
 		}
 	}
+}
 
+func TestUpdateInts(t *testing.T) {
 	iTests := []struct {
 		name  string
 		key   string
@@ -111,6 +117,10 @@ func TestUpdates(t *testing.T) {
 		{"42", "cfgint", 42, ""},
 		{"42", "int", 42, ""},
 	}
+
+	cfg := testCfg
+	cfg.name = "update"
+
 	for _, test := range iTests {
 		err := cfg.UpdateIntE(test.key, test.value)
 		if err != nil {
@@ -138,7 +148,9 @@ func TestUpdates(t *testing.T) {
 			t.Errorf("%s: expected %q got %q", test.name, test.value, strconv.Itoa(i))
 		}
 	}
+}
 
+func TestUpdateInt64s(t *testing.T) {
 	i64Tests := []struct {
 		name  string
 		key   string
@@ -151,6 +163,10 @@ func TestUpdates(t *testing.T) {
 		{"42", "cfgint", int64(42), ""},
 		{"42", "int", int64(42), ""},
 	}
+
+	cfg := testCfg
+	cfg.name = "update"
+
 	for _, test := range i64Tests {
 		err := cfg.UpdateInt64E(test.key, test.value)
 		if err != nil {

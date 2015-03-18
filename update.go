@@ -3,7 +3,6 @@ package contour
 import (
 	"fmt"
 	"log"
-	"strconv"
 )
 
 // Only non-core settings are updateable.
@@ -22,16 +21,8 @@ func (c *Cfg) updateE(k string, v interface{}) error {
 	return nil
 }
 
-func (c *Cfg) UpdateBoolE(k, v string) error {
-	if v == "" {
-		return fmt.Errorf("%s is not a bool", v)
-	}
-
-	b, err := strconv.ParseBool(v)
-	if err != nil {
-		return err
-	}
-	return c.updateE(k, b)
+func (c *Cfg) UpdateBoolE(k string, v bool) error {
+	return c.updateE(k, v)
 }
 
 // UpdateInt adds the information to the AppsConfig struct, but does not
@@ -54,7 +45,7 @@ func (c *Cfg) UpdateStringE(k, v string) error {
 
 // UpdateBool adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func (c *Cfg) UpdateBool(k, v string) {
+func (c *Cfg) UpdateBool(k string, v bool) {
 	c.UpdateBoolE(k, v)
 }
 
@@ -78,7 +69,7 @@ func (c *Cfg) UpdateString(k, v string) {
 
 // UpdateBoolE adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func UpdateBoolE(k, v string) error {
+func UpdateBoolE(k string, v bool) error {
 	return appCfg.updateE(k, v)
 }
 
@@ -102,7 +93,7 @@ func UpdateStringE(k, v string) error {
 
 // UpdateBool adds the information to the AppsConfig struct, but does not
 // save it to its environment variable.
-func UpdateBool(k, v string) {
+func UpdateBool(k string, v bool) {
 	appCfg.UpdateBool(k, v)
 }
 

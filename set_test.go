@@ -6,48 +6,48 @@ import (
 )
 
 func TestSetBoolE(t *testing.T) {
-	Convey("Given a new config", t, func() {
-		c := NewCfg("setboole")
+	c := NewCfg("setboole")
+	err := c.SetFlagBoolE("flagBoolKey", "b", true, "true", "")
+	if err != nil {
+		t.Errorf("Expected error to be nil, got %q", err.Error())
+		return
+	}
 
-		Convey("Setting a boolean flag", func() {
-			err := c.SetFlagBoolE("flagBoolKey", "b", true, "true", "")
-			Convey("Should not error", func() {
-				So(err, ShouldBeNil)
-			})
+	s, ok := c.settings["flagBoolKey"]
+	if !ok {
+		t.Errorf("Expected 'ok' to be true, got %t", ok)
+	} else {
+		var b bool
+		switch s.Value.(type) {
+		case bool:
+			b = s.Value.(bool)
+		case *bool:
+			b = *s.Value.(*bool)
+		}
+		if !b {
+			t.Errorf("Expected \"true\", got %t", b)
+		}
 
-			Convey("And the setting should exist", func() {
-				s, ok := c.settings["flagBoolKey"]
+		if s.Short != "b" {
+			t.Errorf("Expected short to be \"b\", got %q", s.Short)
+		}
 
-				Convey("And the key should exist", func() {
-					So(ok, ShouldEqual, true)
-				})
+		if s.Type != "bool" {
+			t.Errorf("Expected type to be \"bool\", got %q", s.Type)
+		}
 
-				Convey("And the flag should be set", func() {
-					So(s.Value.(string), ShouldEqual, "true")
-				})
+		if s.IsCore {
+			t.Errorf("Expected IsCore to be false, got %t", s.IsCore)
+		}
 
-				Convey("And the code should be set", func() {
-					So(s.Short, ShouldEqual, "b")
-				})
+		if !s.IsCfg {
+			t.Errorf("Expected IsCfg to be true, got %t", s.IsCfg)
+		}
 
-				Convey("And the type should be bool", func() {
-					So(s.Type, ShouldEqual, "bool")
-				})
-
-				Convey("And it should not be flagged as a core setting", func() {
-					So(s.IsCore, ShouldEqual, false)
-				})
-
-				Convey("And it should be flagged as a config", func() {
-					So(s.IsCfg, ShouldEqual, true)
-				})
-
-				Convey("And it should be flagged as a flag", func() {
-					So(s.IsFlag, ShouldEqual, true)
-				})
-			})
-		})
-	})
+		if !s.IsFlag {
+			t.Errorf("Expected IsCfg to be true, got %t", s.IsFlag)
+		}
+	}
 }
 
 func TestSetIntE(t *testing.T) {
@@ -141,45 +141,44 @@ func TestSetStringE(t *testing.T) {
 }
 
 func TestSetBool(t *testing.T) {
-	Convey("Given a new config", t, func() {
-		c := NewCfg("setbool")
+	c := NewCfg("setbool")
+	c.SetFlagBool("flagBoolKey", "b", true, "true", "")
 
-		Convey("Setting a boolean flag", func() {
-			c.SetFlagBool("flagBoolKey", "b", true, "true", "")
+	s, ok := c.settings["flagBoolKey"]
+	if !ok {
+		t.Errorf("Expected 'ok' to be true, got %t", ok)
+	} else {
+		var b bool
+		switch s.Value.(type) {
+		case bool:
+			b = s.Value.(bool)
+		case *bool:
+			b = *s.Value.(*bool)
+		}
+		if !b {
+			t.Errorf("Expected \"true\", got %t", b)
+		}
 
-			Convey("And the setting should exist", func() {
-				s, ok := c.settings["flagBoolKey"]
+		if s.Short != "b" {
+			t.Errorf("Expected short to be \"b\", got %q", s.Short)
+		}
 
-				Convey("And the key should exist", func() {
-					So(ok, ShouldEqual, true)
-				})
+		if s.Type != "bool" {
+			t.Errorf("Expected type to be \"bool\", got %q", s.Type)
+		}
 
-				Convey("And the flag should be set", func() {
-					So(s.Value.(string), ShouldEqual, "true")
-				})
+		if s.IsCore {
+			t.Errorf("Expected IsCore to be false, got %t", s.IsCore)
+		}
 
-				Convey("And the code should be set", func() {
-					So(s.Short, ShouldEqual, "b")
-				})
+		if !s.IsCfg {
+			t.Errorf("Expected IsCfg to be true, got %t", s.IsCfg)
+		}
 
-				Convey("And the type should be bool", func() {
-					So(s.Type, ShouldEqual, "bool")
-				})
-
-				Convey("And it should not be flagged as a core setting", func() {
-					So(s.IsCore, ShouldEqual, false)
-				})
-
-				Convey("And it should be flagged as a config", func() {
-					So(s.IsCfg, ShouldEqual, true)
-				})
-
-				Convey("And it should be flagged as a flag", func() {
-					So(s.IsFlag, ShouldEqual, true)
-				})
-			})
-		})
-	})
+		if !s.IsFlag {
+			t.Errorf("Expected IsCfg to be true, got %t", s.IsFlag)
+		}
+	}
 }
 
 func TestSetInt(t *testing.T) {

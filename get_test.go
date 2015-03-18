@@ -2,124 +2,124 @@ package contour
 
 import (
 	"testing"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestGetsE(t *testing.T) {
-	Convey("Given a cfguration with settings", t, func() {
-		Convey("Getting an interface", func() {
-			rif, err := testCfg.GetE("corebool")
-			Convey("Should not result in an error", func() {
-				So(err, ShouldBeNil)
-			})
-			Convey("Should result in a value", func() {
-				So(rif.(string), ShouldEqual, "true")
-			})
-		})
+	r, err := testCfg.GetE("corebool")
+	if err != nil {
+		t.Errorf("Expected error to be nil, got %q", err.Error())
+	} else {
+		var b bool
+		switch r.(type) {
+		case bool:
+			b = r.(bool)
+		case *bool:
+			b = *r.(*bool)
+		}
 
-		Convey("Getting a bool", func() {
-			rb, err := testCfg.GetBoolE("corebool")
-			Convey("Should not result in an error", func() {
-				So(err, ShouldBeNil)
-			})
-			Convey("Should result in a value", func() {
-				So(rb, ShouldEqual, "true")
-			})
-		})
+		if !b {
+			t.Errorf("Expected \"true\", got %t", b)
+		}
+	}
 
-		Convey("Getting an int", func() {
-			ri, err := testCfg.GetIntE("coreint")
-			Convey("Should not result in an error", func() {
-				So(err, ShouldBeNil)
-			})
-			Convey("Should result in a value", func() {
-				So(ri, ShouldEqual, 42)
-			})
-		})
+	rb, err := testCfg.GetBoolE("corebool")
+	if err != nil {
+		t.Errorf("Expected error to be nil, got %q", err.Error())
+	} else {
+		if !rb {
+			t.Errorf("Expected \"true\", got %t", rb)
+		}
+	}
 
-		Convey("Getting a string", func() {
-			rb, err := testCfg.GetStringE("corestring")
-			Convey("Should not result in an error", func() {
-				So(err, ShouldBeNil)
-			})
-			Convey("Should result in a value", func() {
-				So(rb, ShouldEqual, "a core string")
-			})
-		})
+	ri, err := testCfg.GetIntE("coreint")
+	if err != nil {
+		t.Errorf("Expected error to be nil, got %q", err.Error())
+	} else {
+		if ri != 42 {
+			t.Errorf("Expected 42, got %d", ri)
+		}
+	}
 
-		Convey("Getting an interface", func() {
-			rinter, err := testCfg.GetInterfaceE("corebool")
-			Convey("Should not result in an error", func() {
-				So(err, ShouldBeNil)
-			})
-			Convey("Should result in a value", func() {
-				So(rinter.(string), ShouldEqual, "true")
-			})
-		})
-	})
+	rs, err := testCfg.GetStringE("corestring")
+	if err != nil {
+		t.Errorf("Expected error to be nil, got %q", err.Error())
+	} else {
+		if rs != "a core string" {
+			t.Errorf("Expected \"a core string\", got %q", rs)
+		}
+	}
+
+	rif, err := testCfg.GetInterfaceE("corebool")
+	if err != nil {
+		t.Errorf("Expected error to be nil, got %q", err.Error())
+	} else {
+		var b bool
+		switch rif.(type) {
+		case bool:
+			b = rif.(bool)
+		case *bool:
+			b = *rif.(*bool)
+		}
+		if !b {
+			t.Errorf("Expected \"true\", got %t", b)
+		}
+	}
 }
 
 func TestGets(t *testing.T) {
-	Convey("Given a cfguration with settings", t, func() {
-		Convey("Getting an interface", func() {
-			rif := testCfg.Get("corebool")
-			Convey("Should result in a value", func() {
-				So(rif.(string), ShouldEqual, "true")
-			})
-		})
+	r := testCfg.Get("corebool")
+	var b bool
+	switch r.(type) {
+	case bool:
+		b = r.(bool)
+	case *bool:
+		b = *r.(*bool)
+	}
 
-		Convey("Getting a bool", func() {
-			rb := testCfg.GetBool("corebool")
-			Convey("Should result in a value", func() {
-				So(rb, ShouldEqual, "true")
-			})
-		})
+	if !b {
+		t.Errorf("Expected \"true\", got %t", r)
+	}
 
-		Convey("Getting an int", func() {
-			ri := testCfg.GetInt("coreint")
-			Convey("Should result in a value", func() {
-				So(ri, ShouldEqual, 42)
-			})
-		})
+	rb := testCfg.GetBool("corebool")
+	if !rb {
+		t.Errorf("Expected true, got %t", rb)
+	}
 
-		Convey("Getting a string", func() {
-			rb := testCfg.GetString("corestring")
-			Convey("Should result in a value", func() {
-				So(rb, ShouldEqual, "a core string")
-			})
-		})
+	ri := testCfg.GetInt("coreint")
+	if ri != 42 {
+		t.Errorf("Expected 42, got %d", ri)
+	}
 
-		Convey("Getting an interface", func() {
-			rinter := testCfg.GetInterface("corebool")
-			Convey("Should result in a value", func() {
-				So(rinter.(string), ShouldEqual, "true")
-			})
-		})
-	})
+	rs := testCfg.GetString("corestring")
+	if rs != "a core string" {
+		t.Errorf("Expected \"a core string\", got %q", rs)
+	}
+
+	rif := testCfg.GetInterface("corebool")
+	switch rif.(type) {
+	case bool:
+		b = rif.(bool)
+	case *bool:
+		b = *rif.(*bool)
+	}
+	if !b {
+		t.Errorf("Expected true, got %t", b)
+	}
 }
 
 func TestGetFilterNames(t *testing.T) {
-	Convey("Given a cfguration with settings", t, func() {
-		Convey("Getting a list of Bool Filters", func() {
-			boolFilters := testCfg.GetBoolFilterNames()
-			Convey("Should result in a list of bool filters for this cfg", func() {
-				So(toString.Get(boolFilters), ShouldEqual, "[\"flagbool\"]")
-			})
-		})
+	boolFilters := testCfg.GetBoolFilterNames()
+	if toString.Get(boolFilters) != "[\"flagbool\"]" {
+		t.Errorf("Expected [\"flagbool\"], got %s", toString.Get(boolFilters))
+	}
 
-		Convey("Getting a list of int Filters", func() {
-			intFilters := testCfg.GetIntFilterNames()
-			Convey("Should result in a list of bool filters for this cfg", func() {
-				So(toString.Get(intFilters), ShouldEqual, "[\"flagint\"]")
-			})
-		})
+	intFilters := testCfg.GetIntFilterNames()
+	if toString.Get(intFilters) != "[\"flagint\"]" {
+		t.Errorf("Expected [\"flagint\"], got %s", toString.Get(intFilters))
+	}
 
-		Convey("Getting a list of string Filters", func() {
-			stringFilters := testCfg.GetStringFilterNames()
-			Convey("Should result in a list of string filters for this cfg", func() {
-				So(toString.Get(stringFilters), ShouldEqual, "[\"flagstring\"]")
-			})
-		})
-
-	})
+	stringFilters := testCfg.GetStringFilterNames()
+	if toString.Get(stringFilters) != "[\"flagstring\"]" {
+		t.Errorf("Expected [\"flagstring\"], got %s", toString.Get(stringFilters))
+	}
 }
