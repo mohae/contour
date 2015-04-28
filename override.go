@@ -2,7 +2,6 @@ package contour
 
 import (
 	"fmt"
-	"log"
 )
 
 // Set contains all of contour's Override functions. Override can set both
@@ -24,7 +23,6 @@ func (c *Cfg) Override(k string, v interface{}) error {
 	// If it can't be overriden,
 	if c.settings[k].IsCore || !c.settings[k].IsFlag {
 		err := fmt.Errorf("%v: setting is not a flag. Only flags can be overridden", k)
-		log.Print(err)
 		return err
 	}
 

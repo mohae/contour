@@ -2,7 +2,6 @@ package contour
 
 import (
 	"fmt"
-	"log"
 	_ "os"
 	"sync"
 
@@ -106,8 +105,6 @@ func (c *Cfg) SetCfg() error {
 func (c *Cfg) setFromFile() error {
 	f, err := c.getFile()
 	if err != nil {
-		fmt.Println(err)
-		log.Print(err)
 		return err
 	}
 	// if nothing was returned and no error, nothing to do

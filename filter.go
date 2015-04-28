@@ -2,7 +2,7 @@ package contour
 
 import (
 	"fmt"
-	_ "strconv"
+	// "strconv"
 )
 
 // FilterArgs takes the passed args and filter's the flags out of them.
