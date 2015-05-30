@@ -1,11 +1,10 @@
 package contour
 
 import (
+	"flag"
 	"fmt"
 	_ "os"
 	"sync"
-
-	"github.com/mohae/flag"
 )
 
 // Cfg is a group of Settings and holds all of the application setting
@@ -159,6 +158,10 @@ func (c *Cfg) Setenv(k string, v interface{}) error {
 	return err
 }
 */
+// SetUsage set's the configs usage func.
+func (c *Cfg) SetUsage(f func()) {
+	c.flagSet.Usage = f
+}
 
 // SetCode set's the code for this configuration. This can only be done once.
 // If it is already set, it will return an error.
@@ -265,7 +268,7 @@ func (c *Cfg) SetFlagSetUsage(f func()) {
 	c.flagSet.Usage = f
 }
 
-// SetFlagSetUsage sets flagSet.Usage
-func SetFlagSetUsage(f func()) {
+// SetUsage sets appCfg's usage func
+func SetUsage(f func()) {
 	appCfg.flagSet.Usage = f
 }
