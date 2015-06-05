@@ -50,18 +50,16 @@ func (c *Cfg) RegisterCfgFile(k, v string) error {
 // RegisterSetting checks to see if the entry already exists and adds the
 // new setting if it does not.
 func (c *Cfg) RegisterSetting(typ, name, short string, value interface{}, dflt string, usage string, IsCore, IsCfg, IsFlag bool) {
-	c.lock.RLock()
+	c.RWMutex.RLock()
 	_, ok := c.settings[name]
 	if ok {
 		// Settings can't be re-registered.
-		c.lock.RUnlock()
+		c.RWMutex.RUnlock()
 		return
 	}
-
-	c.lock.RUnlock()
-	c.lock.Lock()
-	defer c.lock.Unlock()
-
+	c.RWMutex.RUnlock()
+	c.RWMutex.Lock()
+	defer c.RWMutex.Unlock()
 	// Add the setting
 	c.settings[name] = &setting{
 		Type:    typ,
@@ -74,14 +72,12 @@ func (c *Cfg) RegisterSetting(typ, name, short string, value interface{}, dflt s
 		IsCfg:   IsCfg,
 		IsFlag:  IsFlag,
 	}
-
 	// Keep track of whether or not a config is being used. If a setting is
 	// registered as a config setting, it is assumed a configuration source
 	// is being used.
 	if IsCfg {
-		c.useCfg = true
+		c.useCfgFile = true
 	}
-
 	// Keep track of whether or not flags are being used. If a setting is
 	// registered as a flag setting, it is assumed that flags are being
 	// used.

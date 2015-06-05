@@ -1,86 +1,48 @@
 package contour
 
-// Set contains all of contour's Set functions.Calling Set
-// adds, or registers, the settings information to the AppConfig variable.
-// The setting value, if there is one, is not saved to its environment
-// variable at this point.
-//
-
-// SetEnvs writes the current contents of AppConfig to their respective
-// environmnet variables.
-
 import (
 	"fmt"
 	// "strconv"
 )
 
-/*
-// SetEnvs goes through AppConfig and saves all of the settings to their
-// environment variables.
-func Setenvs() error {
-	if !appConfig.UseEnv() {
-		return nil
-	}
+// Set contains all of contour's Set functions.  Calling Set adds, or
+// registers, the settings information to the AppConfig variable.
 
-	var err error
-	// For each setting
-	for k, setting := range appConfig.settings {
-		err = appConfig.Setenv(k, setting)
-		if err != nil {
-			return err
-		}
-
-	}
-
-	return nil
-
-}
-*/
-
-// setEnvFromConfigFile goes through all the settings in the configFile and
-// checks to see if the setting is updateable; saving those that are to their
-// environment variable.
+// setCfg set's the configuration information from the received map.
 func (c *Cfg) setCfg(cf map[string]interface{}) error {
-	if !c.UseEnv() {
+	c.RWMutex.Lock()
+	if !c.useCfgFile {
+		c.RWMutex.Unlock()
 		return nil
 	}
-
+	c.RWMutex.Unlock()
 	for k, v := range cf {
-		c.lock.RLock()
+		c.RWMutex.RLock()
 		// Find the key in the settings
 		_, ok := c.settings[k]
-		c.lock.RUnlock()
+		c.RWMutex.RUnlock()
 		if !ok {
 			// skip settings that don't already exist
 			continue
 		}
-
-		//		err = appConfig.Setenv(k, v)
-		//		if err != nil {
-		//			return err
-		//		}
-
 		err := c.updateE(k, v)
 		if err != nil {
 			return err
 		}
 
 	}
-
 	return nil
 }
 
 // SetSetting
 func (c *Cfg) SetSetting(typ, name, short string, v interface{}, dflt, usage string, IsCore, IsCfg, IsFlag bool) error {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-
+	c.RWMutex.Lock()
+	defer c.RWMutex.Unlock()
 	_, ok := c.settings[name]
 	if ok {
 		err := fmt.Errorf("%s: key already exists, cannot add another setting with the same key")
 		return err
 	}
-
 	c.settings[name] = &setting{
 		Type:    typ,
 		Name:    name,
@@ -92,7 +54,6 @@ func (c *Cfg) SetSetting(typ, name, short string, v interface{}, dflt, usage str
 		IsCfg:   IsCfg,
 		IsFlag:  IsFlag,
 	}
-
 	return nil
 }
 

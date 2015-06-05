@@ -256,16 +256,16 @@ func checkTestReturn(test basic, format string, err error) {
 // Testing
 func TestFormatFromFilename(t *testing.T) {
 	tests := []basic{
-		{"an empty cfgfilename", "", "", "a config filename was expected, none received"},
-		{"a cfgfilename without an extension", "cfg", "", "unable to determine config format, the configuration file, cfg, doesn't have an extension"},
-		{"a cfgfilename with an invalid extension", "cfg.bmp", "", "unsupported configuration file format: bmp"},
+		{"an empty cfgfilename", "", "", "no config filename"},
+		{"a cfgfilename without an extension", "cfg", "", "unable to determine cfg's config format: no extension"},
+		{"a cfgfilename with an invalid extension", "cfg.bmp", "", "unsupported config format: bmp"},
 		{"a cfgfilename with a json extension", "cfg.json", "json", ""},
 		{"a path and multi dot cfgfilename with a json extension", "path/to/custom.cfg.json", "json", ""},
 		{"a cfgfilename with a toml extension", "cfg.toml", "toml", ""},
 		{"a cfgfilename with a toml extension", "cfg.yaml", "yaml", ""},
 		{"a cfgfilename with a toml extension", "cfg.yml", "yaml", ""},
-		{"a cfgfilename with a toml extension", "cfg.xml", "xml", "unsupported configuration file format: xml"},
-		{"a cfgfilename with a toml extension", "cfg.ini", "", "unsupported configuration file format: ini"},
+		{"a cfgfilename with a toml extension", "cfg.xml", "xml", "unsupported config format: xml"},
+		{"a cfgfilename with a toml extension", "cfg.ini", "", "unsupported config format: ini"},
 	}
 
 	for _, test := range tests {
@@ -307,46 +307,6 @@ func TestIsSupportedFormat(t *testing.T) {
 
 }
 
-/*
-func TestLoadEnvs(t *testing.T) {
-
-}
-
-
-// Only testing failure for now
-func TestLoadCfgFile(t *testing.T) {
-
-	Convey("Given an empty cfg filename", t, func() {
-		AppCfg.settings[EnvCfgFilename] = &setting{Value: ""}
-		AppCfg.settings[EnvCfgFormat] = &setting{Value: ""}
-
-		Convey("loading the cfg file", func() {
-			err := loadCfgFile()
-
-			Convey("Should not result in an error", func() {
-				So(err, ShouldBeNil)
-			})
-
-		})
-
-	})
-
-	Convey("Given an invalid cfg filename", t, func() {
-		AppCfg.settings[EnvCfgFilename] = &setting{Value: "holygrail"}
-		AppCfg.settings[EnvCfgFormat] = &setting{Value: ""}
-		Convey("loading the cfg file", func() {
-			err := loadCfgFile()
-
-			Convey("Should result in an error", func() {
-				So(err.Error(), ShouldEqual, "open holygrail: no such file or directory")
-			})
-
-		})
-
-	})
-
-}
-*/
 func TestMarshalFormatReader(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -357,14 +317,14 @@ func TestMarshalFormatReader(t *testing.T) {
 	}{
 		{"json cfg", JSON, jsonExample, jsonResults, ""},
 		{"toml cfg", TOML, tomlExample, tomlResults, ""},
-		{"yaml cfg", YAML, yamlExample, []byte(""), "unsupported configuration file format: yaml"},
-		{"xml cfg", XML, xmlExample, []byte(""), "unsupported configuration file format: xml"},
-		{"unsupported cfg", Unsupported, []byte(""), []byte(""), "unsupported configuration file format: unsupported"},
+		{"yaml cfg", YAML, yamlExample, []byte(""), "unsupported config format: yaml"},
+		{"xml cfg", XML, xmlExample, []byte(""), "unsupported config format: xml"},
+		{"unsupported cfg", Unsupported, []byte(""), []byte(""), "unsupported config format: unsupported"},
 	}
 
 	for _, test := range tests {
 		r := bytes.NewReader([]byte(test.value))
-		ires, err := marshalFormatReader(test.format, r)
+		ires, err := unmarshalFormatReader(test.format, r)
 		if err != nil {
 			if test.expectedErr == "" {
 				t.Errorf("%s: expected nil for error; got %q", test.name, err)
@@ -447,85 +407,6 @@ func TestCanUpdate(t *testing.T) {
 	})
 
 }
-
-/*
-// Since SetIdemString wraps SetIdempotentString, it is called instead-2for1!
-func TestSetIdempotentString(t *testing.T) {
-	tests := []struct{
-		name string
-		key string
-		value string
-		expected *setting
-	}{
-		{name: "test empty idempotent", key: "rock", value: "roll", expected:
-			&setting{
-				Code: "",
-				Type: "string",
-				Value: "roll",
-				IsFlag: false,
-				IsIdempotent: true,
-				SourceIsEnv: false,
-				IsCore:	false,
-			},
-		},
-	}
-
-
-	Convey("Given a range of tests", t, func() {
-
-		for _, test := range tests {
-
-			Convey("setting them should not error", func() {
-				err := SetIdempotentString(test.key, test.value)
-				So(err, ShouldBeNil)
-
-				Convey("and getting it should result it", func() {
-					res := os.Getenv(test.key)
-					So(res, ShouldEqual, test.value)
-				})
-
-				Convey("and the AppCfg settings for it", func() {
-					So(AppCfg.settings[test.key], ShouldResemble, test.expected)
-				})
-
-			})
-
-		}
-
-	})
-
-}
-
-func TestSetBoolFlag(t *testing.T) {
-	tests := []struct{
-		name string
-		key string
-		value string
-		b bool
-		expected setting
-	}{
-		{name: "setboolflag", key: "bool-t-true", value: "t", b: true, expected: setting{}},
-		{name: "setboolflag", key: "bool-t-false", value: "t", b: false, expected: setting{}},
-		{name: "setboolflag", key: "bool-true", value: "", b: true, expected: setting{}},
-		{name: "setboolflag", key: "bool-false", value: "", b: false, expected: setting{}},
-	}
-
-
-	for _, test := range tests {
-
-		Convey("Setting a bool flag", t, func() {
-			SetBoolFlag(test.key, test.value, test.b)
-
-			Convey("Should result in the setting be set", func() {
-				So(AppCfg.settings[test.key], ShouldResemble, test.expected)
-			})
-
-		})
-
-	}
-
-}
-*/
 
 func TestNotFoundErr(t *testing.T) {
 	tests := []basic{

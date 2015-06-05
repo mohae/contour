@@ -8,8 +8,8 @@ import (
 // Flags must use Override* to update settings.
 // save it to its environment variable.
 func (c *Cfg) updateE(k string, v interface{}) error {
-	c.lock.Lock()
-	defer c.lock.Unlock()
+	c.RWMutex.Lock()
+	defer c.RWMutex.Unlock()
 	if !c.canUpdate(k) {
 		err := fmt.Errorf("config[%s]: %q is not updateable", c.name, k)
 		return err

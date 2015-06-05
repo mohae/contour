@@ -11,30 +11,17 @@ import (
 // settings.
 //
 // A common use for overrides is to set values obtained by flags.
-
 func (c *Cfg) Override(k string, v interface{}) error {
 	if v == nil {
 		return nil
 	}
-
-	c.lock.Lock()
-	defer c.lock.Unlock()
-
+	c.RWMutex.Lock()
+	defer c.RWMutex.Unlock()
 	// If it can't be overriden,
 	if c.settings[k].IsCore || !c.settings[k].IsFlag {
 		err := fmt.Errorf("%v: setting is not a flag. Only flags can be overridden", k)
 		return err
 	}
-
-	/*
-		// Write to environment variable
-		err := c.Setenv(k, v)
-		if err != nil {
-			logger.Error(err)
-			return err
-		}
-	*/
-
 	c.settings[k].Value = v
 	return nil
 }

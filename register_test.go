@@ -13,12 +13,12 @@ func TestRegisterCfgFile(t *testing.T) {
 		err      string
 	}{
 		{"empty", "", "", "A config filename was expected, none received"},
-		{"no extension", "cfg", "", "unable to determine config format, the configuration file, cfg, doesn't have an extension"},
+		{"no extension", "cfg", "", "unable to determine cfg's config format: no extension"},
 		{"toml", "cfg.toml", "toml", ""},
 		{"yaml", "cfg.yaml", "yaml", ""},
 		{"json", "cfg.json", "json", ""},
-		{"xml", "cfg.xml", "xml", "unsupported configuration file format: xml"},
-		{"undefined", "cfg.bss", "bss", "unsupported configuration file format: bss"},
+		{"xml", "cfg.xml", "xml", "unsupported config format: xml"},
+		{"undefined", "cfg.bss", "bss", "unsupported config format: bss"},
 	}
 
 	for _, test := range tests {
