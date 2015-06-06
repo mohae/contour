@@ -8,8 +8,6 @@ type setting struct {
 	Name string
 	// The short code for the setting, if applicable
 	Short string
-	// EnvName is the name of the environment variable of this name
-	EnvName string
 	// The current value of the setting
 	Value interface{}
 	// Usage is the usage information for this setting

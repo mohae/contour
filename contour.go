@@ -126,45 +126,6 @@ func formatFromFilename(s string) (Format, error) {
 	return f, nil
 }
 
-// getCfgFile() is the entry point for reading the configuration file.
-func (c *Cfg) getFile() (cfg interface{}, err error) {
-	// if it's not set to use a cfg file, nothing to do
-	if !c.useCfgFile {
-		return nil, nil
-	}
-	setting, ok := c.settings[CfgFile]
-	if !ok {
-		// Wasn't configured, nothing to do. Not an error.
-		return nil, nil
-	}
-	n := setting.Value.(string)
-	if n == "" {
-		// This isn't an error as config file is allowed to not exist
-		// TODO:
-		//	Possible add a CfgFileRequired flag
-		return nil, nil
-	}
-	// This shouldn't happend, but lots of things happen that shouldn't.  It should
-	// have been registered already. so if it doesn't exit, err.
-	format, ok := c.settings[CfgFormat]
-	if !ok {
-		return nil, fmt.Errorf("cfgvformat was not set")
-	}
-	if format.Value.(string) == "" {
-		return nil, fmt.Errorf("cfg format was not set")
-	}
-	fBytes, err := readCfgFile(n)
-	if err != nil {
-		return nil, fmt.Errorf("error reading %s: %s", n, err)
-	}
-	format, _ = c.settings[CfgFormat]
-	cfg, err = unmarshalFormatReader(ParseFormat(format.Value.(string)), bytes.NewReader(fBytes))
-	if err != nil {
-		return nil, fmt.Errorf("error unmarshaling %s: %s", n, err)
-	}
-	return cfg, nil
-}
-
 // readCfgFile reads the configFile and returns the resulting slice. The entire
 // contents of the file are read at once.
 func readCfgFile(n string) ([]byte, error) {
@@ -204,42 +165,6 @@ func unmarshalFormatReader(f Format, r io.Reader) (interface{}, error) {
 		return nil, err
 	}
 	return ret, nil
-}
-
-// canUpdate checks to see if the passed setting key is updateable. If the key
-// is not updateable, a false is returned along with an error.
-func canUpdate(k string) (bool, error) { return appCfg.canUpdate(k) }
-func (c *Cfg) canUpdate(k string) (bool, error) {
-	// See if the key exists, if it doesn't already exist, it can't be updated.
-	s, ok := c.settings[k]
-	if !ok {
-		return false, fmt.Errorf("cannot update %q: not found", k)
-	}
-	// See if there are any settings that prevent it from being overridden.  Core and
-	// environment variables are never settable. Core must be set during registration.
-	if s.IsCore {
-		return false, fmt.Errorf("cannot update %q: core settings cannot be updated", k)
-	}
-	// Everything else is updateable.
-	return true, nil
-}
-
-// canOverride() checks to see if the setting can be overridden. Overrides only
-// come from flags. If it can't be overridden, it must be set via application,
-// environment variable, or cfg file.
-func canOverride(k string) bool { return appCfg.canOverride(k) }
-func (c *Cfg) canOverride(k string) bool {
-	// See if the key exists, if it doesn't already exist, it can't be overridden
-	_, ok := c.settings[k]
-	if !ok {
-		return false
-	}
-	// See if there are any settings that prevent it from being overridden.
-	// Core can never be overridden-must be a flag to override.
-	if c.settings[k].IsCore || !c.settings[k].IsFlag {
-		return false
-	}
-	return true
 }
 
 // notFoundErr returns a standadized notFoundErr.

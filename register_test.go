@@ -140,7 +140,7 @@ func TestRegisterSettings(t *testing.T) {
 
 func TestRegisterConfSettings(t *testing.T) {
 	cfg := NewCfg("test register Conf")
-	cfg.RegisterBoolCfg("settingbool", "rancher_test_setting", true)
+	cfg.RegisterBoolCfg("settingbool", true)
 	b, err := cfg.GetBoolE("settingbool")
 	if err != nil {
 		t.Errorf("%s settingbool: unexpected error %q", cfg.name, err)
@@ -150,7 +150,7 @@ func TestRegisterConfSettings(t *testing.T) {
 		}
 	}
 
-	cfg.RegisterIntCfg("settingint", "rancher_test_int", 42)
+	cfg.RegisterIntCfg("settingint", 42)
 	i, err := cfg.GetIntE("settingint")
 	if err != nil {
 		t.Errorf("%s settingint: unexpected error %q", cfg.name, err)
@@ -160,7 +160,7 @@ func TestRegisterConfSettings(t *testing.T) {
 		}
 	}
 
-	cfg.RegisterInt64Cfg("settingint64", "rancher_test_int64", int64(42))
+	cfg.RegisterInt64Cfg("settingint64", int64(42))
 	i64, err := cfg.GetInt64E("settingint64")
 	if err != nil {
 		t.Errorf("%s settingint64: unexpected error %q", cfg.name, err)
@@ -170,7 +170,7 @@ func TestRegisterConfSettings(t *testing.T) {
 		}
 	}
 
-	cfg.RegisterStringCfg("settingstring", "rancher_test_string", "value")
+	cfg.RegisterStringCfg("settingstring", "value")
 	s, err := cfg.GetStringE("settingstring")
 	if err != nil {
 		t.Errorf("%s settingstring: unexpected error %q", cfg.name, err)
@@ -184,7 +184,7 @@ func TestRegisterConfSettings(t *testing.T) {
 
 func TestRegisterFlagSettings(t *testing.T) {
 	cfg := NewCfg("test register flag")
-	cfg.RegisterBoolFlag("settingbool", "b", "rancher_test_bool_flag", true, "true", "usage")
+	cfg.RegisterBoolFlag("settingbool", "b", true, "true", "usage")
 	b, err := cfg.GetBoolE("settingbool")
 	if err != nil {
 		t.Errorf("%s settingbool: unexpected error %q", cfg.name, err)
@@ -194,7 +194,7 @@ func TestRegisterFlagSettings(t *testing.T) {
 		}
 	}
 
-	cfg.RegisterIntFlag("settingint", "i", "rancher_test_int_flag", 42, "42", "usage")
+	cfg.RegisterIntFlag("settingint", "i", 42, "42", "usage")
 	i, err := cfg.GetIntE("settingint")
 	if err != nil {
 		t.Errorf("%s settingint: unexpected error %q", cfg.name, err)
@@ -204,7 +204,7 @@ func TestRegisterFlagSettings(t *testing.T) {
 		}
 	}
 
-	cfg.RegisterInt64Flag("settingint64", "x", "rancher_test_int64_flag", int64(42), "42", "usage")
+	cfg.RegisterInt64Flag("settingint64", "x", int64(42), "42", "usage")
 	i64, err := cfg.GetInt64E("settingint64")
 	if err != nil {
 		t.Errorf("%s settingint64: unexpected error %q", cfg.name, err)
@@ -214,7 +214,7 @@ func TestRegisterFlagSettings(t *testing.T) {
 		}
 	}
 
-	cfg.RegisterStringFlag("settingstring", "s", "rancher_test_string_flag", "value", "value", "usage")
+	cfg.RegisterStringFlag("settingstring", "s", "value", "value", "usage")
 	s, err := cfg.GetStringE("settingstring")
 	if err != nil {
 		t.Errorf("%s settingstring: unexpected error %q", cfg.name, err)
