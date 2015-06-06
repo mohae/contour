@@ -435,8 +435,8 @@ func TestCanUpdate(t *testing.T) {
 
 func TestNotFoundErr(t *testing.T) {
 	tests := []basic{
-		basic{"notFoundErr test1", "setting", "setting not found", ""},
-		basic{"notFoundErr test2", "grail", "grail not found", ""},
+		basic{"notFoundErr test1", "setting", "not found: setting", ""},
+		basic{"notFoundErr test2", "grail", "not found: grail", ""},
 	}
 	for _, test := range tests {
 		Convey(test.name+"  given a string", t, func() {

@@ -3,13 +3,13 @@ package contour
 // Only non-core settings are updateable. Flags must use Override* to update
 // settings.
 func (c *Cfg) updateE(k string, v interface{}) error {
-	c.RWMutex.Lock()
-	defer c.RWMutex.Unlock()
 	// if can't update, a false will also return an error explaining why.
 	_, err := c.canUpdate(k)
 	if err != nil {
 		return err
 	}
+	c.RWMutex.Lock()
+	defer c.RWMutex.Unlock()
 	s, _ := c.settings[k]
 	s.Value = v
 	c.settings[k] = s

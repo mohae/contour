@@ -11,6 +11,7 @@ import (
 // settings.
 //
 // A common use for overrides is to set values obtained by flags.
+func Override(k string, v interface{}) error { return appCfg.Override(k, v) }
 func (c *Cfg) Override(k string, v interface{}) error {
 	if v == nil {
 		return nil
@@ -28,8 +29,4 @@ func (c *Cfg) Override(k string, v interface{}) error {
 	s.Value = v
 	c.settings[k] = s
 	return nil
-}
-
-func Override(k string, v interface{}) error {
-	return appCfg.Override(k, v)
 }
