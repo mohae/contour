@@ -69,16 +69,20 @@ func Loadenv() error {
 // Loadenv, if cfg.useEnvs, checks the cfg's env vars and updates the settings
 // if they are set.
 func (c *Cfg) Loadenv() error {
+	c.RWMutex.RLock()
 	if !c.useEnv {
+		c.RWMutex.RUnlock()
 		return nil
 	}
+	name = c.name // cache it so I don't have to worry about the lock later
 	var err error
 	for k, v := range c.settings {
 		if !v.IsEnv {
 			continue
 		}
-		tmp := os.Getenv(fmt.Sprintf("%s_%s", c.name, k))
+		tmp := os.Getenv(fmt.Sprintf("%s_%s", name, k))
 		if tmp != "" {
+			c.RWMutex.RUnlock()
 			switch v.Type {
 			case "bool":
 				b, _ := strconv.ParseBool(tmp)
@@ -86,13 +90,13 @@ func (c *Cfg) Loadenv() error {
 			case "int":
 				i, err := strconv.Atoi(tmp)
 				if err != nil {
-					return fmt.Errorf("Loadenv error while parsing %s: %s", fmt.Sprintf("%s_%s", c.name, k), err)
+					return fmt.Errorf("Loadenv error while parsing %s: %s", fmt.Sprintf("%s_%s", name, k), err)
 				}
 				err = c.UpdateIntE(k, i)
 			case "int64":
 				i, err := strconv.ParseInt(tmp, 10, 64)
 				if err != nil {
-					return fmt.Errorf("Loadenv error while parsing %s: %s", fmt.Sprintf("%s_%s", c.name, k), err)
+					return fmt.Errorf("Loadenv error while parsing %s: %s", fmt.Sprintf("%s_%s", name, k), err)
 				}
 				err = c.UpdateInt64E(k, i)
 			case "string":
@@ -101,11 +105,15 @@ func (c *Cfg) Loadenv() error {
 				return fmt.Errorf("%s has an unsupported env variable type: %s", k, v.Type)
 			}
 			if err != nil {
-				return fmt.Errorf("Loadenv error while setting %s: %s", fmt.Sprintf("%s_%s", c.name, k), err)
+				return fmt.Errorf("Loadenv error while setting %s: %s", fmt.Sprintf("%s_%s", name, k), err)
 			}
+			c.RWMutex.RLock()
 		}
 	}
+	c.RWMutex.RUnlock()
+	c.RWMutex.Lock()
 	c.envSet = true
+	c.RWMutex.Unlock()
 	return nil
 }
 
