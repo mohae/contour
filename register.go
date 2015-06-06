@@ -12,6 +12,7 @@ package contour
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 )
 
@@ -30,8 +31,16 @@ func (c *Cfg) RegisterCfgFile(k, envName, v string) error {
 	if k == "" {
 		return fmt.Errorf("RegisterCfgFile expected a configuration key: none received")
 	}
+	// check to see if the env var is set
+	c.RWMutex.RLock()
+	if envName != "" && c.useEnv {
+		fname := os.Getenv(envName)
+		if fname != "" {
+			v = fname
+		}
+	}
+	c.RWMutex.RUnlock()
 	c.RegisterStringCore(k, v)
-
 	// Register it first. If a valid cfg format isn't found, an error/ will be
 	// returned, so registering it afterwords would mean the setting would not
 	// exist.
@@ -40,10 +49,12 @@ func (c *Cfg) RegisterCfgFile(k, envName, v string) error {
 	if err != nil {
 		return err
 	}
-
 	// Now we can update the format, since it wasn't set before, it can be set now
 	// before it becomes read only.
 	c.UpdateString(CfgFormat, format.String())
+	c.RWMutex.Lock()
+	c.useCfgFile = true
+	c.RWMutex.Unlock()
 	return nil
 }
 
@@ -83,13 +94,6 @@ func (c *Cfg) RegisterSetting(typ, name, short, envName string, value interface{
 	if IsCfg {
 		c.cfgVars[name] = struct{}{}
 	}
-	// if it's a IsEnv, make a map for it and the short code
-	if envName != "" && IsEnv {
-		c.envVars[name] = envName
-		if short != "" {
-			c.envVars[short] = envName
-		}
-	}
 	// mapping shortcodes make lookup easier
 	if short != "" && IsFlag {
 		_, ok := c.shortFlags[short]
@@ -106,6 +110,9 @@ func (c *Cfg) RegisterSetting(typ, name, short, envName string, value interface{
 	c.useFlags = IsFlag
 	return nil
 }
+
+// Core settings are not overridable via cfg file, env vars, or command-line
+// flags.  They can only be set via their respective Update() method or func.
 
 // RegisterBoolCoreE adds the information to the global Cfg, appCfg.
 func RegisterBoolCoreE(k string, v bool) error {
@@ -191,6 +198,12 @@ func (c *Cfg) RegisterStringCore(k, v string) {
 	c.RegisterStringCoreE(k, v)
 }
 
+// Cfg settings are settable via a configuration file.  Only settings that are
+// Cfg and Flags can be set via a cfg file. If the setting can be set from
+// an environment variable, that variables name is passed via the "envName'
+// parameter. If the envName == "" it will not be settable via an environment
+// variable.
+
 // RegisterBoolCfgE adds the information to the global Cfg, appCfg.
 func RegisterBoolCfgE(k, envName string, v bool) error {
 	return appCfg.RegisterBoolCfgE(k, envName, v)
@@ -274,6 +287,14 @@ func RegisterStringCfg(k, envName, v string) {
 func (c *Cfg) RegisterStringCfg(k, envName, v string) {
 	c.RegisterStringCfgE(k, envName, v)
 }
+
+// Flag settings are settable from the config file and as command-line flags.
+// Only settings that are Cfg and Flags can be set via a cfg file.  If the
+// setting can be set from an environment variable, that variables name is
+// passed via the "envName' parameter.  If there is a value for the "short
+// code(s)" parameter, that value will be used as that flag's command-line
+// short code.  If the envName == "" it will not be settable via an
+// environment variable.
 
 // RegisterBoolFlagE adds the information to the global Cfg, appCfg.
 func RegisterBoolFlagE(k, s, envName string, v bool, dflt, usage string) error {

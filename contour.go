@@ -127,6 +127,10 @@ func (f Format) String() string {
 
 // getCfgFile() is the entry point for reading the configuration file.
 func (c *Cfg) getFile() (cfg interface{}, err error) {
+	// if it's not set to use a cfg file, nothing to do
+	if !c.useCfgFile {
+		return nil, nil
+	}
 	setting, ok := c.settings[CfgFile]
 	if !ok {
 		// Wasn't configured, nothing to do. Not an error.
@@ -136,17 +140,17 @@ func (c *Cfg) getFile() (cfg interface{}, err error) {
 	if n == "" {
 		// This isn't an error as config file is allowed to not exist
 		// TODO:
-		//	Possible add a ConfigFileRequired flag
+		//	Possible add a CfgFileRequired flag
 		return nil, nil
 	}
 	// This shouldn't happend, but lots of things happen that shouldn't.  It should
 	// have been registered already. so if it doesn't exit, err.
 	format, ok := c.settings[CfgFormat]
 	if !ok {
-		return nil, fmt.Errorf("configuration format was not set")
+		return nil, fmt.Errorf("cfgvformat was not set")
 	}
 	if format.Value.(string) == "" {
-		return nil, fmt.Errorf("configuration format was not set")
+		return nil, fmt.Errorf("cfg format was not set")
 	}
 	fBytes, err := readCfgFile(n)
 	if err != nil {
@@ -201,11 +205,12 @@ func unmarshalFormatReader(f Format, r io.Reader) (interface{}, error) {
 	return ret, nil
 }
 
+// canUpdate is a helper funciton for the global appCfg.
+func canUpdate(k string) bool {
+	return appCfg.canUpdate(k)
+}
+
 // canUpdate checks to see if the passed setting key is updateable.
-//
-// TODO the logic flow is wonky because it could be simplified but want hard
-// check for core and not sure about conf/flag/env stuff yet. so the wierdness
-// sits for now.
 func (c *Cfg) canUpdate(k string) bool {
 	// See if the key exists, if it doesn't already exist, it can't be updated.
 	s, ok := c.settings[k]
@@ -217,15 +222,17 @@ func (c *Cfg) canUpdate(k string) bool {
 	if s.IsCore {
 		return false
 	}
-	// Only flags and conf types are updateable, otherwise they must be registered or set.
-	if s.IsCfg || s.IsFlag {
+	// Only cfg vars, env vars, and flags are updateable, otherwise they must be
+	// registered or set.
+	if s.IsCfg || s.IsFlag || s.IsEnv {
 		return true
 	}
-	return true
+	return false
 }
 
-func canUpdate(k string) bool {
-	return appCfg.canUpdate(k)
+// canOverride is a helper funciton for the global appCfg.
+func canOverride(k string) bool {
+	return appCfg.canOverride(k)
 }
 
 // canOverride() checks to see if the setting can be overridden. Overrides only
@@ -245,22 +252,17 @@ func (c *Cfg) canOverride(k string) bool {
 	return true
 }
 
-func canOverride(k string) bool {
-	return appCfg.canOverride(k)
-}
-
 // notFoundErr returns a standardized not found error.
 func notFoundErr(k string) error {
 	return fmt.Errorf("%s not found", k)
 }
 
-// settingNotFoundErr adds the suffix ": setting " to k before calling
-// notFoundErr
+// settingNotFoundErr standardizes the settingNotFound err output.
 func settingNotFoundErr(k string) error {
-	return notFoundErr(fmt.Sprintf("%s: setting", k))
+	return notFoundErr(fmt.Sprintf("setting not found: %s", k))
 }
 
-// unsupportedFormatErr
+// unsupportedFormatErr standardizes the unsupportedFormatErr output.
 func unsupportedFormatErr(k string) error {
-	return fmt.Errorf("unsupported config format: %s", k)
+	return fmt.Errorf("unsupported cfg format: %s", k)
 }

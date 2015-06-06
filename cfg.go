@@ -3,7 +3,8 @@ package contour
 import (
 	"flag"
 	"fmt"
-	_ "os"
+	"os"
+	"strconv"
 	"sync"
 )
 
@@ -40,8 +41,6 @@ type Cfg struct {
 	// variables. If false, Settings are stored only in Config.
 	useEnv bool
 	envSet bool
-	// maps flag vars to environment names
-	envVars map[string]string
 	// Whether flags have been registered and set.
 	useFlags bool
 	flagsSet bool
@@ -61,10 +60,58 @@ func AppCfg() *Cfg {
 
 // NewConfig returns a *Cfg to the caller
 func NewCfg(name string) *Cfg {
-	return &Cfg{name: name, errOnMissingCfg: true, searchPath: true, flagSet: flag.NewFlagSet(name, flag.ContinueOnError), settings: map[string]*setting{}, cfgVars: map[string]struct{}{}, envVars: map[string]string{}, shortFlags: map[string]string{}}
+	return &Cfg{name: name, errOnMissingCfg: true, searchPath: true, flagSet: flag.NewFlagSet(name, flag.ContinueOnError), settings: map[string]*setting{}, cfgVars: map[string]struct{}{}, useFlags: true, shortFlags: map[string]string{}}
 }
 
-// Code is a convenience functions for the appCfg global.
+// Loadenv is a convenience function for the global appCfg.
+func Loadenv() error {
+	return appCfg.Loadenv()
+}
+
+// Loadenv, if cfg.useEnvs, checks the cfg's env vars and updates the settings
+// if they are set.
+func (c *Cfg) Loadenv() error {
+	if !c.useEnv {
+		return nil
+	}
+	var err error
+	for k, v := range c.settings {
+		if !v.IsEnv {
+			continue
+		}
+		tmp := os.Getenv(fmt.Sprintf("%s_%s", c.name, k))
+		if tmp != "" {
+			switch v.Type {
+			case "bool":
+				b, _ := strconv.ParseBool(tmp)
+				err = c.UpdateBoolE(k, b)
+			case "int":
+				i, err := strconv.Atoi(tmp)
+				if err != nil {
+					return fmt.Errorf("Loadenv error while parsing %s: %s", fmt.Sprintf("%s_%s", c.name, k), err)
+				}
+				err = c.UpdateIntE(k, i)
+			case "int64":
+				i, err := strconv.ParseInt(tmp, 10, 64)
+				if err != nil {
+					return fmt.Errorf("Loadenv error while parsing %s: %s", fmt.Sprintf("%s_%s", c.name, k), err)
+				}
+				err = c.UpdateInt64E(k, i)
+			case "string":
+				err = c.UpdateStringE(k, tmp)
+			default:
+				return fmt.Errorf("%s has an unsupported env variable type: %s", k, v.Type)
+			}
+			if err != nil {
+				return fmt.Errorf("Loadenv error while setting %s: %s", fmt.Sprintf("%s_%s", c.name, k), err)
+			}
+		}
+	}
+	c.envSet = true
+	return nil
+}
+
+// Code is a convenience function for the global appCfg.
 func Code() string {
 	return appCfg.Code()
 }
@@ -77,7 +124,7 @@ func (c *Cfg) Code() string {
 	return c.code
 }
 
-// SetCode is a convenience functions for the appCfg global.
+// SetCode is a convenience function for the global appCfg.
 func SetCode(s string) error {
 	return appCfg.SetCode(s)
 }
@@ -94,7 +141,7 @@ func (c *Cfg) SetCode(s string) error {
 	return nil
 }
 
-// Code is a convenience functions for the appCfg global.
+// Code is a convenience function for the global appCfg.
 func ErrOnMissingCfg() bool {
 	return appCfg.ErrOnMissingCfg()
 }
@@ -107,7 +154,7 @@ func (c *Cfg) ErrOnMissingCfg() bool {
 	return c.errOnMissingCfg
 }
 
-// SetErrOnMissingCfg is a convenience functions for the appCfg global.
+// SetErrOnMissingCfg is a convenience function for the global appCfg.
 func SetErrOnMissingCfg(b bool) {
 	appCfg.SetErrOnMissingCfg(b)
 }
@@ -120,7 +167,7 @@ func (c *Cfg) SetErrOnMissingCfg(b bool) {
 	c.RWMutex.Unlock()
 }
 
-// SearchPath is a convenience functions for the appCfg global.
+// SearchPath is a convenience function for the global appCfg.
 func SearchPath() bool {
 	return appCfg.SearchPath()
 }
@@ -133,7 +180,7 @@ func (c *Cfg) SearchPath() bool {
 	return c.searchPath
 }
 
-// SetSearchPath is a convenience functions for the appCfg global.
+// SetSearchPath is a convenience function for the global appCfg.
 func SetSearchPath(b bool) {
 	appCfg.SetSearchPath(b)
 }
@@ -146,7 +193,7 @@ func (c *Cfg) SetSearchPath(b bool) {
 	c.RWMutex.Unlock()
 }
 
-// UseCfgFile is a convenience functions for the appCfg global.
+// UseCfgFile is a convenience function for the global appCfg.
 func UseCfgFile() bool {
 	return appCfg.UseCfgFile()
 }
@@ -158,7 +205,7 @@ func (c *Cfg) UseCfgFile() bool {
 	return c.useCfgFile
 }
 
-// SetUseCfgFile is a convenience functions for the appCfg global.
+// SetUseCfgFile is a convenience function for the global appCfg.
 func SetUseCfgFile(b bool) {
 	appCfg.SetUseCfgFile(b)
 }
@@ -170,7 +217,7 @@ func (c *Cfg) SetUseCfgFile(b bool) {
 	c.RWMutex.Unlock()
 }
 
-// UseEnv is a convenience functions for the appCfg global.
+// UseEnv is a convenience function for the global appCfg.
 func UseEnv() bool {
 	return appCfg.useEnv
 }
@@ -182,7 +229,7 @@ func (c *Cfg) UseEnv() bool {
 	return c.useEnv
 }
 
-// SetUseEnv is a convenience functions for the appCfg global.
+// SetUseEnv is a convenience function for the global appCfg.
 func SetUseEnv(b bool) {
 	appCfg.SetUseEnv(b)
 }
@@ -269,14 +316,15 @@ func (c *Cfg) CfgFileProcessed() bool {
 	return true
 }
 
+// SetUsage sets appCfg's usage func
+func SetUsage(f func()) {
+	appCfg.SetUsage(f)
+}
+
 // SetUsage sets flagSet.Usage
+
 func (c *Cfg) SetUsage(f func()) {
 	c.RWMutex.Lock()
 	c.flagSet.Usage = f
 	c.RWMutex.Unlock()
-}
-
-// SetUsage sets appCfg's usage func
-func SetUsage(f func()) {
-	appCfg.SetUsage(f)
 }
