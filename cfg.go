@@ -18,8 +18,9 @@ type Cfg struct {
 	name string
 	sync.RWMutex
 	errOnMissingCfg bool
-	searchPath      bool
-	flagSet         *flag.FlagSet
+	// search the path env var, in addition to pwd & executalbe dir, for cfc file.
+	searchPath bool
+	flagSet    *flag.FlagSet
 	// code is the shortcode for this configuration. It is mostly used to
 	// prefix environment variables, when used.
 	code string
@@ -33,14 +34,19 @@ type Cfg struct {
 	// Whether configuration settings have been registered and set.
 	useCfgFile bool
 	cfgFileSet bool
+	// tracks the vars that are exposed to cfg
+	cfgVars map[string]struct
 	// useEnv: whether this config writes to and reads from environment
 	// variables. If false, Settings are stored only in Config.
 	useEnv   bool
 	envSet   bool
-	envNames map[string]string // maps flag vars to environment names
+	// maps flag vars to environment names
+	envVars map[string]string
 	// Whether flags have been registered and set.
-	useFlags bool
-	flagsSet bool
+	useFlags   bool
+	flagsSet   bool
+	// maps short flags to the long version
+	shortFlags map[string]string
 }
 
 // AppCfg returns the global cfg.
@@ -55,7 +61,7 @@ func AppCfg() *Cfg {
 
 // NewConfig returns a *Cfg to the caller
 func NewCfg(name string) *Cfg {
-	return &Cfg{name: name, errOnMissingCfg: true, searchPath: true, flagSet: flag.NewFlagSet(name, flag.ContinueOnError), settings: map[string]*setting{}}
+	return &Cfg{name: name, errOnMissingCfg: true, searchPath: true, flagSet: flag.NewFlagSet(name, flag.ContinueOnError), settings: map[string]*setting{}, cfgVars: map[string]struct{}, envVars: map[string]string{}, shortFlags: map[string]string{}}
 }
 
 // Code is a convenience functions for the appCfg global.
@@ -82,7 +88,7 @@ func (c *Cfg) SetCode(s string) error {
 	c.RWMutex.Lock()
 	defer c.RWMutex.Unlock()
 	if c.code != "" {
-		return fmt.Errorf("this configuration's code is already set and cannot be overridden")
+		return fmt.Errorf("this cfg's code is already set and cannot be overridden")
 	}
 	c.code = s
 	return nil
@@ -132,6 +138,8 @@ func SetSearchPath(b bool) {
 	appCfg.SetSearchPath(b)
 }
 
+// SetSearchPath set's whether or not the user's PATH env variable should be
+// searched for the cfg file.
 func (c *Cfg) SetSearchPath(b bool) {
 	c.RWMutex.Lock()
 	c.searchPath = b
@@ -155,8 +163,7 @@ func SetUseCfgFile(b bool) {
 	appCfg.SetUseCfgFile(b)
 }
 
-// SetErrOnMissingCfg returns whether a missing config file should result in
-// an error.
+// SetUseCfgFile set's whether a cfg file should be used with this cfg.
 func (c *Cfg) SetUseCfgFile(b bool) {
 	c.RWMutex.Lock()
 	c.useCfgFile = b
@@ -168,6 +175,7 @@ func UseEnv() bool {
 	return appCfg.useEnv
 }
 
+// UseEnv is whether or not environment variables are used.
 func (c *Cfg) UseEnv() bool {
 	c.RWMutex.RLock()
 	defer c.RWMutex.RUnlock()
@@ -179,6 +187,8 @@ func SetUseEnv(b bool) {
 	appCfg.SetUseEnv(b)
 }
 
+// SetUseEnv set's whether or not environment variables should be used with
+// this cfg.
 func (c *Cfg) SetUseEnv(b bool) {
 	c.RWMutex.Lock()
 	c.useEnv = b
@@ -186,7 +196,7 @@ func (c *Cfg) SetUseEnv(b bool) {
 }
 
 // SetCfg is a convenience function for the global appCfg.
-func SetCfgFile() error {
+func SetCfg() error {
 	return appCfg.SetCfg()
 }
 
@@ -201,17 +211,6 @@ func SetCfgFile() error {
 func (c *Cfg) SetCfg() error {
 	c.RWMutex.Lock()
 	defer c.RWMutex.Unlock()
-	// Load any set environment variables into appConfig. Core and already set
-	// Write Once Settings are not updated from env.
-	//	c.loadEnvs()
-
-	// Set all the environment variables. This is the application Settings
-	// merged with any already existing environment variable values.
-	//	err := c.Setenvs()
-	//	if err != nil {
-	//		return err
-	//	}
-
 	// Load the Config file.
 	err := c.setFromFile()
 	if err != nil {
