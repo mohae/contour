@@ -74,7 +74,7 @@ func (c *Cfg) Loadenv() error {
 		c.RWMutex.RUnlock()
 		return nil
 	}
-	name = c.name // cache it so I don't have to worry about the lock later
+	name := c.name // cache it so I don't have to worry about the lock later
 	var err error
 	for k, v := range c.settings {
 		if !v.IsEnv {
