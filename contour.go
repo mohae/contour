@@ -242,12 +242,17 @@ func (c *Cfg) canOverride(k string) bool {
 	return true
 }
 
-// settingNotFoundErr standardizes the settingNotFound err output.
+// notFoundErr returns a standadized notFoundErr.
+func notFoundErr(k string) error {
+	return fmt.Errorf("not found: %s", k)
+}
+
+// settingNotFoundErr standadized settingNotFoundErr.
 func settingNotFoundErr(k string) error {
 	return fmt.Errorf("setting not found: %s", k)
 }
 
-// unsupportedFormatErr standardizes the unsupportedFormatErr output.
+// unsupportedFormatErr standadized the unsupportedFormatErr.
 func unsupportedFormatErr(k string) error {
 	return fmt.Errorf("unsupported cfg format: %s", k)
 }

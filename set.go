@@ -57,94 +57,67 @@ func (c *Cfg) SetSetting(typ, name, short string, v interface{}, dflt, usage str
 	return nil
 }
 
-// SetFlagBoolE adds the information to the AppsConfig struct, but does not
-// save it to its environment variable.
+// SetFlagBoolE adds the information to the appCfg global.
+func SetFlagBoolE(k, s string, v bool, dflt, u string) error {
+	return appCfg.SetFlagBoolE(k, s, v, dflt, u)
+}
 func (c *Cfg) SetFlagBoolE(k, s string, v bool, dflt, u string) error {
 	return c.SetSetting("bool", k, s, v, dflt, u, false, true, true)
 }
 
-// SetFlagIntE adds the information to the AppsConfig struct, but does not
-// save it to its environment variable.
-func (c *Cfg) SetFlagIntE(k, s string, v int, dflt, u string) error {
-	return c.SetSetting("int", k, s, v, dflt, u, false, true, true)
+// SetFlagBool adds the information to the appCfg global.
+func SetFlagBool(k, s string, v bool, dflt, u string) {
+	appCfg.SetFlagBool(k, s, v, dflt, u)
 }
-
-// SetFlagInt64E adds the information to the AppsConfig struct, but does not
-// save it to its environment variable.
-func (c *Cfg) SetFlagInt64E(k, s string, v int64, dflt, u string) error {
-	return c.SetSetting("int64", k, s, v, dflt, u, false, true, true)
-}
-
-// SetFlagStringE adds the information to the AppsConfig struct, but does not
-// save it to its environment variable.
-func (c *Cfg) SetFlagStringE(k, s, v, dflt, u string) error {
-	return c.SetSetting("string", k, s, v, dflt, u, false, true, true)
-}
-
-// SetFlagBool adds the information to the AppsConfig struct, but does not
-// save it to its environment variable.
 func (c *Cfg) SetFlagBool(k, s string, v bool, dflt, u string) {
 	c.SetFlagBoolE(k, s, v, dflt, u)
 }
 
-// SetFlagInt adds the information to the AppsConfig struct, but does not
-// save it to its environment variable.
+// SetFlagIntE adds the information to the appCfg global.
+func SetFlagIntE(k, s string, v int, dflt, u string) error {
+	return appCfg.SetFlagIntE(k, s, v, dflt, u)
+}
+func (c *Cfg) SetFlagIntE(k, s string, v int, dflt, u string) error {
+	return c.SetSetting("int", k, s, v, dflt, u, false, true, true)
+}
+
+// SetFlagInt adds the information to the appCfg global.
+func SetFlagInt(k, s string, v int, dflt, u string) {
+	appCfg.SetFlagInt(k, s, v, dflt, u)
+}
 func (c *Cfg) SetFlagInt(k, s string, v int, dflt, u string) {
 	c.SetFlagIntE(k, s, v, dflt, u)
 }
 
-// SetFlagInt64 adds the information to the AppsConfig struct, but does not
-// save it to its environment variable.
+// SetFlagInt64E adds the information to the appCfg global.
+func SetFlagInt64E(k, s string, v int64, dflt, u string) error {
+	return appCfg.SetFlagInt64E(k, s, v, dflt, u)
+}
+func (c *Cfg) SetFlagInt64E(k, s string, v int64, dflt, u string) error {
+	return c.SetSetting("int64", k, s, v, dflt, u, false, true, true)
+}
+
+// SetFlagInt64 adds the information to the appCfg global.
+func SetFlagInt64(k, s string, v int64, dflt, u string) {
+	appCfg.SetFlagInt64(k, s, v, dflt, u)
+}
 func (c *Cfg) SetFlagInt64(k, s string, v int64, dflt, u string) {
 	c.SetFlagInt64E(k, s, v, dflt, u)
 }
 
-// SetFlagString adds the information to the AppsConfig struct, but does not
-// save it to its environment variable.
-func (c *Cfg) SetFlagString(k, s, v, dflt, u string) {
-	c.SetFlagStringE(k, s, v, dflt, u)
-
-}
-
-// Convenience functions for configs[app]
-// SetFlagBoolE adds the information to the AppsConfig struct, but does not
-// save it to its environment variable.
-func SetFlagBoolE(k, s string, v bool, dflt, u string) error {
-	return appCfg.SetFlagBoolE(k, s, v, dflt, u)
-}
-
-// SetFlagIntE adds the information to the AppsConfig struct, but does not
-// save it to its environment variable.
-func SetFlagIntE(k, s string, v int, dflt, u string) error {
-	return appCfg.SetFlagIntE(k, s, v, dflt, u)
-}
-
-// SetFlagStringE adds the information to the AppsConfig struct, but does not
-// save it to its environment variable.
+// SetFlagStringE adds the information to the appCfg global.
 func SetFlagStringE(k, s, v, dflt, u string) error {
 	return appCfg.SetFlagStringE(k, s, v, dflt, u)
 }
-
-// SetFlagBool adds the information to the AppsConfig struct, but does not
-// save it to its environment variable.
-func SetFlagBool(k, s string, v bool, dflt, u string) {
-	appCfg.SetFlagBoolE(k, s, v, dflt, u)
+func (c *Cfg) SetFlagStringE(k, s, v, dflt, u string) error {
+	return c.SetSetting("string", k, s, v, dflt, u, false, true, true)
 }
 
-// SetFlagInt adds the information to the AppsConfig struct, but does not
-// save it to its environment variable.
-func SetFlagInt(k, s string, v int, dflt, u string) {
-	appCfg.SetFlagIntE(k, s, v, dflt, u)
-}
-
-// SetFlagInt64 adds the information to the AppsConfig struct, but does not
-// save it to its environment variable.
-func SetFlagInt64(k, s string, v int64, dflt, u string) {
-	appCfg.SetFlagInt64(k, s, v, dflt, u)
-}
-
-// SetFlagString adds the information to the AppsConfig struct, but does not
-// save it to its environment variable.
+// SetFlagString adds the information to the appCfg global.
 func SetFlagString(k, s, v, dflt, u string) {
-	appCfg.SetFlagStringE(k, s, v, dflt, u)
+	appCfg.SetFlagString(k, s, v, dflt, u)
+}
+func (c *Cfg) SetFlagString(k, s, v, dflt, u string) {
+	c.SetFlagStringE(k, s, v, dflt, u)
+
 }
