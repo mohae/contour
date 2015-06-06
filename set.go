@@ -43,7 +43,7 @@ func (c *Cfg) SetSetting(typ, name, short string, v interface{}, dflt, usage str
 		err := fmt.Errorf("%s: key already exists, cannot add another setting with the same key")
 		return err
 	}
-	c.settings[name] = &setting{
+	c.settings[name] = setting{
 		Type:    typ,
 		Name:    name,
 		Short:   short,

@@ -17,13 +17,12 @@ func TestRegisterCfgFile(t *testing.T) {
 		{"toml", "cfg.toml", "toml", ""},
 		{"yaml", "cfg.yaml", "yaml", ""},
 		{"json", "cfg.json", "json", ""},
-		{"xml", "cfg.xml", "xml", "unsupported config format: xml"},
-		{"undefined", "cfg.bss", "bss", "unsupported config format: bss"},
+		{"xml", "cfg.xml", "xml", "unsupported cfg format: xml"},
+		{"undefined", "cfg.bss", "bss", "unsupported cfg format: bss"},
 	}
-
 	for _, test := range tests {
 		cfg := NewCfg(test.name)
-		err := cfg.RegisterCfgFile(CfgFile, "rancher_test-configfile", test.filename)
+		err := cfg.RegisterCfgFile(CfgFile, test.filename)
 		if err != nil {
 			if test.err == "" {
 				t.Errorf("RegisterCfgFilename %s: unexpected error: %q", test.name, err)

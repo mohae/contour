@@ -18,11 +18,15 @@ func (c *Cfg) Override(k string, v interface{}) error {
 	c.RWMutex.Lock()
 	defer c.RWMutex.Unlock()
 	// If it can't be overriden,
-	if c.settings[k].IsCore || !c.settings[k].IsFlag {
-		err := fmt.Errorf("%v: setting is not a flag. Only flags can be overridden", k)
-		return err
+	s, ok := c.settings[k]
+	if !ok {
+		return fmt.Errorf("%s not found: cannot override")
 	}
-	c.settings[k].Value = v
+	if s.IsCore || !s.IsFlag {
+		return fmt.Errorf("%s is not a flag: only flags can be overridden", k)
+	}
+	s.Value = v
+	c.settings[k] = s
 	return nil
 }
 

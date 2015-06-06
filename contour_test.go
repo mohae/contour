@@ -151,81 +151,114 @@ var xmlResults = map[string]interface{}{
 		"logstdoutlevel": "error",
 	},
 }
-var testCfg = &Cfg{settings: map[string]*setting{
-	"corebool": &setting{
-		Type:   "bool",
-		Value:  true,
-		IsCore: true,
-	},
-	"coreint": &setting{
-		Type:   "int",
-		Value:  42,
-		IsCore: true,
-	},
-	"corestring": &setting{
-		Type:   "string",
-		Value:  "a core string",
-		IsCore: true,
-	},
-	"cfgbool": &setting{
-		Type:  "bool",
-		Value: true,
-		Short: "",
-		IsCfg: true,
-	},
-	"cfgint": &setting{
-		Type:  "int",
-		Value: 42,
-		IsCfg: true,
-	},
-	"cfgstring": &setting{
-		Type:  "string",
-		Value: "a cfg string",
-		Short: "",
-		IsCfg: true,
-	},
-	"flagbool": &setting{
-		Type:   "bool",
-		Value:  true,
-		Short:  "b",
-		IsFlag: true,
-		IsCfg:  true,
-	},
-	"flagint": &setting{
-		Type:   "int",
-		Value:  42,
-		Short:  "i",
-		IsFlag: true,
-		IsCfg:  true,
-	},
-	"flagstring": &setting{
-		Type:   "string",
-		Value:  "a flag string",
-		Short:  "s",
-		IsFlag: true,
-		IsCfg:  true,
-	},
-	"bool": &setting{
-		Type:  "bool",
-		Value: true,
-		Short: "b",
-	},
-	"int": &setting{
-		Type:  "int",
-		Value: 42,
-		Short: "i",
-	},
-	"string": &setting{
-		Type:  "string",
-		Value: "a string",
-		Short: "s",
-	},
-}}
 
-var emptyCfgs map[string]*Cfg
-var testCfgs = map[string]*Cfg{
-	app:     &Cfg{settings: map[string]*setting{}},
-	"test1": &Cfg{settings: map[string]*setting{}},
+var emptyCfgs map[string]Cfg
+var testCfgs = map[string]Cfg{
+	app:     Cfg{settings: map[string]setting{}},
+	"test1": Cfg{settings: map[string]setting{}},
+}
+
+func newTestCfg() Cfg {
+	return Cfg{settings: map[string]setting{
+		"corebool": setting{
+			Type:   "bool",
+			Value:  true,
+			IsCore: true,
+		},
+		"coreint": setting{
+			Type:   "int",
+			Value:  42,
+			IsCore: true,
+		},
+		"coreint64": setting{
+			Type:   "int64",
+			Value:  int64(42),
+			IsCore: true,
+		},
+		"corestring": setting{
+			Type:   "string",
+			Value:  "a core string",
+			IsCore: true,
+		},
+		"cfgbool": setting{
+			Type:  "bool",
+			Value: true,
+			Short: "",
+			IsCfg: true,
+			IsEnv: true,
+		},
+		"cfgint": setting{
+			Type:  "int",
+			Value: 42,
+			IsCfg: true,
+			IsEnv: true,
+		},
+		"cfgint64": setting{
+			Type:  "int64",
+			Value: int64(42),
+			IsCfg: true,
+			IsEnv: true,
+		},
+		"cfgstring": setting{
+			Type:  "string",
+			Value: "a cfg string",
+			Short: "",
+			IsCfg: true,
+			IsEnv: true,
+		},
+		"flagbool": setting{
+			Type:   "bool",
+			Value:  true,
+			Short:  "",
+			IsCfg:  true,
+			IsEnv:  true,
+			IsFlag: true,
+		},
+		"flagint": setting{
+			Type:   "int",
+			Value:  42,
+			Short:  "",
+			IsCfg:  true,
+			IsEnv:  true,
+			IsFlag: true,
+		},
+		"flagint64": setting{
+			Type:   "int64",
+			Value:  int64(42),
+			Short:  "",
+			IsCfg:  true,
+			IsEnv:  true,
+			IsFlag: true,
+		},
+		"flagstring": setting{
+			Type:   "string",
+			Value:  "a flag string",
+			Short:  "",
+			IsCfg:  true,
+			IsEnv:  true,
+			IsFlag: true,
+		},
+		"bool": setting{
+			Type:  "bool",
+			Value: true,
+			Short: "b",
+		},
+		"int": setting{
+			Type:  "int",
+			Value: 42,
+			Short: "i",
+		},
+		"int64": setting{
+			Type:  "int64",
+			Value: int64(42),
+			Short: "",
+		},
+		"string": setting{
+			Type:  "string",
+			Value: "a string",
+			Short: "s",
+		},
+	}}
 }
 
 // helper function
@@ -258,16 +291,15 @@ func TestFormatFromFilename(t *testing.T) {
 	tests := []basic{
 		{"an empty cfgfilename", "", "", "no config filename"},
 		{"a cfgfilename without an extension", "cfg", "", "unable to determine cfg's config format: no extension"},
-		{"a cfgfilename with an invalid extension", "cfg.bmp", "", "unsupported config format: bmp"},
+		{"a cfgfilename with an invalid extension", "cfg.bmp", "", "unsupported cfg format: bmp"},
 		{"a cfgfilename with a json extension", "cfg.json", "json", ""},
 		{"a path and multi dot cfgfilename with a json extension", "path/to/custom.cfg.json", "json", ""},
 		{"a cfgfilename with a toml extension", "cfg.toml", "toml", ""},
 		{"a cfgfilename with a toml extension", "cfg.yaml", "yaml", ""},
 		{"a cfgfilename with a toml extension", "cfg.yml", "yaml", ""},
-		{"a cfgfilename with a toml extension", "cfg.xml", "xml", "unsupported config format: xml"},
-		{"a cfgfilename with a toml extension", "cfg.ini", "", "unsupported config format: ini"},
+		{"a cfgfilename with a toml extension", "cfg.xml", "xml", "unsupported cfg format: xml"},
+		{"a cfgfilename with a toml extension", "cfg.ini", "", "unsupported cfg format: ini"},
 	}
-
 	for _, test := range tests {
 		Convey("Given "+test.name+" Test", t, func() {
 			Convey("Getting the cfg format", func() {
@@ -289,7 +321,6 @@ func TestIsSupportedFormat(t *testing.T) {
 		{"yml format test", "yml", "true", ""},
 		{"xml format test", "xml", "false", ""},
 	}
-
 	for _, test := range tests {
 		Convey("Given some supported format tests", t, func() {
 
@@ -317,11 +348,10 @@ func TestMarshalFormatReader(t *testing.T) {
 	}{
 		{"json cfg", JSON, jsonExample, jsonResults, ""},
 		{"toml cfg", TOML, tomlExample, tomlResults, ""},
-		{"yaml cfg", YAML, yamlExample, []byte(""), "unsupported config format: yaml"},
-		{"xml cfg", XML, xmlExample, []byte(""), "unsupported config format: xml"},
-		{"unsupported cfg", Unsupported, []byte(""), []byte(""), "unsupported config format: unsupported"},
+		{"yaml cfg", YAML, yamlExample, []byte(""), "unsupported cfg format: yaml"},
+		{"xml cfg", XML, xmlExample, []byte(""), "unsupported cfg format: xml"},
+		{"unsupported cfg", Unsupported, []byte(""), []byte(""), "unsupported cfg format: unsupported"},
 	}
-
 	for _, test := range tests {
 		r := bytes.NewReader([]byte(test.value))
 		ires, err := unmarshalFormatReader(test.format, r)
@@ -377,35 +407,30 @@ func TestMarshalFormatReader(t *testing.T) {
 
 func TestCanUpdate(t *testing.T) {
 	tests := []struct {
-		name     string
-		value    string
-		value2   string
-		expected string
+		value       string
+		expected    string
+		expectedErr string
 	}{
-		{"update a core setting", "cfgfilename", "another.file", "false"},
-		{"update a cfg setting with value", "logcfgfilename", "logcfg.xml", "false"},
-		{"update a cfg setting without a value", "unsetimmutable", "json", "true"},
-		{"update a setting", "logging", "true", "true"},
-		{"update a setting that does not exist", "arr", "", "false"},
+		{"corestring", "false", "cannot update \"corestring\": core settings cannot be updated"},
+		{"flagstring", "true", ""},
+		{"cfgstring", "true", ""},
+		{"string", "true", ""},
+		{"arr", "false", "cannot update \"arr\": not found"},
+		{"", "false", "cannot update \"\": not found"},
 	}
-
-	appCfg = testCfg
-
-	Convey("Given some CanUpdate tests", t, func() {
-		for _, test := range tests {
-
-			Convey("Given a setting test: "+test.name, func() {
-				res := strconv.FormatBool(canUpdate(test.name))
-
-				Convey("Should result in "+test.expected, func() {
-					So(res, ShouldEqual, test.expected)
-				})
-
-			})
-
+	tstCfg := newTestCfg()
+	for i, test := range tests {
+		res, err := tstCfg.canUpdate(test.value)
+		if err != nil {
+			if err.Error() != test.expectedErr {
+				t.Errorf("%d\texpected %q, got %q", i, test.expectedErr, err.Error())
+			}
+			continue
 		}
-	})
-
+		if strconv.FormatBool(res) != test.expected {
+			t.Errorf("%d\texpected %q, got %q", i, test.expected, strconv.FormatBool(res))
+		}
+	}
 }
 
 func TestNotFoundErr(t *testing.T) {
@@ -413,9 +438,7 @@ func TestNotFoundErr(t *testing.T) {
 		basic{"notFoundErr test1", "setting", "setting not found", ""},
 		basic{"notFoundErr test2", "grail", "grail not found", ""},
 	}
-
 	for _, test := range tests {
-
 		Convey(test.name+"  given a string", t, func() {
 			Convey("calling notFoundErr with it", func() {
 				err := notFoundErr(test.value)
@@ -433,10 +456,9 @@ func TestNotFoundErr(t *testing.T) {
 
 func TestSettingNotFoundErr(t *testing.T) {
 	tests := []basic{
-		basic{"notFoundErr test1", "dinosaur", "dinosaur: setting not found", ""},
-		basic{"notFoundErr test2", "swallow type", "swallow type: setting not found", ""},
+		basic{"notFoundErr test1", "dinosaur", "setting not found: dinosaur", ""},
+		basic{"notFoundErr test2", "swallow type", "setting not found: swallow type", ""},
 	}
-
 	for _, test := range tests {
 		err := settingNotFoundErr(test.value)
 		if err.Error() != test.expected {
@@ -457,7 +479,6 @@ func TestFormatString(t *testing.T) {
 		{"yaml", YAML, "yaml"},
 		{"xml", XML, "xml"},
 	}
-
 	for _, test := range tests {
 		s := test.format.String()
 		if s != test.expected {

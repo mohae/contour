@@ -24,7 +24,7 @@ import (
 //
 // If the envName is a non-empty value, it is the environment variable name to
 // check for a configuration filename.
-func (c *Cfg) RegisterCfgFile(k, envName, v string) error {
+func (c *Cfg) RegisterCfgFile(k, v string) error {
 	if v == "" {
 		return fmt.Errorf("RegisterCfgFile expected a cfg filename: none received")
 	}
@@ -33,8 +33,8 @@ func (c *Cfg) RegisterCfgFile(k, envName, v string) error {
 	}
 	// check to see if the env var is set
 	c.RWMutex.RLock()
-	if envName != "" && c.useEnv {
-		fname := os.Getenv(envName)
+	if c.useEnv {
+		fname := os.Getenv(fmt.Sprintf("%s_%s", c.name, k))
 		if fname != "" {
 			v = fname
 		}
@@ -77,7 +77,7 @@ func (c *Cfg) RegisterSetting(typ, name, short, envName string, value interface{
 	c.RWMutex.Lock()
 	defer c.RWMutex.Unlock()
 	// Add the setting
-	c.settings[name] = &setting{
+	c.settings[name] = setting{
 		Type:    typ,
 		Name:    name,
 		Short:   short,
@@ -465,6 +465,6 @@ func (c *Cfg) RegisterString(k, v string) {
 }
 
 //  is a convenience function for the appCfg global config.
-func RegisterCfgFile(k, envName, v string) error {
-	return appCfg.RegisterCfgFile(k, envName, v)
+func RegisterCfgFile(k, v string) error {
+	return appCfg.RegisterCfgFile(k, v)
 }

@@ -7,191 +7,147 @@ import (
 
 func TestUpdateBools(t *testing.T) {
 	bTests := []struct {
-		name     string
-		key      string
-		value    bool
-		expected bool
-		err      string
+		key   string
+		value bool
+		err   string
 	}{
-		{"false", "corebool", false, false, "config[update]: \"corebool\" is not updateable"},
-		{"true", "corebool", true, true, "config[update]: \"corebool\" is not updateable"},
-		{"false", "flagbool", false, false, ""},
-		{"true", "flagbool", true, true, ""},
-		{"false", "cfgbool", false, false, ""},
-		{"true", "cfgbool", true, true, ""},
-		{"false", "bool", false, false, ""},
-		{"true", "bool", true, true, ""},
+		{"corebool", false, "cannot update \"corebool\": core settings cannot be updated"},
+		{"corebool", true, "cannot update \"corebool\": core settings cannot be updated"},
+		{"flagbool", false, ""},
+		{"flagbool", true, ""},
+		{"cfgbool", false, ""},
+		{"cfgbool", true, ""},
+		{"bool", false, ""},
+		{"bool", true, ""},
 	}
-
-	cfg := testCfg
-	cfg.name = "update"
-	for _, test := range bTests {
-		err := cfg.UpdateBoolE(test.key, test.value)
+	testCfg := newTestCfg()
+	testCfg.name = "update"
+	for i, test := range bTests {
+		err := testCfg.UpdateBoolE(test.key, test.value)
 		if err != nil {
-			if test.err == "" {
-				t.Errorf("%s: unexpected error %q", test.name, err)
-				goto cont
-			}
 			if test.err != err.Error() {
-				t.Errorf("%s: expected %q got %q", test.name, test.err, err)
+				t.Errorf("%d: expected %q got %q", i, test.err, err)
 			}
-		cont:
 			continue
 		}
-		b, err := cfg.GetBoolE(test.key)
+		b, err := testCfg.GetBoolE(test.key)
 		if err != nil {
-			if test.err == "" {
-				t.Errorf("%s: unexpected error %q", test.name, err)
-			} else {
-				if test.err != err.Error() {
-					t.Errorf("%s: expected %q got %q", test.name, test.err, err)
-				}
+			if test.err != err.Error() {
+				t.Errorf("%d: expected %q got %q", i, test.err, err)
 			}
 			continue
 		}
-		if b != test.expected {
-			t.Errorf("%s: expected %t got %t", test.name, test.value, b)
+		if b != test.value {
+			t.Errorf("%d: expected %t got %t", i, test.value, b)
 		}
 	}
 }
+
 func TestUpdateStrings(t *testing.T) {
 	sTests := []struct {
-		name  string
 		key   string
 		value string
 		err   string
 	}{
-		{"false", "corestring", "false", "config[update]: \"corestring\" is not updateable"},
-		{"true", "corestring", "t", "config[update]: \"corestring\" is not updateable"},
-		{"unset", "", "", "config[update]: \"\" is not updateable"},
-		{"false", "flagstring", "false", ""},
-		{"true", "flagstring", "t", ""},
-		{"false", "cfgstring", "false", ""},
-		{"true", "cfgstring", "t", ""},
-		{"false", "string", "false", ""},
-		{"true", "string", "t", ""},
+		{"", "false", "cannot update \"\": not found"},
+		{"corestring", "false", "cannot update \"corestring\": core settings cannot be updated"},
+		{"corestring", "t", "cannot update \"corestring\": core settings cannot be updated"},
+		{"flagstring", "false", ""},
+		{"flagstring", "t", ""},
+		{"cfgstring", "false", ""},
+		{"cfgstring", "t", ""},
+		{"string", "false", ""},
+		{"string", "t", ""},
 	}
-
-	cfg := testCfg
-	cfg.name = "update"
-
-	for _, test := range sTests {
-		err := cfg.UpdateStringE(test.key, test.value)
+	testCfg := newTestCfg()
+	testCfg.name = "update"
+	for i, test := range sTests {
+		err := testCfg.UpdateStringE(test.key, test.value)
 		if err != nil {
-			if test.err == "" {
-				t.Errorf("%s: unexpected error %q", test.name, err)
-			} else {
-				if test.err != err.Error() {
-					t.Errorf("%s: expected %q got %q", test.name, test.err, err)
-				}
+			if test.err != err.Error() {
+				t.Errorf("%d: expected %q got %q", i, test.err, err)
 			}
 			continue
 		}
-		s, err := cfg.GetStringE(test.key)
+		s, err := testCfg.GetStringE(test.key)
 		if err != nil {
-			if test.err == "" {
-				t.Errorf("%s: unexpected error %q", test.name, err)
-			} else {
-				if test.err != err.Error() {
-					t.Errorf("%s: expected %q got %q", test.name, test.err, err)
-				}
+			if test.err != err.Error() {
+				t.Errorf("%d: expected %q got %q", i, test.err, err)
 			}
 			continue
 		}
 		if s != test.value {
-			t.Errorf("%s: expected %t got %s", test.name, test.value, s)
+			t.Errorf("%d: expected %t got %s", i, test.value, s)
 		}
 	}
 }
 
 func TestUpdateInts(t *testing.T) {
 	iTests := []struct {
-		name  string
 		key   string
 		value int
 		err   string
 	}{
-		{"42", "coreint", 42, "config[update]: \"coreint\" is not updateable"},
-		{"unset", "", 0, "config[update]: \"\" is not updateable"},
-		{"42", "flagint", 42, ""},
-		{"42", "cfgint", 42, ""},
-		{"42", "int", 42, ""},
+		{"coreint", 42, "cannot update \"coreint\": core settings cannot be updated"},
+		{"", 0, "cannot update \"\": not found"},
+		{"flagint", 42, ""},
+		{"cfgint", 42, ""},
+		{"int", 42, ""},
 	}
-
-	cfg := testCfg
-	cfg.name = "update"
-
-	for _, test := range iTests {
-		err := cfg.UpdateIntE(test.key, test.value)
+	testCfg := newTestCfg()
+	testCfg.name = "update"
+	for i, test := range iTests {
+		err := testCfg.UpdateIntE(test.key, test.value)
 		if err != nil {
-			if test.err == "" {
-				t.Errorf("%s: unexpected error %q", test.name, err)
-			} else {
-				if test.err != err.Error() {
-					t.Errorf("%s: expected %q got %q", test.name, test.err, err)
-				}
+			if test.err != err.Error() {
+				t.Errorf("%ds: expected %q got %q", i, test.err, err)
 			}
 			continue
 		}
-		i, err := cfg.GetIntE(test.key)
+		i, err := testCfg.GetIntE(test.key)
 		if err != nil {
-			if test.err == "" {
-				t.Errorf("%s: unexpected error %q", test.name, err)
-			} else {
-				if test.err != err.Error() {
-					t.Errorf("%s: expected %q got %q", test.name, test.err, err)
-				}
+			if test.err != err.Error() {
+				t.Errorf("%d: expected %q got %q", i, test.err, err)
 			}
 			continue
 		}
 		if i != test.value {
-			t.Errorf("%s: expected %q got %q", test.name, test.value, strconv.Itoa(i))
+			t.Errorf("%d: expected %q got %q", i, test.value, strconv.Itoa(i))
 		}
 	}
 }
 
 func TestUpdateInt64s(t *testing.T) {
 	i64Tests := []struct {
-		name  string
 		key   string
 		value int64
 		err   string
 	}{
-		{"42", "coreint", int64(42), "config[update]: \"coreint\" is not updateable"},
-		{"unset", "", int64(0), "config[update]: \"\" is not updateable"},
-		{"42", "flagint", int64(42), ""},
-		{"42", "cfgint", int64(42), ""},
-		{"42", "int", int64(42), ""},
+		{"coreint", int64(42), "cannot update \"coreint\": core settings cannot be updated"},
+		{"", int64(0), "cannot update \"\": not found"},
+		{"flagint", int64(42), ""},
+		{"cfgint", int64(42), ""},
+		{"int", int64(42), ""},
 	}
-
-	cfg := testCfg
-	cfg.name = "update"
-
-	for _, test := range i64Tests {
-		err := cfg.UpdateInt64E(test.key, test.value)
+	testCfg := newTestCfg()
+	testCfg.name = "update"
+	for i, test := range i64Tests {
+		err := testCfg.UpdateInt64E(test.key, test.value)
 		if err != nil {
-			if test.err == "" {
-				t.Errorf("%s: unexpected error %q", test.name, err)
-			} else {
-				if test.err != err.Error() {
-					t.Errorf("%s: expected %q got %q", test.name, test.err, err)
-				}
+			if test.err != err.Error() {
+				t.Errorf("%d: expected %q got %q", i, test.err, err)
 			}
 			continue
 		}
-		i64, err := cfg.GetInt64E(test.key)
+		i64, err := testCfg.GetInt64E(test.key)
 		if err != nil {
-			if test.err == "" {
-				t.Errorf("%s: unexpected error %q", test.name, err)
-			} else {
-				if test.err != err.Error() {
-					t.Errorf("%s: expected %q got %q", test.name, test.err, err)
-				}
+			if test.err != err.Error() {
+				t.Errorf("%d: expected %q got %q", i, test.err, err)
 			}
 			continue
 		}
 		if i64 != test.value {
-			t.Errorf("%s: expected %q got %q", test.name, test.value, strconv.Itoa(int(i64)))
+			t.Errorf("%d: expected %q got %q", i, test.value, strconv.Itoa(int(i64)))
 		}
 	}
 }

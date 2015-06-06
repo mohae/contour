@@ -28,7 +28,7 @@ type Cfg struct {
 	encoding string
 	// Settings contains a map of the configuration Settings for this
 	// config.
-	settings map[string]*setting
+	settings map[string]setting
 	// Whether configuration settings have been registered and set.
 	useCfgFile bool
 	cfgFileSet bool
@@ -57,7 +57,7 @@ func AppCfg() *Cfg {
 
 // NewConfig returns a *Cfg to the caller
 func NewCfg(name string) *Cfg {
-	return &Cfg{name: name, errOnMissingCfg: true, searchPath: true, flagSet: flag.NewFlagSet(name, flag.ContinueOnError), settings: map[string]*setting{}, cfgVars: map[string]struct{}{}, useFlags: true, shortFlags: map[string]string{}}
+	return &Cfg{name: name, errOnMissingCfg: true, searchPath: true, flagSet: flag.NewFlagSet(name, flag.ContinueOnError), settings: map[string]setting{}, cfgVars: map[string]struct{}{}, useFlags: true, shortFlags: map[string]string{}}
 }
 
 // Loadenv is a convenience function for the global appCfg.
