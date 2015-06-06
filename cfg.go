@@ -35,16 +35,16 @@ type Cfg struct {
 	useCfgFile bool
 	cfgFileSet bool
 	// tracks the vars that are exposed to cfg
-	cfgVars map[string]struct
+	cfgVars map[string]struct{}
 	// useEnv: whether this config writes to and reads from environment
 	// variables. If false, Settings are stored only in Config.
-	useEnv   bool
-	envSet   bool
+	useEnv bool
+	envSet bool
 	// maps flag vars to environment names
 	envVars map[string]string
 	// Whether flags have been registered and set.
-	useFlags   bool
-	flagsSet   bool
+	useFlags bool
+	flagsSet bool
 	// maps short flags to the long version
 	shortFlags map[string]string
 }
@@ -61,7 +61,7 @@ func AppCfg() *Cfg {
 
 // NewConfig returns a *Cfg to the caller
 func NewCfg(name string) *Cfg {
-	return &Cfg{name: name, errOnMissingCfg: true, searchPath: true, flagSet: flag.NewFlagSet(name, flag.ContinueOnError), settings: map[string]*setting{}, cfgVars: map[string]struct{}, envVars: map[string]string{}, shortFlags: map[string]string{}}
+	return &Cfg{name: name, errOnMissingCfg: true, searchPath: true, flagSet: flag.NewFlagSet(name, flag.ContinueOnError), settings: map[string]*setting{}, cfgVars: map[string]struct{}{}, envVars: map[string]string{}, shortFlags: map[string]string{}}
 }
 
 // Code is a convenience functions for the appCfg global.

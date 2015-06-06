@@ -81,13 +81,13 @@ func (c *Cfg) RegisterSetting(typ, name, short, envName string, value interface{
 	}
 	// if it's a cfg file setting, add it to the cfgNames map
 	if IsCfg {
-		c.cfgVars[name] =  struct{}
+		c.cfgVars[name] = struct{}{}
 	}
 	// if it's a IsEnv, make a map for it and the short code
 	if envName != "" && IsEnv {
-		c.envNames[name] = envName
+		c.envVars[name] = envName
 		if short != "" {
-			c.envNames[short] = envName
+			c.envVars[short] = envName
 		}
 	}
 	// mapping shortcodes make lookup easier

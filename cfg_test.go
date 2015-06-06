@@ -51,7 +51,7 @@ func TestSetCode(t *testing.T) {
 	}{
 		{"set empty", "", "", ""},
 		{"set code", "val", "val", ""},
-		{"set already set code", "newval", "val", "this configuration's code is already set and cannot be overridden"},
+		{"set already set code", "newval", "val", "this cfg's code is already set and cannot be overridden"},
 	}
 
 	tstCfg := NewCfg("testCfg")
