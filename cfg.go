@@ -22,9 +22,6 @@ type Cfg struct {
 	// search the path env var, in addition to pwd & executalbe dir, for cfc file.
 	searchPath bool
 	flagSet    *flag.FlagSet
-	// code is the shortcode for this configuration. It is mostly used to
-	// prefix environment variables, when used.
-	code string
 	// file is the name of the config file
 	file string
 	// encoding is what encoding scheme is used for this config.
@@ -108,36 +105,6 @@ func (c *Cfg) Loadenv() error {
 		}
 	}
 	c.envSet = true
-	return nil
-}
-
-// Code is a convenience function for the global appCfg.
-func Code() string {
-	return appCfg.Code()
-}
-
-// Code returns the code for the config. If set, this is used as
-// the prefix for environment variables and configuration setting names.
-func (c *Cfg) Code() string {
-	c.RWMutex.RLock()
-	defer c.RWMutex.RUnlock()
-	return c.code
-}
-
-// SetCode is a convenience function for the global appCfg.
-func SetCode(s string) error {
-	return appCfg.SetCode(s)
-}
-
-// SetCode set's the code for this configuration. This can only be done once.
-// If it is already set, it will return an error.
-func (c *Cfg) SetCode(s string) error {
-	c.RWMutex.Lock()
-	defer c.RWMutex.Unlock()
-	if c.code != "" {
-		return fmt.Errorf("this cfg's code is already set and cannot be overridden")
-	}
-	c.code = s
 	return nil
 }
 
