@@ -5,9 +5,8 @@ import (
 	"testing"
 )
 
-func TestConfig(t *testing.T) {
+func TestCfg(t *testing.T) {
 	initCfgs()
-
 	c := NewCfg("test")
 	if c == nil {
 		t.Errorf("New test cfg was nil")
@@ -19,7 +18,6 @@ func TestConfig(t *testing.T) {
 			t.Error("Expected false got %s", strconv.FormatBool(c.UseEnv()))
 		}
 	}
-
 	a := AppCfg()
 	if a == nil {
 		t.Errorf("New test cfg was nil")

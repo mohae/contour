@@ -224,14 +224,10 @@ func (c *Cfg) canUpdate(k string) (bool, error) {
 	return true, nil
 }
 
-// canOverride is a helper funciton for the global appCfg.
-func canOverride(k string) bool {
-	return appCfg.canOverride(k)
-}
-
 // canOverride() checks to see if the setting can be overridden. Overrides only
 // come from flags. If it can't be overridden, it must be set via application,
 // environment variable, or cfg file.
+func canOverride(k string) bool { return appCfg.canOverride(k) }
 func (c *Cfg) canOverride(k string) bool {
 	// See if the key exists, if it doesn't already exist, it can't be overridden
 	_, ok := c.settings[k]
@@ -244,11 +240,6 @@ func (c *Cfg) canOverride(k string) bool {
 		return false
 	}
 	return true
-}
-
-// notFoundErr returns a standardized not found error.
-func notFoundErr(k string) error {
-	return fmt.Errorf("%s not found", k)
 }
 
 // settingNotFoundErr standardizes the settingNotFound err output.

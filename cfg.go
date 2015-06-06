@@ -108,110 +108,73 @@ func (c *Cfg) Loadenv() error {
 	return nil
 }
 
-// Code is a convenience function for the global appCfg.
-func ErrOnMissingCfg() bool {
-	return appCfg.ErrOnMissingCfg()
-}
-
 // ErrOnMissingCfg returns whether a missing config file should result in an
 // error. This only applies when useCfg == true
+func ErrOnMissingCfg() bool { return appCfg.ErrOnMissingCfg() }
 func (c *Cfg) ErrOnMissingCfg() bool {
 	c.RWMutex.RLock()
 	defer c.RWMutex.RUnlock()
 	return c.errOnMissingCfg
 }
 
-// SetErrOnMissingCfg is a convenience function for the global appCfg.
-func SetErrOnMissingCfg(b bool) {
-	appCfg.SetErrOnMissingCfg(b)
-}
-
 // SetErrOnMissingCfg returns whether a missing config file should result in an
 // error. This only applies when useCfg == true
+func SetErrOnMissingCfg(b bool) { appCfg.SetErrOnMissingCfg(b) }
 func (c *Cfg) SetErrOnMissingCfg(b bool) {
 	c.RWMutex.Lock()
 	c.errOnMissingCfg = b
 	c.RWMutex.Unlock()
 }
 
-// SearchPath is a convenience function for the global appCfg.
-func SearchPath() bool {
-	return appCfg.SearchPath()
-}
-
 // SearchPath returns whether or not the Path environment variable should be
 // searched when looking for the config file.
+func SearchPath() bool { return appCfg.SearchPath() }
 func (c *Cfg) SearchPath() bool {
 	c.RWMutex.RLock()
 	defer c.RWMutex.RUnlock()
 	return c.searchPath
 }
 
-// SetSearchPath is a convenience function for the global appCfg.
-func SetSearchPath(b bool) {
-	appCfg.SetSearchPath(b)
-}
-
 // SetSearchPath set's whether or not the user's PATH env variable should be
 // searched for the cfg file.
+func SetSearchPath(b bool) { appCfg.SetSearchPath(b) }
 func (c *Cfg) SetSearchPath(b bool) {
 	c.RWMutex.Lock()
 	c.searchPath = b
 	c.RWMutex.Unlock()
 }
 
-// UseCfgFile is a convenience function for the global appCfg.
-func UseCfgFile() bool {
-	return appCfg.UseCfgFile()
-}
-
 // UseCfgFile returns whether this cfg uses a CfgFile.
+func UseCfgFile() bool { return appCfg.UseCfgFile() }
 func (c *Cfg) UseCfgFile() bool {
 	c.RWMutex.RLock()
 	defer c.RWMutex.RUnlock()
 	return c.useCfgFile
 }
 
-// SetUseCfgFile is a convenience function for the global appCfg.
-func SetUseCfgFile(b bool) {
-	appCfg.SetUseCfgFile(b)
-}
-
 // SetUseCfgFile set's whether a cfg file should be used with this cfg.
+func SetUseCfgFile(b bool) { appCfg.SetUseCfgFile(b) }
 func (c *Cfg) SetUseCfgFile(b bool) {
 	c.RWMutex.Lock()
 	c.useCfgFile = b
 	c.RWMutex.Unlock()
 }
 
-// UseEnv is a convenience function for the global appCfg.
-func UseEnv() bool {
-	return appCfg.useEnv
-}
-
 // UseEnv is whether or not environment variables are used.
+func UseEnv() bool { return appCfg.useEnv }
 func (c *Cfg) UseEnv() bool {
 	c.RWMutex.RLock()
 	defer c.RWMutex.RUnlock()
 	return c.useEnv
 }
 
-// SetUseEnv is a convenience function for the global appCfg.
-func SetUseEnv(b bool) {
-	appCfg.SetUseEnv(b)
-}
-
 // SetUseEnv set's whether or not environment variables should be used with
 // this cfg.
+func SetUseEnv(b bool) { appCfg.SetUseEnv(b) }
 func (c *Cfg) SetUseEnv(b bool) {
 	c.RWMutex.Lock()
 	c.useEnv = b
 	c.RWMutex.Unlock()
-}
-
-// SetCfg is a convenience function for the global appCfg.
-func SetCfg() error {
-	return appCfg.SetCfg()
 }
 
 // SetCfg goes through the initialized Settings and updates the updateable
@@ -222,6 +185,7 @@ func SetCfg() error {
 // The merged configuration Settings are then  written to their respective
 // environment variables. At this point, only args, or in application setting
 // changes, can change the non-immutable Settings.
+func SetCfg() error { return appCfg.SetCfg() }
 func (c *Cfg) SetCfg() error {
 	c.RWMutex.Lock()
 	defer c.RWMutex.Unlock()
@@ -259,13 +223,9 @@ func (c *Cfg) setFromFile() error {
 	return nil
 }
 
-// CfgFileProcessed sis a convenience function for the global appCfg.
-func CfgFileProcessed() bool {
-	return appCfg.CfgFileProcessed()
-}
-
 // CfgFileProcessed determines whether, or not, all of the configurations, for a
 // given config, have been processed.
+func CfgFileProcessed() bool { return appCfg.CfgFileProcessed() }
 func (c *Cfg) CfgFileProcessed() bool {
 	c.RWMutex.RLock()
 	defer c.RWMutex.RUnlock()
@@ -283,13 +243,8 @@ func (c *Cfg) CfgFileProcessed() bool {
 	return true
 }
 
-// SetUsage sets appCfg's usage func
-func SetUsage(f func()) {
-	appCfg.SetUsage(f)
-}
-
 // SetUsage sets flagSet.Usage
-
+func SetUsage(f func()) { appCfg.SetUsage(f) }
 func (c *Cfg) SetUsage(f func()) {
 	c.RWMutex.Lock()
 	c.flagSet.Usage = f
