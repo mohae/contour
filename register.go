@@ -238,7 +238,11 @@ func RegisterBoolFlagE(k, s string, v bool, dflt, usage string) error {
 	return appCfg.RegisterBoolFlagE(k, s, v, dflt, usage)
 }
 func (c *Cfg) RegisterBoolFlagE(k, s string, v bool, dflt, usage string) error {
-	return c.RegisterSetting("bool", k, s, v, dflt, usage, false, true, true, true)
+	err := c.RegisterSetting("bool", k, s, v, dflt, usage, false, true, true, true)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // RegisterBoolFlag calls RegisterBoolFlagE and ignores any error.
