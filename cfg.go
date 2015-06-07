@@ -31,8 +31,8 @@ type Cfg struct {
 	// config.
 	settings map[string]setting
 	// Whether configuration settings have been registered and set.
-	useCfgFile bool
-	cfgFileSet bool
+	useCfg bool
+	cfgSet bool
 	// tracks the vars that are exposed to cfg
 	cfgVars map[string]struct{}
 	// useEnv: whether this config writes to and reads from environment
@@ -40,8 +40,8 @@ type Cfg struct {
 	useEnv bool
 	envSet bool
 	// Whether flags have been registered and set.
-	useFlags bool
-	flagsSet bool
+	useFlags     bool
+	argsFiltered bool
 	// maps short flags to the long version
 	shortFlags map[string]string
 }
@@ -58,13 +58,19 @@ func AppCfg() *Cfg {
 
 // NewConfig returns a *Cfg to the caller
 func NewCfg(name string) *Cfg {
-	return &Cfg{name: name, errOnMissingCfg: true, searchPath: true, flagSet: flag.NewFlagSet(name, flag.ContinueOnError), settings: map[string]setting{}, cfgVars: map[string]struct{}{}, useFlags: true, shortFlags: map[string]string{}}
+	return &Cfg{name: name, errOnMissingCfg: true, searchPath: true, flagSet: flag.NewFlagSet(name, flag.ContinueOnError), settings: map[string]setting{}, cfgVars: map[string]struct{}{}, useEnv: true, shortFlags: map[string]string{}}
 }
 
-// Loadenv, if cfg.useEnvs, checks the cfg's env vars and updates the settings
-// if they are set.
-func Loadenv() error { return appCfg.Loadenv() }
-func (c *Cfg) Loadenv() error {
+// UpdateFromEnv updates the cfg settings from env vars: only when the Cfg's
+// useEnv flag is set to True.  Cfg settings whose IsEnv flag is set to true
+// will be processed. By default, any setting that is registered as a Cfg or
+// Flag setting has their IsEnv value set to true. This can be changed.
+//
+// A setting's env name is a concatonation of the cfg's name, an underscore
+// (_), and the setting name, e.g. a Cfg with the name 'rancher' and a setting
+// whose name is 'log' will result in 'rancher_log'.
+func UpdateFromEnv() error { return appCfg.UpdateFromEnv() }
+func (c *Cfg) UpdateFromEnv() error {
 	c.RWMutex.RLock()
 	if !c.useEnv {
 		c.RWMutex.RUnlock()
@@ -103,9 +109,11 @@ func (c *Cfg) Loadenv() error {
 			if err != nil {
 				return fmt.Errorf("Loadenv error while setting %s: %s", fmt.Sprintf("%s_%s", name, k), err)
 			}
+			// lock to check next setting, if there is one.
 			c.RWMutex.RLock()
 		}
 	}
+	// Rlock isn't sufficient for updating to close it and get a Lock() for update.
 	c.RWMutex.RUnlock()
 	c.RWMutex.Lock()
 	c.envSet = true
@@ -149,19 +157,19 @@ func (c *Cfg) SetSearchPath(b bool) {
 	c.RWMutex.Unlock()
 }
 
-// UseCfgFile returns whether this cfg uses a CfgFile.
-func UseCfgFile() bool { return appCfg.UseCfgFile() }
-func (c *Cfg) UseCfgFile() bool {
+// UseCfgFile returns whether this cfg uses an external, non env, cfg.
+func UseCfg() bool { return appCfg.UseCfg() }
+func (c *Cfg) UseCfg() bool {
 	c.RWMutex.RLock()
 	defer c.RWMutex.RUnlock()
-	return c.useCfgFile
+	return c.useCfg
 }
 
-// SetUseCfgFile set's whether a cfg file should be used with this cfg.
-func SetUseCfgFile(b bool) { appCfg.SetUseCfgFile(b) }
-func (c *Cfg) SetUseCfgFile(b bool) {
+// SetUseCfg set's whether an external, non-env, cfg should be used with this Cfg.
+func SetUseCfg(b bool) { appCfg.SetUseCfg(b) }
+func (c *Cfg) SetUseCfg(b bool) {
 	c.RWMutex.Lock()
-	c.useCfgFile = b
+	c.useCfg = b
 	c.RWMutex.Unlock()
 }
 
@@ -200,18 +208,18 @@ func (c *Cfg) SetUseEnv(b bool) {
 func SetCfg() error { return appCfg.SetCfg() }
 func (c *Cfg) SetCfg() error {
 	c.RWMutex.RLock()
-	useCfgFile := c.useCfgFile
+	useCfg := c.useCfg
 	useEnv := c.useEnv
 	c.RWMutex.RUnlock()
-	if useCfgFile {
-		// Load the Config file.
-		err := c.setFromFile()
+	if useCfg {
+		// Load the Cfg
+		err := c.UpdateFromCfg()
 		if err != nil {
 			return fmt.Errorf("setting cfg from file failed: %s", err.Error())
 		}
 	}
 	if useEnv {
-		err := c.Loadenv()
+		err := c.UpdateFromEnv()
 		if err != nil {
 			return fmt.Errorf("setting cfg from env failed: %s", err.Error())
 		}
@@ -219,26 +227,28 @@ func (c *Cfg) SetCfg() error {
 	return nil
 }
 
-func (c *Cfg) setFromFile() error {
-	f, err := c.getFile()
+// UpdateFromCfg updates the application's default values with the setting
+// values found in the cfg. Only Cfg and Flag settings are updated.
+func (c *Cfg) UpdateFromCfg() error {
+	cfgSettings, err := c.getCfg()
 	if err != nil {
 		return err
 	}
 	// if nothing was returned and no error, nothing to do
-	if f == nil {
+	if cfgSettings == nil {
 		return nil
 	}
-	// Go through the file contents and update the Cfg
-	for k, v := range f.(map[string]interface{}) {
+	// Go through settings and update setting values.
+	for k, v := range cfgSettings.(map[string]interface{}) {
 		// Find the key in the settings
 		c.RWMutex.RLock()
-		_, ok := c.settings[k]
+		s, ok := c.settings[k]
 		c.RWMutex.RUnlock()
-		if !ok {
-			// skip settings that don't already exist
+		// skip settings that either don't exist or aren't a Cfg or Flag setting.
+		if !ok || !s.IsCfg || !s.IsFlag {
 			continue
 		}
-
+		// otherwise update the setting
 		err := c.updateE(k, v)
 		if err != nil {
 			return err
@@ -247,23 +257,22 @@ func (c *Cfg) setFromFile() error {
 	return nil
 }
 
-// CfgFileProcessed determines whether, or not, all of the configurations, for a
-// given config, have been processed.
-func CfgFileProcessed() bool { return appCfg.CfgFileProcessed() }
-func (c *Cfg) CfgFileProcessed() bool {
+// CfgsProcessed determines whether, or not, all of the cfg sources have been
+// processed for a given Cfg.
+func CfgProcessed() bool { return appCfg.CfgProcessed() }
+func (c *Cfg) CfgProcessed() bool {
 	c.RWMutex.RLock()
 	defer c.RWMutex.RUnlock()
-	if c.useCfgFile && !c.cfgFileSet {
+	if c.useCfg && !c.cfgSet {
 		return false
 	}
 	if c.useEnv && !c.envSet {
 		return false
 	}
-	if c.useFlags && !c.flagsSet {
+	if c.useFlags && !c.argsFiltered {
 		return false
 	}
-	// Either post registration configuration isn't being used, or
-	// everything is set.
+	// Either post registration cfg isn't being used, or everything is set.
 	return true
 }
 
@@ -275,12 +284,12 @@ func (c *Cfg) SetUsage(f func()) {
 	c.RWMutex.Unlock()
 }
 
-// getCfgFile() is the entry point for reading the configuration file.
-func (c *Cfg) getFile() (cfg interface{}, err error) {
+// getCfg() is the entry point for reading the configuration file.
+func (c *Cfg) getCfg() (cfg interface{}, err error) {
 	// if it's not set to use a cfg file, nothing to do
 	c.RWMutex.Lock()
 	defer c.RWMutex.Unlock()
-	if !c.useCfgFile {
+	if !c.useCfg {
 		return nil, nil
 	}
 	setting, ok := c.settings[CfgFile]
@@ -325,12 +334,15 @@ func (c *Cfg) canUpdate(k string) (bool, error) {
 	defer c.RWMutex.RUnlock()
 	s, ok := c.settings[k]
 	if !ok {
-		return false, fmt.Errorf("cannot update %q: not found", k)
+		return false, fmt.Errorf("cannot update %q: setting not found", k)
 	}
 	// See if there are any settings that prevent it from being overridden.  Core and
 	// environment variables are never settable. Core must be set during registration.
 	if s.IsCore {
 		return false, fmt.Errorf("cannot update %q: core settings cannot be updated", k)
+	}
+	if s.IsFlag && c.argsFiltered {
+		return false, fmt.Errorf("cannot update %q: flag settings cannot be updated after arg filtering", k)
 	}
 	// Everything else is updateable.
 	return true, nil
@@ -350,7 +362,12 @@ func (c *Cfg) canOverride(k string) bool {
 	}
 	// See if there are any settings that prevent it from being overridden.
 	// Core can never be overridden-must be a flag to override.
-	if s.IsCore || !s.IsFlag {
+	if s.IsCore {
+		return false
+	}
+	// flags can only be set prior to arg filtering, after which you must use
+	// Override().
+	if s.IsFlag && c.argsFiltered {
 		return false
 	}
 	return true

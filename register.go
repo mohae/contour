@@ -53,7 +53,7 @@ func (c *Cfg) RegisterCfgFile(k, v string) error {
 	// it becomes read only.
 	c.UpdateString(CfgFormat, format.String())
 	c.RWMutex.Lock()
-	c.useCfgFile = true
+	c.useCfg = true
 	c.RWMutex.Unlock()
 	return nil
 }
@@ -100,9 +100,15 @@ func (c *Cfg) RegisterSetting(typ, name, short string, value interface{}, dflt s
 	}
 	// Keep track of whether or not a cfg is being used. If a setting is registered
 	// as a cfg setting, it is assumed a cfg source is being used.
-	c.useEnv = IsEnv
-	c.useCfgFile = IsCfg
-	c.useFlags = IsFlag
+	if IsEnv {
+		c.useEnv = IsEnv
+	}
+	if IsCfg {
+		c.useCfg = IsCfg
+	}
+	if IsFlag {
+		c.useFlags = IsFlag
+	}
 	return nil
 }
 

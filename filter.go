@@ -14,48 +14,60 @@ import (
 // Any args left, after filtering, are returned to the caller.
 func FilterArgs(args []string) ([]string, error) { return appCfg.FilterArgs(args) }
 func (c *Cfg) FilterArgs(args []string) ([]string, error) {
-	var flagCount int // counter, gets reset with each type
 	// Preallocate the worst case scenario.
 	// Get the flag filters from the config variable information.
 	boolFilterNames := c.GetBoolFilterNames()
-	boolFilters := make([]*bool, len(boolFilterNames))
-	bFilterNames := make([]string, len(boolFilterNames))
+	boolFilters := make([]*bool, 0, len(boolFilterNames))
+	bFilterNames := make([]string, 0, len(boolFilterNames))
 	c.RWMutex.Lock()
 	for _, name := range boolFilterNames {
-		if c.settings[name].IsFlag {
-			boolFilters[flagCount] = c.flagSet.Bool(name, c.settings[name].Value.(bool), c.settings[name].Usage)
-			bFilterNames[flagCount] = name
-			flagCount++
+		s, _ := c.settings[name]
+		if s.IsFlag {
+			jww.FEEDBACK.Printf("%s is a bool flag, append it\n", name)
+			boolFilters = append(boolFilters, c.flagSet.Bool(name, s.Value.(bool), s.Usage))
+			bFilterNames = append(bFilterNames, name)
+			if s.Short != "" {
+				boolFilters = append(boolFilters, c.flagSet.Bool(s.Short, s.Value.(bool), s.Usage))
+				bFilterNames = append(bFilterNames, s.Short)
+			}
 		}
 	}
 	c.RWMutex.Unlock()
 	// Get the flag filters from the config variable information.
 	intFilterNames := c.GetIntFilterNames()
 	// Preallocate the worst case scenario.
-	intFilters := make([]*int, len(intFilterNames))
-	iFilterNames := make([]string, len(intFilterNames))
-	flagCount = 0
+	intFilters := make([]*int, 0, len(intFilterNames))
+	iFilterNames := make([]string, 0, len(intFilterNames))
 	c.RWMutex.Lock()
 	for _, name := range intFilterNames {
-		if c.settings[name].IsFlag {
-			intFilters[flagCount] = c.flagSet.Int(name, c.settings[name].Value.(int), c.settings[name].Usage)
-			iFilterNames[flagCount] = name
-			flagCount++
+		s, _ := c.settings[name]
+		if s.IsFlag {
+			jww.FEEDBACK.Printf("%s is a int flag, append it\n", name)
+			intFilters = append(intFilters, c.flagSet.Int(name, s.Value.(int), s.Usage))
+			iFilterNames = append(iFilterNames, name)
+			if s.Short != "" {
+				intFilters = append(intFilters, c.flagSet.Int(s.Short, s.Value.(int), s.Usage))
+				iFilterNames = append(iFilterNames, s.Short)
+			}
 		}
 	}
 	c.RWMutex.Unlock()
 	// Get the flag filters from the config variable information.
 	stringFilterNames := c.GetStringFilterNames()
 	// Preallocate the worst case scenario.
-	stringFilters := make([]*string, len(stringFilterNames))
-	sFilterNames := make([]string, len(stringFilterNames))
-	flagCount = 0
+	stringFilters := make([]*string, 0, len(stringFilterNames))
+	sFilterNames := make([]string, 0, len(stringFilterNames))
 	c.RWMutex.Lock()
 	for _, name := range stringFilterNames {
-		if c.settings[name].IsFlag {
-			stringFilters[flagCount] = c.flagSet.String(name, c.settings[name].Value.(string), c.settings[name].Usage)
-			sFilterNames[flagCount] = name
-			flagCount++
+		s, _ := c.settings[name]
+		if s.IsFlag {
+			jww.FEEDBACK.Printf("%s is a string flag, append it\n", name)
+			stringFilters = append(stringFilters, c.flagSet.String(name, s.Value.(string), s.Usage))
+			sFilterNames = append(sFilterNames, name)
+			if s.Short != "" {
+				stringFilters = append(stringFilters, c.flagSet.String(s.Short, s.Value.(string), s.Usage))
+				sFilterNames = append(sFilterNames, s.Short)
+			}
 		}
 	}
 	// Parse args for flags
@@ -65,6 +77,7 @@ func (c *Cfg) FilterArgs(args []string) ([]string, error) {
 	}
 	// Get the remaining args
 	cmdArgs := c.flagSet.Args()
+	jww.FEEDBACK.Printf("cmdArgs: %v\n", cmdArgs)
 	c.RWMutex.Unlock()
 	// Process the captured values
 	for i, v := range boolFilters {
@@ -103,8 +116,11 @@ func (c *Cfg) FilterArgs(args []string) ([]string, error) {
 			c.Override(sFilterNames[i], v)
 		}
 	}
+	jww.FEEDBACK.Printf("boolFilters: %+v\n", bFilterNames)
+	jww.FEEDBACK.Printf("intFilters: %+v\n", iFilterNames)
+	jww.FEEDBACK.Printf("stringFilters: %+v\n", sFilterNames)
 	c.RWMutex.Lock()
-	c.flagsSet = true
+	c.argsFiltered = true
 	c.RWMutex.Unlock()
 	return cmdArgs, nil
 }

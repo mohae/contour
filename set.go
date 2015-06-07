@@ -11,7 +11,7 @@ import (
 // setCfg set's the configuration information from the received map.
 func (c *Cfg) setCfg(cf map[string]interface{}) error {
 	c.RWMutex.Lock()
-	if !c.useCfgFile {
+	if !c.useCfg {
 		c.RWMutex.Unlock()
 		return nil
 	}

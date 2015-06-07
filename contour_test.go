@@ -405,34 +405,6 @@ func TestMarshalFormatReader(t *testing.T) {
 	}
 }
 
-func TestCanUpdate(t *testing.T) {
-	tests := []struct {
-		value       string
-		expected    string
-		expectedErr string
-	}{
-		{"corestring", "false", "cannot update \"corestring\": core settings cannot be updated"},
-		{"flagstring", "true", ""},
-		{"cfgstring", "true", ""},
-		{"string", "true", ""},
-		{"arr", "false", "cannot update \"arr\": not found"},
-		{"", "false", "cannot update \"\": not found"},
-	}
-	tstCfg := newTestCfg()
-	for i, test := range tests {
-		res, err := tstCfg.canUpdate(test.value)
-		if err != nil {
-			if err.Error() != test.expectedErr {
-				t.Errorf("%d\texpected %q, got %q", i, test.expectedErr, err.Error())
-			}
-			continue
-		}
-		if strconv.FormatBool(res) != test.expected {
-			t.Errorf("%d\texpected %q, got %q", i, test.expected, strconv.FormatBool(res))
-		}
-	}
-}
-
 func TestNotFoundErr(t *testing.T) {
 	tests := []basic{
 		basic{"notFoundErr test1", "setting", "not found: setting", ""},
