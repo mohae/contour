@@ -6,7 +6,6 @@ import (
 )
 
 func TestCfg(t *testing.T) {
-	initCfgs()
 	c := NewCfg("test")
 	if c == nil {
 		t.Errorf("New test cfg was nil")
