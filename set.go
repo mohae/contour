@@ -11,7 +11,7 @@ import (
 // setCfg set's the configuration information from the received map.
 func (c *Cfg) setCfg(cf map[string]interface{}) error {
 	c.RWMutex.Lock()
-	if !c.useCfgFile {
+	if !c.useCfg {
 		c.RWMutex.Unlock()
 		return nil
 	}
@@ -120,4 +120,16 @@ func SetFlagString(k, s, v, dflt, u string) {
 func (c *Cfg) SetFlagString(k, s, v, dflt, u string) {
 	c.SetFlagStringE(k, s, v, dflt, u)
 
+}
+
+// SetName set's the cfg's name.
+func SetName(name string) { appCfg.SetName(name) }
+func (c *Cfg) SetName(name string) {
+	c.name = name
+}
+
+// Name returns the cfg's name.
+func Name() string { return appCfg.Name() }
+func (c *Cfg) Name() string {
+	return c.name
 }

@@ -16,7 +16,7 @@ import (
 	"strconv"
 )
 
-// RegisterConfigFile set's the configuration file's name.  The name is parsed
+// RegisterCfgFile set's the configuration file's name.  The name is parsed
 // for a valid extension--one that is a supported format--and saves that value
 // too. If it cannot be determined, the extension info is not set.  These are
 // considered core values and cannot be changed from configuration files,
@@ -42,19 +42,18 @@ func (c *Cfg) RegisterCfgFile(k, v string) error {
 	}
 	c.RWMutex.RUnlock()
 	c.RegisterStringCore(k, v)
-	// Register it first. If a valid cfg format isn't found, an error/ will be
-	// returned, so registering it afterwords would mean the setting would not
-	// exist.
+	// Register it first. If a valid cfg format isn't found, an error/ will be returned,
+	// so registering it afterwords would mean the setting would not exist.
 	c.RegisterString(CfgFormat, "")
 	format, err := formatFromFilename(v)
 	if err != nil {
 		return err
 	}
-	// Now we can update the format, since it wasn't set before, it can be set now
-	// before it becomes read only.
+	// Now we can update the format, since it wasn't set before, it can be set now before
+	// it becomes read only.
 	c.UpdateString(CfgFormat, format.String())
 	c.RWMutex.Lock()
-	c.useCfgFile = true
+	c.useCfg = true
 	c.RWMutex.Unlock()
 	return nil
 }
@@ -67,12 +66,11 @@ func RegisterSetting(typ, name, short string, value interface{}, dflt, usage str
 func (c *Cfg) RegisterSetting(typ, name, short string, value interface{}, dflt string, usage string, IsCore, IsCfg, IsEnv, IsFlag bool) error {
 	c.RWMutex.RLock()
 	_, ok := c.settings[name]
+	c.RWMutex.RUnlock()
 	if ok {
 		// Settings can't be re-registered.
-		c.RWMutex.RUnlock()
 		return fmt.Errorf("%s is already registered, cannot re-register settings", name)
 	}
-	c.RWMutex.RUnlock()
 	c.RWMutex.Lock()
 	defer c.RWMutex.Unlock()
 	// Add the setting
@@ -100,19 +98,24 @@ func (c *Cfg) RegisterSetting(typ, name, short string, value interface{}, dflt s
 		}
 		c.shortFlags[short] = name
 	}
-	// Keep track of whether or not a config is being used. If a setting is
-	// registered as a config setting, it is assumed a configuration source
-	// is being used.
-	c.useEnv = IsEnv
-	c.useCfgFile = IsCfg
-	c.useFlags = IsFlag
+	// Keep track of whether or not a cfg is being used. If a setting is registered
+	// as a cfg setting, it is assumed a cfg source is being used.
+	if IsEnv {
+		c.useEnv = IsEnv
+	}
+	if IsCfg {
+		c.useCfg = IsCfg
+	}
+	if IsFlag {
+		c.useFlags = IsFlag
+	}
 	return nil
 }
 
 // Core settings are not overridable via cfg file, env vars, or command-line
 // flags.  They can only be set via their respective Update() method or func.
 
-// RegisterBoolCoreE adds the information to the AppsConfig struct, but does not
+// RegisterBoolCoreE adds the information to the appCfg global, but does not
 // save it to its environment variable. E versions return received errors.
 func RegisterBoolCoreE(k string, v bool) error { return appCfg.RegisterBoolCoreE(k, v) }
 func (c *Cfg) RegisterBoolCoreE(k string, v bool) error {
@@ -125,7 +128,7 @@ func (c *Cfg) RegisterBoolCore(k string, v bool) {
 	c.RegisterBoolCoreE(k, v)
 }
 
-// RegisterIntCoreE adds the information to the AppsConfig struct, but does not
+// RegisterIntCoreE adds the information to the appCfg global, but does not
 // save it to its environment variable: E versions return received errors.
 func RegisterIntCoreE(k string, v int) error { return appCfg.RegisterIntCoreE(k, v) }
 func (c *Cfg) RegisterIntCoreE(k string, v int) error {
@@ -138,7 +141,7 @@ func (c *Cfg) RegisterIntCore(k string, v int) {
 	c.RegisterIntCoreE(k, v)
 }
 
-// RegisterInt64CoreE adds the information to the AppsConfig struct, but does not
+// RegisterInt64CoreE adds the information to the appCfg global, but does not
 // save it to its environment variable: E versions return received errors.
 func RegisterInt64CoreE(k string, v int64) error { return appCfg.RegisterInt64CoreE(k, v) }
 func (c *Cfg) RegisterInt64CoreE(k string, v int64) error {
@@ -151,7 +154,7 @@ func (c *Cfg) RegisterInt64Core(k string, v int64) {
 	c.RegisterInt64CoreE(k, v)
 }
 
-// RegisterStringCoreE adds the information to the AppsConfig struct, but does not
+// RegisterStringCoreE adds the information to the appCfg global, but does not
 // save it to its environment variable: E versions return received errors.
 func RegisterStringCoreE(k, v string) error { return appCfg.RegisterStringCoreE(k, v) }
 func (c *Cfg) RegisterStringCoreE(k, v string) error {
@@ -170,7 +173,7 @@ func (c *Cfg) RegisterStringCore(k, v string) {
 // parameter. If the envName == "" it will not be settable via an environment
 // variable.
 
-// RegisterBoolCfgE adds the information to the AppsConfig struct, but does not
+// RegisterBoolCfgE adds the information to the appCfg global, but does not
 // save it to its environment variable: E versions return received errors.
 func RegisterBoolCfgE(k string, v bool) error { return appCfg.RegisterBoolCfgE(k, v) }
 func (c *Cfg) RegisterBoolCfgE(k string, v bool) error {
@@ -183,7 +186,7 @@ func (c *Cfg) RegisterBoolCfg(k string, v bool) {
 	c.RegisterBoolCfgE(k, v)
 }
 
-// RegisterIntCfgE adds the information to the AppsConfig struct, but does not
+// RegisterIntCfgE adds the information to the appCfg global, but does not
 // save it to its environment variable: E versions return received errors.
 func RegisterIntCfgE(k string, v int) error { return appCfg.RegisterIntCfgE(k, v) }
 func (c *Cfg) RegisterIntCfgE(k string, v int) error {
@@ -196,11 +199,9 @@ func (c *Cfg) RegisterIntCfg(k string, v int) {
 	c.RegisterIntCfgE(k, v)
 }
 
-// RegisterInt64Cfg adds the informatio to the AppsConfig struct, but does not
+// RegisterInt64Cfg adds the informatio to the appCfg global, but does not
 // save it to its environment variable: E versions return received errors.
-func RegisterInt64CfgE(k string, v int64) error {
-	return appCfg.RegisterInt64CfgE(k, v)
-}
+func RegisterInt64CfgE(k string, v int64) error { return appCfg.RegisterInt64CfgE(k, v) }
 func (c *Cfg) RegisterInt64CfgE(k string, v int64) error {
 	return c.RegisterSetting("int64", k, "", v, strconv.FormatInt(v, 10), "", false, true, true, false)
 }
@@ -211,7 +212,7 @@ func (c *Cfg) RegisterInt64Cfg(k string, v int64) {
 	c.RegisterInt64CfgE(k, v)
 }
 
-// RegisterStringCfgE adds the information to the AppsConfig struct, but does not
+// RegisterStringCfgE adds the information to the appCfg global, but does not
 // save it to its environment variable: E versions return received errors.
 func RegisterStringCfgE(k, v string) error { return appCfg.RegisterStringCfgE(k, v) }
 func (c *Cfg) RegisterStringCfgE(k, v string) error {
@@ -249,7 +250,7 @@ func (c *Cfg) RegisterBoolFlag(k, s string, v bool, dflt, usage string) {
 	c.RegisterBoolFlagE(k, s, v, dflt, usage)
 }
 
-// RegisterIntFlagE adds the information to the AppsConfig struct, but does not
+// RegisterIntFlagE adds the information to the appCfg global, but does not
 // save it to its environment variable: E versions return received errors.
 func RegisterIntFlagE(k, s string, v int, dflt, usage string) error {
 	return appCfg.RegisterIntFlagE(k, s, v, dflt, usage)
@@ -266,7 +267,7 @@ func (c *Cfg) RegisterIntFlag(k, s string, v int, dflt, usage string) {
 	c.RegisterIntFlagE(k, s, v, dflt, usage)
 }
 
-// RegisterInt64FlagE adds the information to the AppsConfig struct, but does not
+// RegisterInt64FlagE adds the information to the appCfg global, but does not
 // save it to its environment variable: E versions return received errors.
 func RegisterInt64FlagE(k, s string, v int64, dflt, usage string) error {
 	return appCfg.RegisterInt64FlagE(k, s, v, dflt, usage)
@@ -283,7 +284,7 @@ func (c *Cfg) RegisterInt64Flag(k, s string, v int64, dflt, usage string) {
 	c.RegisterInt64FlagE(k, s, v, dflt, usage)
 }
 
-// RegisterStringFlagE adds the information to the AppsConfig struct, but does not
+// RegisterStringFlagE adds the information to the appCfg global, but does not
 // save it to its environment variable: E versions return received errors.
 func RegisterStringFlagE(k, s, v, dflt, usage string) error {
 	return appCfg.RegisterStringFlagE(k, s, v, dflt, usage)
@@ -300,7 +301,7 @@ func (c *Cfg) RegisterStringFlag(k, s, v, dflt, usage string) {
 	c.RegisterStringFlagE(k, s, v, dflt, usage)
 }
 
-// RegisterBoolE adds the information to the AppsConfig struct, but does not
+// RegisterBoolE adds the information to the appCfg global, but does not
 // save it to its environment variable: E versions return received errors.
 func RegisterBoolE(k string, v bool) error { return appCfg.RegisterBoolE(k, v) }
 func (c *Cfg) RegisterBoolE(k string, v bool) error {
@@ -313,7 +314,7 @@ func (c *Cfg) RegisterBool(k string, v bool) {
 	c.RegisterBoolE(k, v)
 }
 
-// RegisterIntE adds the information to the AppsConfig struct, but does not
+// RegisterIntE adds the information to the appCfg global, but does not
 // save it to its environment variable: E versions return received errors.
 func RegisterIntE(k string, v int) error { return appCfg.RegisterIntE(k, v) }
 func (c *Cfg) RegisterIntE(k string, v int) error {
@@ -326,14 +327,12 @@ func (c *Cfg) RegisterInt(k string, v int) {
 	c.RegisterIntE(k, v)
 }
 
-// RegisterInt64E adds the information to the AppsConfig struct, but does not
+// RegisterInt64E adds the information to the appCfg global, but does not
 // save it to its environment variable: E versions return received errors.
 func RegisterInt64E(k string, v int64) error { return appCfg.RegisterInt64E(k, v) }
 func (c *Cfg) RegisterInt64E(k string, v int64) error {
 	return c.RegisterSetting("int64", k, "", v, strconv.FormatInt(v, 10), "", false, false, false, false)
 }
-
-// RegisterInt64 adds the information to the global Cfg, appCfg.
 
 // RegisterInt64 calls RegisterInt64E and ignores any error.
 func RegisterInt64(k string, v int64) { appCfg.RegisterInt64(k, v) }
@@ -341,7 +340,7 @@ func (c *Cfg) RegisterInt64(k string, v int64) {
 	c.RegisterInt64E(k, v)
 }
 
-// RegisterStringE adds the information to the AppsConfig struct, but does not
+// RegisterStringE adds the information to the appCfg global, but does not
 // save it to its environment variable: E versions return received errors.
 func RegisterStringE(k, v string) error { return appCfg.RegisterStringE(k, v) }
 func (c *Cfg) RegisterStringE(k, v string) error {

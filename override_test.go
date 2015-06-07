@@ -15,20 +15,20 @@ type iTest struct {
 	expectedErr string
 }
 
-func NewITests() []*iTest {
-	tests := make([]*iTest, 12)
-	tests[0] = &iTest{"corebool", "corebool", true, "", "corebool is not a flag: only flags can be overridden"}
-	tests[1] = &iTest{"coreint", "coreint", 42, "", "coreint is not a flag: only flags can be overridden"}
-	tests[2] = &iTest{"corestring", "corestring", "beeblebrox", "", "corestring is not a flag: only flags can be overridden"}
-	tests[3] = &iTest{"cfgbool", "cfgbool", true, "", "cfgbool is not a flag: only flags can be overridden"}
-	tests[4] = &iTest{"cfgint", "cfgint", 43, "", "cfgint is not a flag: only flags can be overridden"}
-	tests[5] = &iTest{"cfgstring", "cfgstring", "frood", "", "cfgstring is not a flag: only flags can be overridden"}
-	tests[6] = &iTest{"flagbool", "flagbool", true, "true", ""}
-	tests[7] = &iTest{"flagint", "flagint", 41, "41", ""}
-	tests[8] = &iTest{"flagstring", "flagstring", "towel", "towel", ""}
-	tests[9] = &iTest{"bool", "bool", true, "", "bool is not a flag: only flags can be overridden"}
-	tests[10] = &iTest{"int", "int", 3, "", "int is not a flag: only flags can be overridden"}
-	tests[11] = &iTest{"string", "string", "don't panic", "dont' panic", "string is not a flag: only flags can be overridden"}
+func NewITests() []iTest {
+	tests := make([]iTest, 12)
+	tests[0] = iTest{"corebool", "corebool", true, "", "corebool is not a flag: only flags can be overridden"}
+	tests[1] = iTest{"coreint", "coreint", 42, "", "coreint is not a flag: only flags can be overridden"}
+	tests[2] = iTest{"corestring", "corestring", "beeblebrox", "", "corestring is not a flag: only flags can be overridden"}
+	tests[3] = iTest{"cfgbool", "cfgbool", true, "", "cfgbool is not a flag: only flags can be overridden"}
+	tests[4] = iTest{"cfgint", "cfgint", 43, "", "cfgint is not a flag: only flags can be overridden"}
+	tests[5] = iTest{"cfgstring", "cfgstring", "frood", "", "cfgstring is not a flag: only flags can be overridden"}
+	tests[6] = iTest{"flagbool", "flagbool", true, "true", ""}
+	tests[7] = iTest{"flagint", "flagint", 41, "41", ""}
+	tests[8] = iTest{"flagstring", "flagstring", "towel", "towel", ""}
+	tests[9] = iTest{"bool", "bool", true, "", "bool is not a flag: only flags can be overridden"}
+	tests[10] = iTest{"int", "int", 3, "", "int is not a flag: only flags can be overridden"}
+	tests[11] = iTest{"string", "string", "don't panic", "dont' panic", "string is not a flag: only flags can be overridden"}
 	return tests
 }
 

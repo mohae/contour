@@ -90,12 +90,6 @@ var (
 )
 
 func init() {
-	initCfgs()
-}
-
-// initConfigs initializes the configs var. This can be called to reset it in
-// testing too.
-func initCfgs() {
 	appCfg = NewCfg(app)
 }
 
