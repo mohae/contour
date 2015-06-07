@@ -14,7 +14,7 @@ import (
 // Any args left, after filtering, are returned to the caller.
 func FilterArgs(args []string) ([]string, error) { return appCfg.FilterArgs(args) }
 func (c *Cfg) FilterArgs(args []string) ([]string, error) {
-	var flags int // counter, gets reset with each type
+	var flagCount int // counter, gets reset with each type
 	// Preallocate the worst case scenario.
 	// Get the flag filters from the config variable information.
 	boolFilterNames := c.GetBoolFilterNames()
@@ -23,9 +23,9 @@ func (c *Cfg) FilterArgs(args []string) ([]string, error) {
 	c.RWMutex.Lock()
 	for _, name := range boolFilterNames {
 		if c.settings[name].IsFlag {
-			boolFilters[flags] = c.flagSet.Bool(name, c.settings[name].Value.(bool), c.settings[name].Usage)
-			bFilterNames[flags] = name
-			flags++
+			boolFilters[flagCount] = c.flagSet.Bool(name, c.settings[name].Value.(bool), c.settings[name].Usage)
+			bFilterNames[flagCount] = name
+			flagCount++
 		}
 	}
 	c.RWMutex.Unlock()
@@ -34,13 +34,13 @@ func (c *Cfg) FilterArgs(args []string) ([]string, error) {
 	// Preallocate the worst case scenario.
 	intFilters := make([]*int, len(intFilterNames))
 	iFilterNames := make([]string, len(intFilterNames))
-	flags = 0
+	flagCount = 0
 	c.RWMutex.Lock()
 	for _, name := range intFilterNames {
 		if c.settings[name].IsFlag {
-			intFilters[flags] = c.flagSet.Int(name, c.settings[name].Value.(int), c.settings[name].Usage)
-			iFilterNames[flags] = name
-			flags++
+			intFilters[flagCount] = c.flagSet.Int(name, c.settings[name].Value.(int), c.settings[name].Usage)
+			iFilterNames[flagCount] = name
+			flagCount++
 		}
 	}
 	c.RWMutex.Unlock()
@@ -49,13 +49,13 @@ func (c *Cfg) FilterArgs(args []string) ([]string, error) {
 	// Preallocate the worst case scenario.
 	stringFilters := make([]*string, len(stringFilterNames))
 	sFilterNames := make([]string, len(stringFilterNames))
-	flags = 0
+	flagCount = 0
 	c.RWMutex.Lock()
 	for _, name := range stringFilterNames {
 		if c.settings[name].IsFlag {
-			stringFilters[flags] = c.flagSet.String(name, c.settings[name].Value.(string), c.settings[name].Usage)
-			sFilterNames[flags] = name
-			flags++
+			stringFilters[flagCount] = c.flagSet.String(name, c.settings[name].Value.(string), c.settings[name].Usage)
+			sFilterNames[flagCount] = name
+			flagCount++
 		}
 	}
 	// Parse args for flags
@@ -76,7 +76,7 @@ func (c *Cfg) FilterArgs(args []string) ([]string, error) {
 		s := c.settings[bFilterNames[i]].Value
 		c.RWMutex.RUnlock()
 		if s != v {
-			Override(bFilterNames[i], v)
+			c.Override(bFilterNames[i], v)
 		}
 	}
 	for i, v := range intFilters {
@@ -88,7 +88,7 @@ func (c *Cfg) FilterArgs(args []string) ([]string, error) {
 		s := c.settings[iFilterNames[i]].Value
 		c.RWMutex.RUnlock()
 		if s != v {
-			Override(iFilterNames[i], v)
+			c.Override(iFilterNames[i], v)
 		}
 	}
 	for i, v := range stringFilters {
@@ -100,7 +100,7 @@ func (c *Cfg) FilterArgs(args []string) ([]string, error) {
 		s := c.settings[sFilterNames[i]].Value
 		c.RWMutex.RUnlock()
 		if s != v {
-			Override(sFilterNames[i], v)
+			c.Override(sFilterNames[i], v)
 		}
 	}
 	c.RWMutex.Lock()
