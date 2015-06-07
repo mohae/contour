@@ -14,23 +14,19 @@ type setting struct {
 	Usage string
 	// Default is the string version of the default, for usage
 	Default string
-	// IsCore: whether or not this is considered a core setting. Core
-	// settings if for things like application name, where you don't want
-	// anything else overwriting that value, once set. If a setting IsCore
-	// it cannot be over-written and the IsCore value cannot be changed.
+	// IsCore: whether or not this is considered a core setting. Core settings if for
+	// settings whose values you don't want overridden or changed, once registered.
 	//
-	// When IsCore is true, IsConfig and IsFlag are always false. These
-	// cannot be changed either.
+	// When IsCore is true, IsConfig and IsFlag are always false. These cannot be changed either.
 	IsCore bool
-	// IsConfig: whether or not this if a Cfg setting. When true, and a config
-	// file exists, it will check for this setting in the config file.
+	// IsConfig: whether or not this if a Cfg setting. When true, and a cfg file exists,
+	// it will check for this setting in the config file.
 	IsCfg bool
-	// IsEnv: whether or not this is a Env setting. When true, and the EnvName
-	// is != "", it will check for this settings in the environment. When IsCfg
-	// is true, IsCfg will also be true as IsEnv is a subset of Cfg.
+	// IsEnv: whether or not this is an env variable.  When true, and the cfg is set to
+	// useEnvs, the setting will be settable via env variables. All Cfg and Flag settings
+	// result in IsEnv being true.
 	IsEnv bool
-	// IsFlag:  whether or not this is a flag. When IsFlag is true, IsCfg will
-	// also be true since a Flag is a subset of Cfg.
+	// IsFlag:  whether or not this is a flag. When true, IsCfg and IsEnv will also be true.
 	IsFlag bool
 	// Alias
 	Alias []string

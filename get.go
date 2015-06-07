@@ -1,10 +1,7 @@
 package contour
 
-// E versions, these return the error. Non-e versions are just wrapped calls to
-// these functions with the error dropped.
-
-// Config Get Methods
-
+// Get functions and methods.
+//
 // E versions, these return the error. Non-e versions are just wrapped calls to
 // these functions with the error dropped.
 
@@ -133,8 +130,8 @@ func (c *Cfg) GetInterface(k string) interface{} {
 // GetBoolFilterNames returns a list of filter names (flags).
 func GetBoolFilterNames() []string { return appCfg.GetBoolFilterNames() }
 func (c *Cfg) GetBoolFilterNames() []string {
-	c.RWMutex.Lock()
-	defer c.RWMutex.Unlock()
+	c.RWMutex.RLock()
+	defer c.RWMutex.RUnlock()
 	var names []string
 	for k, setting := range c.settings {
 		if setting.IsFlag && setting.Type == "bool" {
@@ -147,8 +144,8 @@ func (c *Cfg) GetBoolFilterNames() []string {
 // GetIntFilterNames returns a list of filter names (flags).
 func GetIntFilterNames() []string { return appCfg.GetBoolFilterNames() }
 func (c *Cfg) GetIntFilterNames() []string {
-	c.RWMutex.Lock()
-	defer c.RWMutex.Unlock()
+	c.RWMutex.RLock()
+	defer c.RWMutex.RUnlock()
 	var names []string
 	for k, setting := range c.settings {
 		if setting.IsFlag && setting.Type == "int" {
@@ -161,8 +158,8 @@ func (c *Cfg) GetIntFilterNames() []string {
 // GetInt64FilterNames returns a list of filter names (flags).
 func GetInt64FilterNames() []string { return appCfg.GetBoolFilterNames() }
 func (c *Cfg) GetInt64FilterNames() []string {
-	c.RWMutex.Lock()
-	defer c.RWMutex.Unlock()
+	c.RWMutex.RLock()
+	defer c.RWMutex.RUnlock()
 	var names []string
 	for k, setting := range c.settings {
 		if setting.IsFlag && setting.Type == "int64" {
@@ -175,8 +172,8 @@ func (c *Cfg) GetInt64FilterNames() []string {
 // GetStringFilterNames returns a list of filter names (flags).
 func GetStringFilterNames() []string { return appCfg.GetBoolFilterNames() }
 func (c *Cfg) GetStringFilterNames() []string {
-	c.RWMutex.Lock()
-	defer c.RWMutex.Unlock()
+	c.RWMutex.RLock()
+	defer c.RWMutex.RUnlock()
 	var names []string
 	for k, setting := range c.settings {
 		if setting.IsFlag && setting.Type == "string" {

@@ -121,3 +121,15 @@ func (c *Cfg) SetFlagString(k, s, v, dflt, u string) {
 	c.SetFlagStringE(k, s, v, dflt, u)
 
 }
+
+// SetName set's the cfg's name.
+func SetName(name string) { appCfg.SetName(name) }
+func (c *Cfg) SetName(name string) {
+	c.name = name
+}
+
+// Name returns the cfg's name.
+func Name() string { return appCfg.Name() }
+func (c *Cfg) Name() string {
+	return c.name
+}

@@ -61,13 +61,9 @@ func NewCfg(name string) *Cfg {
 	return &Cfg{name: name, errOnMissingCfg: true, searchPath: true, flagSet: flag.NewFlagSet(name, flag.ContinueOnError), settings: map[string]setting{}, cfgVars: map[string]struct{}{}, useFlags: true, shortFlags: map[string]string{}}
 }
 
-// Loadenv is a convenience function for the global appCfg.
-func Loadenv() error {
-	return appCfg.Loadenv()
-}
-
 // Loadenv, if cfg.useEnvs, checks the cfg's env vars and updates the settings
 // if they are set.
+func Loadenv() error { return appCfg.Loadenv() }
 func (c *Cfg) Loadenv() error {
 	c.RWMutex.RLock()
 	if !c.useEnv {
@@ -303,7 +299,7 @@ func (c *Cfg) getFile() (cfg interface{}, err error) {
 	// have been registered already. so if it doesn't exit, err.
 	format, ok := c.settings[CfgFormat]
 	if !ok {
-		return nil, fmt.Errorf("cfgvformat was not set")
+		return nil, fmt.Errorf("cfg format was not set")
 	}
 	if format.Value.(string) == "" {
 		return nil, fmt.Errorf("cfg format was not set")
