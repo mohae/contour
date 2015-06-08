@@ -17,7 +17,6 @@ func TestGetsE(t *testing.T) {
 		case *bool:
 			b = *r.(*bool)
 		}
-
 		if !b {
 			t.Errorf("Expected \"true\", got %t", b)
 		}
@@ -35,6 +34,14 @@ func TestGetsE(t *testing.T) {
 		t.Errorf("Expected error to be nil, got %q", err.Error())
 	} else {
 		if ri != 42 {
+			t.Errorf("Expected 42, got %d", ri)
+		}
+	}
+	ri64, err := testCfg.GetInt64E("coreint64")
+	if err != nil {
+		t.Errorf("Expected error to be nil, got %q", err.Error())
+	} else {
+		if ri64 != int64(42) {
 			t.Errorf("Expected 42, got %d", ri)
 		}
 	}
@@ -84,6 +91,10 @@ func TestGets(t *testing.T) {
 	if ri != 42 {
 		t.Errorf("Expected 42, got %d", ri)
 	}
+	ri64 := testCfg.GetInt64("coreint64")
+	if ri64 != int64(42) {
+		t.Errorf("Expected 42, got %d", ri)
+	}
 	rs := testCfg.GetString("corestring")
 	if rs != "a core string" {
 		t.Errorf("Expected \"a core string\", got %q", rs)
@@ -97,21 +108,5 @@ func TestGets(t *testing.T) {
 	}
 	if !b {
 		t.Errorf("Expected true, got %t", b)
-	}
-}
-
-func TestGetFilterNames(t *testing.T) {
-	testCfg := newTestCfg()
-	boolFilters := testCfg.GetBoolFilterNames()
-	if toString.Get(boolFilters) != "[\"flagbool\"]" {
-		t.Errorf("Expected [\"flagbool\"], got %s", toString.Get(boolFilters))
-	}
-	intFilters := testCfg.GetIntFilterNames()
-	if toString.Get(intFilters) != "[\"flagint\"]" {
-		t.Errorf("Expected [\"flagint\"], got %s", toString.Get(intFilters))
-	}
-	stringFilters := testCfg.GetStringFilterNames()
-	if toString.Get(stringFilters) != "[\"flagstring\"]" {
-		t.Errorf("Expected [\"flagstring\"], got %s", toString.Get(stringFilters))
 	}
 }
