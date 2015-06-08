@@ -5,8 +5,8 @@ import (
 )
 
 func TestGetsE(t *testing.T) {
-	testCfg := newTestCfg()
-	r, err := testCfg.GetE("corebool")
+	appCfg = newTestCfg()
+	r, err := GetE("corebool")
 	if err != nil {
 		t.Errorf("Expected error to be nil, got %q", err.Error())
 	} else {
@@ -21,7 +21,7 @@ func TestGetsE(t *testing.T) {
 			t.Errorf("Expected \"true\", got %t", b)
 		}
 	}
-	rb, err := testCfg.GetBoolE("corebool")
+	rb, err := GetBoolE("corebool")
 	if err != nil {
 		t.Errorf("Expected error to be nil, got %q", err.Error())
 	} else {
@@ -29,7 +29,7 @@ func TestGetsE(t *testing.T) {
 			t.Errorf("Expected \"true\", got %t", rb)
 		}
 	}
-	ri, err := testCfg.GetIntE("coreint")
+	ri, err := GetIntE("coreint")
 	if err != nil {
 		t.Errorf("Expected error to be nil, got %q", err.Error())
 	} else {
@@ -37,7 +37,7 @@ func TestGetsE(t *testing.T) {
 			t.Errorf("Expected 42, got %d", ri)
 		}
 	}
-	ri64, err := testCfg.GetInt64E("coreint64")
+	ri64, err := GetInt64E("coreint64")
 	if err != nil {
 		t.Errorf("Expected error to be nil, got %q", err.Error())
 	} else {
@@ -45,7 +45,7 @@ func TestGetsE(t *testing.T) {
 			t.Errorf("Expected 42, got %d", ri)
 		}
 	}
-	rs, err := testCfg.GetStringE("corestring")
+	rs, err := GetStringE("corestring")
 	if err != nil {
 		t.Errorf("Expected error to be nil, got %q", err.Error())
 	} else {
@@ -53,7 +53,7 @@ func TestGetsE(t *testing.T) {
 			t.Errorf("Expected \"a core string\", got %q", rs)
 		}
 	}
-	rif, err := testCfg.GetInterfaceE("corebool")
+	rif, err := GetInterfaceE("corebool")
 	if err != nil {
 		t.Errorf("Expected error to be nil, got %q", err.Error())
 	} else {
@@ -71,8 +71,8 @@ func TestGetsE(t *testing.T) {
 }
 
 func TestGets(t *testing.T) {
-	testCfg := newTestCfg()
-	r := testCfg.Get("corebool")
+	appCfg = newTestCfg()
+	r := Get("corebool")
 	var b bool
 	switch r.(type) {
 	case bool:
@@ -83,23 +83,23 @@ func TestGets(t *testing.T) {
 	if !b {
 		t.Errorf("Expected \"true\", got %t", r)
 	}
-	rb := testCfg.GetBool("corebool")
+	rb := GetBool("corebool")
 	if !rb {
 		t.Errorf("Expected true, got %t", rb)
 	}
-	ri := testCfg.GetInt("coreint")
+	ri := GetInt("coreint")
 	if ri != 42 {
 		t.Errorf("Expected 42, got %d", ri)
 	}
-	ri64 := testCfg.GetInt64("coreint64")
+	ri64 := GetInt64("coreint64")
 	if ri64 != int64(42) {
 		t.Errorf("Expected 42, got %d", ri)
 	}
-	rs := testCfg.GetString("corestring")
+	rs := GetString("corestring")
 	if rs != "a core string" {
 		t.Errorf("Expected \"a core string\", got %q", rs)
 	}
-	rif := testCfg.GetInterface("corebool")
+	rif := GetInterface("corebool")
 	switch rif.(type) {
 	case bool:
 		b = rif.(bool)

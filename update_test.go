@@ -1,6 +1,7 @@
 package contour
 
 import (
+	"fmt"
 	"strconv"
 	"testing"
 )
@@ -21,25 +22,30 @@ func TestUpdateBools(t *testing.T) {
 		{"bool", false, ""},
 		{"bool", true, ""},
 	}
-	testCfg := newTestCfg()
-	testCfg.name = "update"
+	appCfg = newTestCfg()
 	for i, test := range bTests {
-		err := testCfg.UpdateBoolE(test.key, test.value)
+		err := UpdateBoolE(test.key, test.value)
 		if err != nil {
 			if test.err != err.Error() {
-				t.Errorf("%d: expected %q got %q", i, test.err, err)
+				t.Errorf("%d: expected %q got %q", i, test.err, err.Error())
 			}
 			continue
 		}
-		b, err := testCfg.GetBoolE(test.key)
+		b, err := GetBoolE(test.key)
 		if err != nil {
 			if test.err != err.Error() {
-				t.Errorf("%d: expected %q got %q", i, test.err, err)
+				t.Errorf("%d: expected %q got %q", i, test.err, err.Error())
 			}
 			continue
 		}
 		if b != test.value {
-			t.Errorf("%d: expected %t got %t", i, test.value, b)
+			t.Errorf("%d: expected %v got %v", i, test.value, b)
+		}
+		// Non-E
+		UpdateBool(test.key, false)
+		b = GetBool(test.key)
+		if b != false {
+			t.Errorf("%d: expected false got %v", i, b)
 		}
 	}
 }
@@ -50,23 +56,22 @@ func TestUpdateInts(t *testing.T) {
 		value int
 		err   string
 	}{
-		{"coreint", 42, "cannot update \"coreint\": core settings cannot be updated"},
 		{"", 0, "cannot update \"\": setting not found"},
+		{"coreint", 42, "cannot update \"coreint\": core settings cannot be updated"},
 		{"flagint", 42, ""},
 		{"cfgint", 42, ""},
 		{"int", 42, ""},
 	}
-	testCfg := newTestCfg()
-	testCfg.name = "update"
+	appCfg = newTestCfg()
 	for i, test := range iTests {
-		err := testCfg.UpdateIntE(test.key, test.value)
+		err := UpdateIntE(test.key, test.value)
 		if err != nil {
 			if test.err != err.Error() {
 				t.Errorf("%ds: expected %q got %q", i, test.err, err)
 			}
 			continue
 		}
-		i, err := testCfg.GetIntE(test.key)
+		i, err := GetIntE(test.key)
 		if err != nil {
 			if test.err != err.Error() {
 				t.Errorf("%d: expected %q got %q", i, test.err, err)
@@ -75,6 +80,12 @@ func TestUpdateInts(t *testing.T) {
 		}
 		if i != test.value {
 			t.Errorf("%d: expected %q got %q", i, test.value, strconv.Itoa(i))
+		}
+		// Non-e
+		UpdateInt(test.key, test.value+10)
+		i = GetInt(test.key)
+		if i != test.value+10 {
+			t.Errorf("%d: expected %v got %v", i, test.value+10, i)
 		}
 	}
 }
@@ -91,25 +102,30 @@ func TestUpdateInt64s(t *testing.T) {
 		{"cfgint64", int64(42), ""},
 		{"int", int64(42), ""},
 	}
-	testCfg := newTestCfg()
-	testCfg.name = "update"
+	appCfg = newTestCfg()
 	for i, test := range i64Tests {
-		err := testCfg.UpdateInt64E(test.key, test.value)
+		err := UpdateInt64E(test.key, test.value)
 		if err != nil {
 			if test.err != err.Error() {
-				t.Errorf("%d: expected %q got %q", i, test.err, err)
+				t.Errorf("%d: expected %q got %q", i, test.err, err.Error())
 			}
 			continue
 		}
-		i64, err := testCfg.GetInt64E(test.key)
+		i64, err := GetInt64E(test.key)
 		if err != nil {
 			if test.err != err.Error() {
-				t.Errorf("%d: expected %q got %q", i, test.err, err)
+				t.Errorf("%d: expected %q got %q", i, test.err, err.Error())
 			}
 			continue
 		}
 		if i64 != test.value {
-			t.Errorf("%d: expected %q got %q", i, test.value, strconv.Itoa(int(i64)))
+			t.Errorf("%d: expected %v got %v", i, test.value, i64)
+		}
+		// Non-e
+		UpdateInt64(test.key, test.value+int64(10))
+		i64 = GetInt64(test.key)
+		if i64 != test.value+int64(10) {
+			t.Errorf("%d: expected %v got %v", i, test.value+int64(10), i64)
 		}
 	}
 }
@@ -130,17 +146,16 @@ func TestUpdateStrings(t *testing.T) {
 		{"string", "false", ""},
 		{"string", "t", ""},
 	}
-	testCfg := newTestCfg()
-	testCfg.name = "update"
+	appCfg = newTestCfg()
 	for i, test := range sTests {
-		err := testCfg.UpdateStringE(test.key, test.value)
+		err := UpdateStringE(test.key, test.value)
 		if err != nil {
 			if test.err != err.Error() {
 				t.Errorf("%d: expected %q got %q", i, test.err, err)
 			}
 			continue
 		}
-		s, err := testCfg.GetStringE(test.key)
+		s, err := GetStringE(test.key)
 		if err != nil {
 			if test.err != err.Error() {
 				t.Errorf("%d: expected %q got %q", i, test.err, err)
@@ -149,6 +164,12 @@ func TestUpdateStrings(t *testing.T) {
 		}
 		if s != test.value {
 			t.Errorf("%d: expected %t got %s", i, test.value, s)
+		}
+		// Non-e
+		UpdateString(test.key, fmt.Sprintf("%s %s", test.value, test.value))
+		s = GetString(test.key)
+		if s != fmt.Sprintf("%s %s", test.value, test.value) {
+			t.Errorf("%d: expected %v got %v", i, fmt.Sprintf("%s %s", test.value, test.value), s)
 		}
 	}
 }

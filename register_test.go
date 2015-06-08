@@ -1,7 +1,6 @@
 package contour
 
 import (
-	//"strconv"
 	"testing"
 )
 
@@ -148,18 +147,18 @@ func TestRegisterCoreSettings(t *testing.T) {
 		{"corestring", "string", "bar", "bar", "", true, true, false, false, false},
 		{"corestring", "string", "baz", "bar", "corestring is already registered, cannot re-register settings", true, true, false, false, false},
 	}
-	cfg := NewCfg("test register")
+	appCfg = NewCfg("test register")
 	var err error
 	for i, test := range tests {
 		switch test.typ {
 		case "bool":
-			err = cfg.RegisterBoolCoreE(test.name, test.value.(bool))
+			err = RegisterBoolCoreE(test.name, test.value.(bool))
 		case "int":
-			err = cfg.RegisterIntCoreE(test.name, test.value.(int))
+			err = RegisterIntCoreE(test.name, test.value.(int))
 		case "int64":
-			err = cfg.RegisterInt64CoreE(test.name, test.value.(int64))
+			err = RegisterInt64CoreE(test.name, test.value.(int64))
 		case "string":
-			err = cfg.RegisterStringCoreE(test.name, test.value.(string))
+			err = RegisterStringCoreE(test.name, test.value.(string))
 		default:
 			t.Errorf("%d: unsupported typ: %s", i, test.typ)
 			continue
@@ -172,20 +171,59 @@ func TestRegisterCoreSettings(t *testing.T) {
 		if !test.checkValues {
 			continue
 		}
-		if cfg.Get(test.name) != test.expected {
-			t.Errorf("%d: expected %v got %v", i, test.expected, cfg.Get(test.name))
+		if Get(test.name) != test.expected {
+			t.Errorf("%d: expected %v got %v", i, test.expected, Get(test.name))
 		}
-		if cfg.IsCore(test.name) != test.IsCore {
-			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, cfg.IsCore(test.name))
+		if IsCore(test.name) != test.IsCore {
+			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, IsCore(test.name))
 		}
-		if cfg.IsCfg(test.name) != test.IsCfg {
-			t.Errorf("%d expected IsCfg to be %v, got %v", i, test.IsCfg, cfg.IsCfg(test.name))
+		if IsCfg(test.name) != test.IsCfg {
+			t.Errorf("%d expected IsCfg to be %v, got %v", i, test.IsCfg, IsCfg(test.name))
 		}
-		if cfg.IsEnv(test.name) != test.IsEnv {
-			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, cfg.IsEnv(test.name))
+		if IsEnv(test.name) != test.IsEnv {
+			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, IsEnv(test.name))
 		}
-		if cfg.IsFlag(test.name) != test.IsFlag {
-			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, cfg.IsFlag(test.name))
+		if IsFlag(test.name) != test.IsFlag {
+			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, IsFlag(test.name))
+		}
+	}
+	// NonE
+	appCfg = NewCfg("test register")
+	for i, test := range tests {
+		// because we aren't checking errors, don't test empty names
+		if test.name == "" {
+			continue
+		}
+		switch test.typ {
+		case "bool":
+			RegisterBoolCoreE(test.name, test.value.(bool))
+		case "int":
+			RegisterIntCoreE(test.name, test.value.(int))
+		case "int64":
+			RegisterInt64CoreE(test.name, test.value.(int64))
+		case "string":
+			RegisterStringCoreE(test.name, test.value.(string))
+		default:
+			t.Errorf("%d: unsupported typ: %s", i, test.typ)
+			continue
+		}
+		if !test.checkValues {
+			continue
+		}
+		if Get(test.name) != test.expected {
+			t.Errorf("%d: expected %v got %v", i, test.expected, Get(test.name))
+		}
+		if IsCore(test.name) != test.IsCore {
+			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, IsCore(test.name))
+		}
+		if IsCfg(test.name) != test.IsCfg {
+			t.Errorf("%d expected IsCfg to be %v, got %v", i, test.IsCfg, IsCfg(test.name))
+		}
+		if IsEnv(test.name) != test.IsEnv {
+			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, IsEnv(test.name))
+		}
+		if IsFlag(test.name) != test.IsFlag {
+			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, IsFlag(test.name))
 		}
 	}
 }
@@ -216,18 +254,18 @@ func TestRegisterCfgSettings(t *testing.T) {
 		{"cfgstring", "string", "bar", "bar", "", true, false, true, true, false},
 		{"cfgstring", "string", "baz", "bar", "cfgstring is already registered, cannot re-register settings", true, false, true, true, false},
 	}
-	cfg := NewCfg("test register")
+	appCfg = NewCfg("test register")
 	var err error
 	for i, test := range tests {
 		switch test.typ {
 		case "bool":
-			err = cfg.RegisterBoolCfgE(test.name, test.value.(bool))
+			err = RegisterBoolCfgE(test.name, test.value.(bool))
 		case "int":
-			err = cfg.RegisterIntCfgE(test.name, test.value.(int))
+			err = RegisterIntCfgE(test.name, test.value.(int))
 		case "int64":
-			err = cfg.RegisterInt64CfgE(test.name, test.value.(int64))
+			err = RegisterInt64CfgE(test.name, test.value.(int64))
 		case "string":
-			err = cfg.RegisterStringCfgE(test.name, test.value.(string))
+			err = RegisterStringCfgE(test.name, test.value.(string))
 		default:
 			t.Errorf("%d: unsupported typ: %s", i, test.typ)
 			continue
@@ -240,22 +278,62 @@ func TestRegisterCfgSettings(t *testing.T) {
 		if !test.checkValues {
 			continue
 		}
-		if cfg.Get(test.name) != test.expected {
-			t.Errorf("%d: expected %v got %v", i, test.expected, cfg.Get(test.name))
+		if Get(test.name) != test.expected {
+			t.Errorf("%d: expected %v got %v", i, test.expected, Get(test.name))
 		}
-		if cfg.IsCore(test.name) != test.IsCore {
-			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, cfg.IsCore(test.name))
+		if IsCore(test.name) != test.IsCore {
+			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, IsCore(test.name))
 		}
-		if cfg.IsCfg(test.name) != test.IsCfg {
-			t.Errorf("%d expected IsCfg to be %v, got %v", i, test.IsCfg, cfg.IsCfg(test.name))
+		if IsCfg(test.name) != test.IsCfg {
+			t.Errorf("%d expected IsCfg to be %v, got %v", i, test.IsCfg, IsCfg(test.name))
 		}
-		if cfg.IsEnv(test.name) != test.IsEnv {
-			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, cfg.IsEnv(test.name))
+		if IsEnv(test.name) != test.IsEnv {
+			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, IsEnv(test.name))
 		}
-		if cfg.IsFlag(test.name) != test.IsFlag {
-			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, cfg.IsFlag(test.name))
+		if IsFlag(test.name) != test.IsFlag {
+			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, IsFlag(test.name))
 		}
 	}
+	// Npn=E
+	appCfg = NewCfg("test")
+	for i, test := range tests {
+		// skip empty names since we don't check errors
+		if test.name == "" {
+			continue
+		}
+		switch test.typ {
+		case "bool":
+			RegisterBoolCfg(test.name, test.value.(bool))
+		case "int":
+			RegisterIntCfg(test.name, test.value.(int))
+		case "int64":
+			RegisterInt64Cfg(test.name, test.value.(int64))
+		case "string":
+			RegisterStringCfg(test.name, test.value.(string))
+		default:
+			t.Errorf("%d: unsupported typ: %s", i, test.typ)
+			continue
+		}
+		if !test.checkValues {
+			continue
+		}
+		if Get(test.name) != test.expected {
+			t.Errorf("%d: expected %v got %v", i, test.expected, Get(test.name))
+		}
+		if IsCore(test.name) != test.IsCore {
+			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, IsCore(test.name))
+		}
+		if IsCfg(test.name) != test.IsCfg {
+			t.Errorf("%d expected IsCfg to be %v, got %v", i, test.IsCfg, IsCfg(test.name))
+		}
+		if IsEnv(test.name) != test.IsEnv {
+			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, IsEnv(test.name))
+		}
+		if IsFlag(test.name) != test.IsFlag {
+			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, IsFlag(test.name))
+		}
+	}
+
 }
 
 func TestRegisterFlagSettings(t *testing.T) {
@@ -285,18 +363,18 @@ func TestRegisterFlagSettings(t *testing.T) {
 		{"flagstring", "s", "string", "bar", "bar", "", true, false, true, true, true},
 		{"flagstring", "", "string", "baz", "bar", "flagstring is already registered, cannot re-register settings", true, false, true, true, true},
 	}
-	cfg := NewCfg("test register")
+	appCfg = NewCfg("test register")
 	var err error
 	for i, test := range tests {
 		switch test.typ {
 		case "bool":
-			err = cfg.RegisterBoolFlagE(test.name, test.short, test.value.(bool), "", "usage")
+			err = RegisterBoolFlagE(test.name, test.short, test.value.(bool), "", "usage")
 		case "int":
-			err = cfg.RegisterIntFlagE(test.name, test.short, test.value.(int), "", "usage")
+			err = RegisterIntFlagE(test.name, test.short, test.value.(int), "", "usage")
 		case "int64":
-			err = cfg.RegisterInt64FlagE(test.name, test.short, test.value.(int64), "", "usage")
+			err = RegisterInt64FlagE(test.name, test.short, test.value.(int64), "", "usage")
 		case "string":
-			err = cfg.RegisterStringFlagE(test.name, test.short, test.value.(string), "", "usage")
+			err = RegisterStringFlagE(test.name, test.short, test.value.(string), "", "usage")
 		default:
 			t.Errorf("%d: unsupported typ: %s", i, test.typ)
 			continue
@@ -309,20 +387,56 @@ func TestRegisterFlagSettings(t *testing.T) {
 		if !test.checkValues {
 			continue
 		}
-		if cfg.Get(test.name) != test.expected {
-			t.Errorf("%d: expected %v got %v", i, test.expected, cfg.Get(test.name))
+		if Get(test.name) != test.expected {
+			t.Errorf("%d: expected %v got %v", i, test.expected, Get(test.name))
 		}
-		if cfg.IsCore(test.name) != test.IsCore {
-			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, cfg.IsCore(test.name))
+		if IsCore(test.name) != test.IsCore {
+			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, IsCore(test.name))
 		}
-		if cfg.IsCfg(test.name) != test.IsCfg {
-			t.Errorf("%d expected IsCfg to be %v, got %v", i, test.IsCfg, cfg.IsCfg(test.name))
+		if IsCfg(test.name) != test.IsCfg {
+			t.Errorf("%d expected IsCfg to be %v, got %v", i, test.IsCfg, IsCfg(test.name))
 		}
-		if cfg.IsEnv(test.name) != test.IsEnv {
-			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, cfg.IsEnv(test.name))
+		if IsEnv(test.name) != test.IsEnv {
+			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, IsEnv(test.name))
 		}
-		if cfg.IsFlag(test.name) != test.IsFlag {
-			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, cfg.IsFlag(test.name))
+		if IsFlag(test.name) != test.IsFlag {
+			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, IsFlag(test.name))
+		}
+	}
+	// Non-E
+	appCfg = NewCfg("test register")
+	for i, test := range tests {
+		// since no error checking is being done, we skip empty names
+		switch test.typ {
+		case "bool":
+			RegisterBoolFlag(test.name, test.short, test.value.(bool), "", "usage")
+		case "int":
+			RegisterIntFlag(test.name, test.short, test.value.(int), "", "usage")
+		case "int64":
+			RegisterInt64Flag(test.name, test.short, test.value.(int64), "", "usage")
+		case "string":
+			RegisterStringFlag(test.name, test.short, test.value.(string), "", "usage")
+		default:
+			t.Errorf("%d: unsupported typ: %s", i, test.typ)
+			continue
+		}
+		if !test.checkValues {
+			continue
+		}
+		if Get(test.name) != test.expected {
+			t.Errorf("%d: expected %v got %v", i, test.expected, Get(test.name))
+		}
+		if IsCore(test.name) != test.IsCore {
+			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, IsCore(test.name))
+		}
+		if IsCfg(test.name) != test.IsCfg {
+			t.Errorf("%d expected IsCfg to be %v, got %v", i, test.IsCfg, IsCfg(test.name))
+		}
+		if IsEnv(test.name) != test.IsEnv {
+			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, IsEnv(test.name))
+		}
+		if IsFlag(test.name) != test.IsFlag {
+			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, IsFlag(test.name))
 		}
 	}
 }

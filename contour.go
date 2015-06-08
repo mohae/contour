@@ -2,17 +2,8 @@
 package contour
 
 import (
-	"bytes"
-	"encoding/json"
-	// "encoding/xml"
 	"fmt"
-	"io"
-	"io/ioutil"
-	// "os"
-	// "strconv"
 	"strings"
-
-	"github.com/BurntSushi/toml"
 )
 
 const app = "app"
@@ -61,9 +52,9 @@ func (f Format) isSupported() bool {
 func ParseFormatE(s string) (Format, error) {
 	ls := strings.ToLower(s)
 	switch ls {
-	case "json":
+	case "json", "jsn":
 		return JSON, nil
-	case "toml":
+	case "toml", "tml":
 		return TOML, nil
 	case "yaml", "yml":
 		return YAML, nil
@@ -91,74 +82,6 @@ var (
 
 func init() {
 	appCfg = NewCfg(app)
-}
-
-// formatFromFilename gets the format from the passed filename.  An error will
-// be returned if either the format isn't supported or the extension doesn't
-// exist.  If the passed string has multiple dots, the last dot is assumed to
-// be the extension.
-func formatFromFilename(s string) (Format, error) {
-	if s == "" {
-		return Unsupported, fmt.Errorf("no config filename")
-	}
-	parts := strings.Split(s, ".")
-	format := ""
-	// case 0 has already been evaluated
-	switch len(parts) {
-	case 1:
-		return Unsupported, fmt.Errorf("unable to determine %s's config format: no extension", strings.TrimSpace(s))
-	case 2:
-		format = parts[1]
-	default:
-		// assume its the last part
-		format = parts[len(parts)-1]
-	}
-	f := ParseFormat(format)
-	if !f.isSupported() {
-		return Unsupported, unsupportedFormatErr(format)
-	}
-	return f, nil
-}
-
-// readCfgFile reads the configFile and returns the resulting slice. The entire
-// contents of the file are read at once.
-func readCfgFile(n string) ([]byte, error) {
-	cfg, err := ioutil.ReadFile(n)
-	if err != nil {
-		return nil, err
-	}
-	return cfg, nil
-}
-
-// unmarshalFormatReader accepts an io.Reader and unmarshals it using the
-// correct format.
-//
-// Supported formats:
-//   json
-//   toml
-// TODO
-//   add YAML support
-//   add HCL support
-func unmarshalFormatReader(f Format, r io.Reader) (interface{}, error) {
-	b := new(bytes.Buffer)
-	b.ReadFrom(r)
-	var ret interface{}
-	switch f {
-	case JSON:
-		err := json.Unmarshal(b.Bytes(), &ret)
-		if err != nil {
-			return nil, err
-		}
-	case TOML:
-		_, err := toml.Decode(b.String(), &ret)
-		if err != nil {
-			return nil, err
-		}
-	default:
-		err := unsupportedFormatErr(f.String())
-		return nil, err
-	}
-	return ret, nil
 }
 
 // notFoundErr returns a standadized notFoundErr.

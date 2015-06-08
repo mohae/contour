@@ -1,14 +1,11 @@
 package contour
 
 import (
-	"bytes"
 	"io/ioutil"
 	"log"
-	"strconv"
 	"testing"
 
 	"github.com/mohae/customjson"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func init() {
@@ -55,6 +52,37 @@ var jsonExample = []byte(`
 	],
 	"logging": {
 		"logging": true,
+		"logcfg": "test/test.toml",
+		"logfilelevel": "debug",
+		"logstdoutlevel": "error"
+	}
+}
+`)
+
+var jsonTest = []byte(`
+{
+	"cfgbool": true,
+	"flagbool": true,
+	"cfgint": 42,
+	"flagint": 1999,
+	"cfgstring": "foo",
+	"flagstring": "bar",
+	"cfgslice": [
+		"mysql",
+		"pgsql"
+	],
+	"flagslice": [
+		"less",
+		"sass",
+		"scss"
+	],
+	"cfgmap": {
+		"faz": 42,
+		"fiz": true,
+		"fuz": "buz"
+	},
+	"flagmap": {
+		"log": true,
 		"logcfg": "test/test.toml",
 		"logfilelevel": "debug",
 		"logstdoutlevel": "error"
@@ -124,6 +152,28 @@ var jsonResults = map[string]interface{}{
 	},
 }
 
+var jsonTestResults = map[string]interface{}{
+	"cfgbool":    true,
+	"flagbool":   true,
+	"cfgint":     42,
+	"flagint":    1999,
+	"cfgstring":  "foo",
+	"flagstring": "bar",
+	"cfgslice":   []string{"mysql", "pgsql"},
+	"flagslice":  []string{"less", "sass", "scss"},
+	"cfgmap": map[string]interface{}{
+		"faz": 41,
+		"fiz": true,
+		"fuz": "buz",
+	},
+	"flagmap": map[string]interface{}{
+		"log":            true,
+		"logcfg":         "test/test.toml",
+		"logfilelevel":   "debug",
+		"logstdoutlevel": "error",
+	},
+}
+
 var yamlResults = map[string]interface{}{
 	"appVar1": true,
 	"appVar2": false,
@@ -158,8 +208,8 @@ var testCfgs = map[string]Cfg{
 	"test1": Cfg{settings: map[string]setting{}},
 }
 
-func newTestCfg() Cfg {
-	return Cfg{settings: map[string]setting{
+func newTestCfg() *Cfg {
+	return &Cfg{settings: map[string]setting{
 		"corebool": setting{
 			Type:   "bool",
 			Value:  true,
@@ -178,6 +228,16 @@ func newTestCfg() Cfg {
 		"corestring": setting{
 			Type:   "string",
 			Value:  "a core string",
+			IsCore: true,
+		},
+		"coreslice": setting{
+			Type:   "string-slice",
+			Value:  []string{},
+			IsCore: true,
+		},
+		"coremap": setting{
+			Type:   "map",
+			Value:  map[string]interface{}{},
 			IsCore: true,
 		},
 		"cfgbool": setting{
@@ -202,6 +262,20 @@ func newTestCfg() Cfg {
 		"cfgstring": setting{
 			Type:  "string",
 			Value: "a cfg string",
+			Short: "",
+			IsCfg: true,
+			IsEnv: true,
+		},
+		"cfgslice": setting{
+			Type:  "string-slice",
+			Value: []string{},
+			Short: "",
+			IsCfg: true,
+			IsEnv: true,
+		},
+		"cfgmap": setting{
+			Type:  "map",
+			Value: map[string]interface{}{},
 			Short: "",
 			IsCfg: true,
 			IsEnv: true,
@@ -238,6 +312,22 @@ func newTestCfg() Cfg {
 			IsEnv:  true,
 			IsFlag: true,
 		},
+		"flagslice": setting{
+			Type:   "string-slice",
+			Value:  []string{},
+			Short:  "",
+			IsCfg:  true,
+			IsEnv:  true,
+			IsFlag: true,
+		},
+		"flagmap": setting{
+			Type:   "map",
+			Value:  map[string]interface{}{},
+			Short:  "",
+			IsCfg:  true,
+			IsEnv:  true,
+			IsFlag: true,
+		},
 		"bool": setting{
 			Type:  "bool",
 			Value: true,
@@ -258,151 +348,17 @@ func newTestCfg() Cfg {
 			Value: "a string",
 			Short: "s",
 		},
+		"slice": setting{
+			Type:  "string-slice",
+			Value: []string{},
+			Short: "s",
+		},
+		"map": setting{
+			Type:  "map",
+			Value: map[string]interface{}{},
+			Short: "s",
+		},
 	}}
-}
-
-// helper function
-func checkTestReturn(test basic, format string, err error) {
-	if err != nil {
-		if test.expectedErr != "" {
-			Convey("Should result in an error", func() {
-				So(err.Error(), ShouldEqual, test.expectedErr)
-			})
-		} else {
-			Convey("Should not error", func() {
-				So(err, ShouldBeNil)
-			})
-		}
-	} else {
-		if test.expectedErr != "" {
-			Convey("Should not result in an error", func() {
-				So(err.Error(), ShouldEqual, test.expectedErr)
-			})
-		} else {
-			Convey("Should result in the file's extenstion", func() {
-				So(format, ShouldEqual, test.expected)
-			})
-		}
-	}
-}
-
-// Testing
-func TestFormatFromFilename(t *testing.T) {
-	tests := []basic{
-		{"an empty cfgfilename", "", "", "no config filename"},
-		{"a cfgfilename without an extension", "cfg", "", "unable to determine cfg's config format: no extension"},
-		{"a cfgfilename with an invalid extension", "cfg.bmp", "", "unsupported cfg format: bmp"},
-		{"a cfgfilename with a json extension", "cfg.json", "json", ""},
-		{"a path and multi dot cfgfilename with a json extension", "path/to/custom.cfg.json", "json", ""},
-		{"a cfgfilename with a toml extension", "cfg.toml", "toml", ""},
-		{"a cfgfilename with a toml extension", "cfg.yaml", "yaml", ""},
-		{"a cfgfilename with a toml extension", "cfg.yml", "yaml", ""},
-		{"a cfgfilename with a toml extension", "cfg.xml", "xml", "unsupported cfg format: xml"},
-		{"a cfgfilename with a toml extension", "cfg.ini", "", "unsupported cfg format: ini"},
-	}
-	for _, test := range tests {
-		Convey("Given "+test.name+" Test", t, func() {
-			Convey("Getting the cfg format", func() {
-				format, err := formatFromFilename(test.value)
-				checkTestReturn(test, format.String(), err)
-			})
-		})
-	}
-
-}
-
-func TestIsSupportedFormat(t *testing.T) {
-	tests := []basic{
-		{"empty format test", "", "false", ""},
-		{"invalid format test", "bmp", "false", ""},
-		{"json format test", "json", "true", ""},
-		{"tom format testl", "toml", "true", ""},
-		{"yaml format test", "yaml", "true", ""},
-		{"yml format test", "yml", "true", ""},
-		{"xml format test", "xml", "false", ""},
-	}
-	for _, test := range tests {
-		Convey("Given some supported format tests", t, func() {
-
-			Convey(test.name, func() {
-				formatString := ParseFormat(test.value)
-				is := formatString.isSupported()
-				Convey("Should result in "+test.expected, func() {
-					So(strconv.FormatBool(is), ShouldEqual, test.expected)
-				})
-			})
-
-		})
-
-	}
-
-}
-
-func TestMarshalFormatReader(t *testing.T) {
-	tests := []struct {
-		name        string
-		format      Format
-		value       []byte
-		expected    interface{}
-		expectedErr string
-	}{
-		{"json cfg", JSON, jsonExample, jsonResults, ""},
-		{"toml cfg", TOML, tomlExample, tomlResults, ""},
-		{"yaml cfg", YAML, yamlExample, []byte(""), "unsupported cfg format: yaml"},
-		{"xml cfg", XML, xmlExample, []byte(""), "unsupported cfg format: xml"},
-		{"unsupported cfg", Unsupported, []byte(""), []byte(""), "unsupported cfg format: unsupported"},
-	}
-	for _, test := range tests {
-		r := bytes.NewReader([]byte(test.value))
-		ires, err := unmarshalFormatReader(test.format, r)
-		if err != nil {
-			if test.expectedErr == "" {
-				t.Errorf("%s: expected nil for error; got %q", test.name, err)
-				continue
-			}
-			if err.Error() != test.expectedErr {
-				t.Errorf("%s: expected %q; got %q", test.name, test.expectedErr, err)
-				continue
-			}
-		} else {
-			val, ok := ires.(map[string]interface{})["appVar1"]
-			if !ok {
-				t.Errorf("appVar1 not found")
-			} else {
-				if val != test.expected.(map[string]interface{})["appVar1"] {
-					t.Errorf("appVar1: expected %q, got %q", test.expected.(map[string]interface{})["appVar1"], val)
-				}
-			}
-			val, ok = ires.(map[string]interface{})["appVar2"]
-			if !ok {
-				t.Errorf("appVar2 not found")
-			} else {
-				if val != test.expected.(map[string]interface{})["appVar2"] {
-					t.Errorf("appVar2: expected %q, got %q", test.expected.(map[string]interface{})["appVar2"], val)
-				}
-			}
-			val, ok = ires.(map[string]interface{})["appVar3"]
-			if !ok {
-				t.Errorf("appVar3 not found")
-			} else {
-				if val != test.expected.(map[string]interface{})["appVar3"] {
-					t.Errorf("appVar3: expected %q, got %q", test.expected.(map[string]interface{})["appVar3"], val)
-				}
-			}
-			val, ok = ires.(map[string]interface{})["appVar4"]
-			if !ok {
-				t.Errorf("appVar4 not found")
-			} else {
-				if val != test.expected.(map[string]interface{})["appVar4"] {
-					t.Errorf("appVar4: expected %q, got %q", test.expected.(map[string]interface{})["appVar4"], val)
-				}
-			}
-			val, ok = ires.(map[string]interface{})["appVar5"]
-			if !ok {
-				t.Errorf("appVar5 not found")
-			}
-		}
-	}
 }
 
 func TestNotFoundErr(t *testing.T) {
@@ -411,17 +367,16 @@ func TestNotFoundErr(t *testing.T) {
 		basic{"notFoundErr test2", "grail", "not found: grail", ""},
 	}
 	for _, test := range tests {
-		Convey(test.name+"  given a string", t, func() {
-			Convey("calling notFoundErr with it", func() {
-				err := notFoundErr(test.value)
-				Convey("should result in an error", func() {
-					So(err, ShouldNotBeNil)
-					Convey("with the error message", func() {
-						So(err.Error(), ShouldEqual, test.expected)
-					})
-				})
-			})
-		})
+		err := notFoundErr(test.value)
+		if err != nil {
+			if err.Error() != test.expected {
+				t.Errorf("%s: expected %s, got %s", test.name, test.expected, err.Error())
+			}
+			continue
+		}
+		if test.expected != "" {
+			t.Errorf("%s: expected %s, got no error", test.name, test.expected)
+		}
 	}
 
 }

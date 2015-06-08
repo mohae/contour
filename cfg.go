@@ -1,12 +1,16 @@
 package contour
 
 import (
-	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
+
+	"github.com/BurntSushi/toml"
 )
 
 // Cfg is a group of Settings and holds all of the application setting
@@ -42,6 +46,13 @@ type Cfg struct {
 	// Whether flags have been registered and set.
 	useFlags     bool
 	argsFiltered bool
+	// interface contains pointer to a variable
+	filterVars map[string]interface{}
+	// flag filters by type
+	boolFilters   []string
+	intFilters    []string
+	int64Filters  []string
+	stringFilters []string
 	// maps short flags to the long version
 	shortFlags map[string]string
 }
@@ -169,8 +180,8 @@ func (c *Cfg) UseCfg() bool {
 func SetUseCfg(b bool) { appCfg.SetUseCfg(b) }
 func (c *Cfg) SetUseCfg(b bool) {
 	c.RWMutex.Lock()
+	defer c.RWMutex.Unlock()
 	c.useCfg = b
-	c.RWMutex.Unlock()
 }
 
 // UseEnv is whether or not environment variables are used.
@@ -211,15 +222,23 @@ func (c *Cfg) SetCfg() error {
 	useCfg := c.useCfg
 	useEnv := c.useEnv
 	c.RWMutex.RUnlock()
+	fname, err := c.GetStringE(CfgFile)
+	if err != nil {
+		return fmt.Errorf("SetCfg failed: %s", err.Error())
+	}
 	if useCfg {
 		// Load the Cfg
-		err := c.UpdateFromCfg()
+		buff, err := getFileBytes(fname)
 		if err != nil {
-			return fmt.Errorf("setting cfg from file failed: %s", err.Error())
+			return fmt.Errorf("reading %s failed: %s", fname, err.Error())
+		}
+		err = c.UpdateFromCfg(buff)
+		if err != nil {
+			return err
 		}
 	}
 	if useEnv {
-		err := c.UpdateFromEnv()
+		err = c.UpdateFromEnv()
 		if err != nil {
 			return fmt.Errorf("setting cfg from env failed: %s", err.Error())
 		}
@@ -229,10 +248,10 @@ func (c *Cfg) SetCfg() error {
 
 // UpdateFromCfg updates the application's default values with the setting
 // values found in the cfg. Only Cfg and Flag settings are updated.
-func (c *Cfg) UpdateFromCfg() error {
-	cfgSettings, err := c.getCfg()
+func (c *Cfg) UpdateFromCfg(buff []byte) error {
+	cfgSettings, err := c.processCfg(buff)
 	if err != nil {
-		return err
+		return fmt.Errorf("UpdateFromCfg error processing cfg data: %s", err.Error())
 	}
 	// if nothing was returned and no error, nothing to do
 	if cfgSettings == nil {
@@ -240,18 +259,10 @@ func (c *Cfg) UpdateFromCfg() error {
 	}
 	// Go through settings and update setting values.
 	for k, v := range cfgSettings.(map[string]interface{}) {
-		// Find the key in the settings
-		c.RWMutex.RLock()
-		s, ok := c.settings[k]
-		c.RWMutex.RUnlock()
-		// skip settings that either don't exist or aren't a Cfg or Flag setting.
-		if !ok || !s.IsCfg || !s.IsFlag {
-			continue
-		}
 		// otherwise update the setting
-		err := c.updateE(k, v)
+		err = c.updateE(k, v)
 		if err != nil {
-			return err
+			return fmt.Errorf("UpdateFromCfg error updating setting: %s", err.Error())
 		}
 	}
 	return nil
@@ -307,7 +318,7 @@ func (c *Cfg) IsCoreE(name string) (bool, error) {
 	defer c.RWMutex.RUnlock()
 	s, ok := c.settings[name]
 	if !ok {
-		return false, fmt.Errorf("IsCore: setting not found: %s", name)
+		return false, fmt.Errorf("IsCore: setting not found: %q", name)
 	}
 	return s.IsCore, nil
 }
@@ -319,13 +330,13 @@ func (c *Cfg) IsCore(name string) bool {
 }
 
 // IsCfg returns whether the passed setting is a cfg setting.
-func IsCfgE(name string) (bool, error) { return appCfg.IsCoreE(name) }
+func IsCfgE(name string) (bool, error) { return appCfg.IsCfgE(name) }
 func (c *Cfg) IsCfgE(name string) (bool, error) {
 	c.RWMutex.RLock()
 	defer c.RWMutex.RUnlock()
 	s, ok := c.settings[name]
 	if !ok {
-		return false, fmt.Errorf("IsCfg: setting not found: %s", name)
+		return false, fmt.Errorf("IsCfg: setting not found: %q", name)
 	}
 	return s.IsCfg, nil
 }
@@ -343,7 +354,7 @@ func (c *Cfg) IsEnvE(name string) (bool, error) {
 	defer c.RWMutex.RUnlock()
 	s, ok := c.settings[name]
 	if !ok {
-		return false, fmt.Errorf("IsEnv: setting not found: %s", name)
+		return false, fmt.Errorf("IsEnv: setting not found: %q", name)
 	}
 	return s.IsEnv, nil
 }
@@ -361,7 +372,7 @@ func (c *Cfg) IsFlagE(name string) (bool, error) {
 	defer c.RWMutex.RUnlock()
 	s, ok := c.settings[name]
 	if !ok {
-		return false, fmt.Errorf("IsFlag: setting not found: %s", name)
+		return false, fmt.Errorf("IsFlag: setting not found: %q", name)
 	}
 	return s.IsFlag, nil
 }
@@ -372,8 +383,8 @@ func (c *Cfg) IsFlag(name string) bool {
 	return b
 }
 
-// getCfg() is the entry point for reading the configuration file.
-func (c *Cfg) getCfg() (cfg interface{}, err error) {
+// processCfg() is the entry point for reading the configuration file.
+func (c *Cfg) processCfg(buff []byte) (cfg interface{}, err error) {
 	// if it's not set to use a cfg file, nothing to do
 	c.RWMutex.Lock()
 	defer c.RWMutex.Unlock()
@@ -396,26 +407,21 @@ func (c *Cfg) getCfg() (cfg interface{}, err error) {
 	// have been registered already. so if it doesn't exit, err.
 	format, ok := c.settings[CfgFormat]
 	if !ok {
-		return nil, fmt.Errorf("cfg format was not set")
+		return nil, fmt.Errorf("processCfg error: format was not set")
 	}
 	if format.Value.(string) == "" {
-		return nil, fmt.Errorf("cfg format was not set")
-	}
-	fBytes, err := readCfgFile(n)
-	if err != nil {
-		return nil, fmt.Errorf("error reading %s: %s", n, err)
+		return nil, fmt.Errorf("processCfg error: format was not set")
 	}
 	format, _ = c.settings[CfgFormat]
-	cfg, err = unmarshalFormatReader(ParseFormat(format.Value.(string)), bytes.NewReader(fBytes))
+	cfg, err = unmarshalCfgBytes(ParseFormat(format.Value.(string)), buff)
 	if err != nil {
-		return nil, fmt.Errorf("error unmarshaling %s: %s", n, err)
+		return nil, fmt.Errorf("processCfg unmarshal error, %s: %s", n, err.Error())
 	}
 	return cfg, nil
 }
 
 // canUpdate checks to see if the passed setting key is updateable. If the key
 // is not updateable, a false is returned along with an error.
-func canUpdate(k string) (bool, error) { return appCfg.canUpdate(k) }
 func (c *Cfg) canUpdate(k string) (bool, error) {
 	// See if the key exists, if it doesn't already exist, it can't be updated.
 	c.RWMutex.RLock()
@@ -439,8 +445,11 @@ func (c *Cfg) canUpdate(k string) (bool, error) {
 // canOverride() checks to see if the setting can be overridden. Overrides only
 // come from flags. If it can't be overridden, it must be set via application,
 // environment variable, or cfg file.
-func canOverride(k string) bool { return appCfg.canOverride(k) }
 func (c *Cfg) canOverride(k string) bool {
+	// an empty key cannot Override
+	if k == "" {
+		return false
+	}
 	// See if the key exists, if it doesn't already exist, it can't be overridden
 	c.RWMutex.RLock()
 	defer c.RWMutex.RUnlock()
@@ -459,4 +468,70 @@ func (c *Cfg) canOverride(k string) bool {
 		return false
 	}
 	return true
+}
+
+// getFileBytes reads from the passed path and returns its contents as bytes,
+// or an error.  The entire contents of the file are read at once.
+func getFileBytes(p string) ([]byte, error) {
+	cfg, err := ioutil.ReadFile(p)
+	if err != nil {
+		return nil, err
+	}
+	return cfg, nil
+}
+
+// formatFromFilename gets the format from the passed filename.  An error will
+// be returned if either the format isn't supported or the extension doesn't
+// exist.  If the passed string has multiple dots, the last dot is assumed to
+// be the extension.
+func formatFromFilename(s string) (Format, error) {
+	if s == "" {
+		return Unsupported, fmt.Errorf("no config filename")
+	}
+	parts := strings.Split(s, ".")
+	format := ""
+	// case 0 has already been evaluated
+	switch len(parts) {
+	case 1:
+		return Unsupported, fmt.Errorf("unable to determine %s's config format: no extension", strings.TrimSpace(s))
+	case 2:
+		format = parts[1]
+	default:
+		// assume its the last part
+		format = parts[len(parts)-1]
+	}
+	f := ParseFormat(format)
+	if !f.isSupported() {
+		return Unsupported, unsupportedFormatErr(format)
+	}
+	return f, nil
+}
+
+// unmarshalCfgBytes accepts bytes and unmarshals them using the correct
+// format. Either the unmarshaled data or an error is returned.
+//
+// Supported formats:
+//   json
+//   toml
+// TODO
+//   add YAML support
+//   add HCL support
+func unmarshalCfgBytes(f Format, buff []byte) (interface{}, error) {
+	var ret interface{}
+	switch f {
+	case JSON:
+		err := json.Unmarshal(buff, &ret)
+		if err != nil {
+			return nil, err
+		}
+	case TOML:
+		_, err := toml.Decode(string(buff), &ret)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		err := unsupportedFormatErr(f.String())
+		return nil, err
+	}
+	return ret, nil
 }
