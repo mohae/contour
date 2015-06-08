@@ -284,6 +284,22 @@ func (c *Cfg) SetUsage(f func()) {
 	c.RWMutex.Unlock()
 }
 
+// SetName set's the cfg's name.
+func SetName(name string) { appCfg.SetName(name) }
+func (c *Cfg) SetName(name string) {
+	c.RWMutex.Lock()
+	c.name = name
+	c.RWMutex.Unlock()
+}
+
+// Name returns the cfg's name.
+func Name() string { return appCfg.Name() }
+func (c *Cfg) Name() string {
+	c.RWMutex.RLock()
+	defer c.RWMutex.RUnlock()
+	return c.name
+}
+
 // getCfg() is the entry point for reading the configuration file.
 func (c *Cfg) getCfg() (cfg interface{}, err error) {
 	// if it's not set to use a cfg file, nothing to do

@@ -44,45 +44,6 @@ func TestUpdateBools(t *testing.T) {
 	}
 }
 
-func TestUpdateStrings(t *testing.T) {
-	sTests := []struct {
-		key   string
-		value string
-		err   string
-	}{
-		{"", "false", "cannot update \"\": setting not found"},
-		{"corestring", "false", "cannot update \"corestring\": core settings cannot be updated"},
-		{"corestring", "t", "cannot update \"corestring\": core settings cannot be updated"},
-		{"flagstring", "false", ""},
-		{"flagstring", "t", ""},
-		{"cfgstring", "false", ""},
-		{"cfgstring", "t", ""},
-		{"string", "false", ""},
-		{"string", "t", ""},
-	}
-	testCfg := newTestCfg()
-	testCfg.name = "update"
-	for i, test := range sTests {
-		err := testCfg.UpdateStringE(test.key, test.value)
-		if err != nil {
-			if test.err != err.Error() {
-				t.Errorf("%d: expected %q got %q", i, test.err, err)
-			}
-			continue
-		}
-		s, err := testCfg.GetStringE(test.key)
-		if err != nil {
-			if test.err != err.Error() {
-				t.Errorf("%d: expected %q got %q", i, test.err, err)
-			}
-			continue
-		}
-		if s != test.value {
-			t.Errorf("%d: expected %t got %s", i, test.value, s)
-		}
-	}
-}
-
 func TestUpdateInts(t *testing.T) {
 	iTests := []struct {
 		key   string
@@ -149,6 +110,45 @@ func TestUpdateInt64s(t *testing.T) {
 		}
 		if i64 != test.value {
 			t.Errorf("%d: expected %q got %q", i, test.value, strconv.Itoa(int(i64)))
+		}
+	}
+}
+
+func TestUpdateStrings(t *testing.T) {
+	sTests := []struct {
+		key   string
+		value string
+		err   string
+	}{
+		{"", "false", "cannot update \"\": setting not found"},
+		{"corestring", "false", "cannot update \"corestring\": core settings cannot be updated"},
+		{"corestring", "t", "cannot update \"corestring\": core settings cannot be updated"},
+		{"flagstring", "false", ""},
+		{"flagstring", "t", ""},
+		{"cfgstring", "false", ""},
+		{"cfgstring", "t", ""},
+		{"string", "false", ""},
+		{"string", "t", ""},
+	}
+	testCfg := newTestCfg()
+	testCfg.name = "update"
+	for i, test := range sTests {
+		err := testCfg.UpdateStringE(test.key, test.value)
+		if err != nil {
+			if test.err != err.Error() {
+				t.Errorf("%d: expected %q got %q", i, test.err, err)
+			}
+			continue
+		}
+		s, err := testCfg.GetStringE(test.key)
+		if err != nil {
+			if test.err != err.Error() {
+				t.Errorf("%d: expected %q got %q", i, test.err, err)
+			}
+			continue
+		}
+		if s != test.value {
+			t.Errorf("%d: expected %t got %s", i, test.value, s)
 		}
 	}
 }
