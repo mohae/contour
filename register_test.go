@@ -1,7 +1,7 @@
 package contour
 
 import (
-	"strconv"
+	//"strconv"
 	"testing"
 )
 
@@ -54,173 +54,275 @@ func TestRegisterCfgFile(t *testing.T) {
 	}
 }
 
-func TestRegisterCoreSettings(t *testing.T) {
-	cfg := NewCfg("test register")
-	cfg.RegisterBoolCore("corebool", true)
-	b, err := cfg.GetBoolE("corebool")
-	if err != nil {
-		t.Errorf("%s corebool: unexpected error %q", cfg.name, err)
-	} else {
-		if b != true {
-			t.Errorf("%s corebool: expected \"true\" got %q", cfg.name, strconv.FormatBool(b))
-		}
-	}
-
-	cfg.RegisterIntCore("coreint", 42)
-	i, err := cfg.GetIntE("coreint")
-	if err != nil {
-		t.Errorf("%s coreint: unexpected error %q", cfg.name, err)
-	} else {
-		if i != 42 {
-			t.Errorf("%s coreint: expected %d got %d", cfg.name, "42", strconv.Itoa(i))
-		}
-	}
-
-	cfg.RegisterInt64Core("coreint64", int64(42))
-	i64, err := cfg.GetInt64E("coreint64")
-	if err != nil {
-		t.Errorf("%s coreint64: unexpected error %q", cfg.name, err)
-	} else {
-		if i64 != int64(42) {
-			t.Errorf("%s coreint: expected %d got %d", cfg.name, "42", strconv.Itoa(int(i)))
-		}
-	}
-
-	cfg.RegisterStringCore("corestring", "value")
-	s, err := cfg.GetStringE("corestring")
-	if err != nil {
-		t.Errorf("%s corestring: unexpected error %q", cfg.name, err)
-	} else {
-		if s != "value" {
-			t.Errorf("%s corestring: expected \"value\" got %q", cfg.name, s)
-		}
-	}
-
-}
-
 func TestRegisterSettings(t *testing.T) {
+	tests := []struct {
+		name        string
+		typ         string
+		value       interface{}
+		expected    interface{}
+		expectedErr string
+		checkValues bool
+		IsCore      bool
+		IsCfg       bool
+		IsEnv       bool
+		IsFlag      bool
+	}{
+		{"", "bool", true, true, "cannot register an unnamed setting", false, false, false, false, false},
+		{"bool", "bool", true, true, "", true, false, false, false, false},
+		{"bool", "bool", true, true, "bool is already registered, cannot re-register settings", true, false, false, false, false},
+		{"", "int", 42, 42, "cannot register an unnamed setting", false, false, false, false, false},
+		{"int", "int", 42, 42, "", true, false, false, false, false},
+		{"int", "int", 84, 42, "int is already registered, cannot re-register settings", true, false, false, false, false},
+		{"", "int64", int64(42), int64(42), "cannot register an unnamed setting", false, false, false, false, false},
+		{"int64", "int64", int64(42), int64(42), "", true, false, false, false, false},
+		{"int64", "int64", int64(84), int64(42), "int64 is already registered, cannot re-register settings", true, false, false, false, false},
+		{"", "string", "bar", "bar", "cannot register an unnamed setting", false, false, false, false, false},
+		{"string", "string", "bar", "bar", "", true, false, false, false, false},
+		{"string", "string", "baz", "bar", "string is already registered, cannot re-register settings", true, false, false, false, false},
+	}
 	cfg := NewCfg("test register")
-	cfg.RegisterBool("settingbool", true)
-	b, err := cfg.GetBoolE("settingbool")
-	if err != nil {
-		t.Errorf("%s settingbool: unexpected error %q", cfg.name, err)
-	}
-
-	cfg.RegisterInt("settingint", 42)
-	i, err := cfg.GetIntE("settingint")
-	if err != nil {
-		t.Errorf("%s settingint: unexpected error %q", cfg.name, err)
-	} else {
-		if i != 42 {
-			t.Errorf("%s settingint: expected %d got %d", cfg.name, "42", strconv.Itoa(i))
+	var err error
+	for i, test := range tests {
+		switch test.typ {
+		case "bool":
+			err = cfg.RegisterBoolE(test.name, test.value.(bool))
+		case "int":
+			err = cfg.RegisterIntE(test.name, test.value.(int))
+		case "int64":
+			err = cfg.RegisterInt64E(test.name, test.value.(int64))
+		case "string":
+			err = cfg.RegisterStringE(test.name, test.value.(string))
+		default:
+			t.Errorf("%d: unsupported typ: %s", i, test.typ)
+			continue
+		}
+		if err != nil {
+			if err.Error() != test.expectedErr {
+				t.Errorf("%d error: expected %s got %s", i, test.expectedErr, err.Error())
+			}
+		}
+		if !test.checkValues {
+			continue
+		}
+		if cfg.Get(test.name) != test.expected {
+			t.Errorf("%d: expected %v got %v", i, test.expected, cfg.Get(test.name))
+		}
+		if cfg.IsCore(test.name) != test.IsCore {
+			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, cfg.IsCore(test.name))
+		}
+		if cfg.IsCfg(test.name) != test.IsCfg {
+			t.Errorf("%d expected IsCfg to be %v, got %v", i, test.IsCfg, cfg.IsCfg(test.name))
+		}
+		if cfg.IsEnv(test.name) != test.IsEnv {
+			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, cfg.IsEnv(test.name))
+		}
+		if cfg.IsFlag(test.name) != test.IsFlag {
+			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, cfg.IsFlag(test.name))
 		}
 	}
-
-	cfg.RegisterInt64("settingint64", int64(42))
-	i64, err := cfg.GetInt64E("settingint64")
-	if err != nil {
-		t.Errorf("%s settingint64: unexpected error %q", cfg.name, err)
-	} else {
-		if i64 != int64(42) {
-			t.Errorf("%s settingint64: expected %d got %d", cfg.name, "42", strconv.Itoa(int(i64)))
-		}
-	}
-
-	cfg.RegisterString("settingstring", "value")
-	s, err := cfg.GetStringE("settingstring")
-	if err != nil {
-		t.Errorf("%s settingstring: unexpected error %q", cfg.name, err)
-	} else {
-		if s != "value" {
-			t.Errorf("%s settingstring: expected \"value\" got %q", cfg.name, b)
-		}
-	}
-
 }
 
-func TestRegisterConfSettings(t *testing.T) {
-	cfg := NewCfg("test register Conf")
-	cfg.RegisterBoolCfg("settingbool", true)
-	b, err := cfg.GetBoolE("settingbool")
-	if err != nil {
-		t.Errorf("%s settingbool: unexpected error %q", cfg.name, err)
-	} else {
-		if !b {
-			t.Error("Expected true got false")
+func TestRegisterCoreSettings(t *testing.T) {
+	tests := []struct {
+		name        string
+		typ         string
+		value       interface{}
+		expected    interface{}
+		expectedErr string
+		checkValues bool
+		IsCore      bool
+		IsCfg       bool
+		IsEnv       bool
+		IsFlag      bool
+	}{
+		{"", "bool", true, true, "cannot register an unnamed setting", false, false, false, false, false},
+		{"corebool", "bool", true, true, "", true, true, false, false, false},
+		{"corebool", "bool", true, true, "corebool is already registered, cannot re-register settings", true, true, false, false, false},
+		{"", "int", 42, 42, "cannot register an unnamed setting", false, false, false, false, false},
+		{"coreint", "int", 42, 42, "", true, true, false, false, false},
+		{"coreint", "int", 84, 42, "coreint is already registered, cannot re-register settings", true, true, false, false, false},
+		{"", "int64", int64(42), int64(42), "cannot register an unnamed setting", false, false, false, false, false},
+		{"coreint64", "int64", int64(42), int64(42), "", true, true, false, false, false},
+		{"coreint64", "int64", int64(84), int64(42), "coreint64 is already registered, cannot re-register settings", true, true, false, false, false},
+		{"", "string", "bar", "bar", "cannot register an unnamed setting", false, false, false, false, false},
+		{"corestring", "string", "bar", "bar", "", true, true, false, false, false},
+		{"corestring", "string", "baz", "bar", "corestring is already registered, cannot re-register settings", true, true, false, false, false},
+	}
+	cfg := NewCfg("test register")
+	var err error
+	for i, test := range tests {
+		switch test.typ {
+		case "bool":
+			err = cfg.RegisterBoolCoreE(test.name, test.value.(bool))
+		case "int":
+			err = cfg.RegisterIntCoreE(test.name, test.value.(int))
+		case "int64":
+			err = cfg.RegisterInt64CoreE(test.name, test.value.(int64))
+		case "string":
+			err = cfg.RegisterStringCoreE(test.name, test.value.(string))
+		default:
+			t.Errorf("%d: unsupported typ: %s", i, test.typ)
+			continue
+		}
+		if err != nil {
+			if err.Error() != test.expectedErr {
+				t.Errorf("%d error: expected %s got %s", i, test.expectedErr, err.Error())
+			}
+		}
+		if !test.checkValues {
+			continue
+		}
+		if cfg.Get(test.name) != test.expected {
+			t.Errorf("%d: expected %v got %v", i, test.expected, cfg.Get(test.name))
+		}
+		if cfg.IsCore(test.name) != test.IsCore {
+			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, cfg.IsCore(test.name))
+		}
+		if cfg.IsCfg(test.name) != test.IsCfg {
+			t.Errorf("%d expected IsCfg to be %v, got %v", i, test.IsCfg, cfg.IsCfg(test.name))
+		}
+		if cfg.IsEnv(test.name) != test.IsEnv {
+			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, cfg.IsEnv(test.name))
+		}
+		if cfg.IsFlag(test.name) != test.IsFlag {
+			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, cfg.IsFlag(test.name))
 		}
 	}
+}
 
-	cfg.RegisterIntCfg("settingint", 42)
-	i, err := cfg.GetIntE("settingint")
-	if err != nil {
-		t.Errorf("%s settingint: unexpected error %q", cfg.name, err)
-	} else {
-		if i != 42 {
-			t.Errorf("%s settingint: expected %d got %d", cfg.name, "42", strconv.Itoa(i))
+func TestRegisterCfgSettings(t *testing.T) {
+	tests := []struct {
+		name        string
+		typ         string
+		value       interface{}
+		expected    interface{}
+		expectedErr string
+		checkValues bool
+		IsCore      bool
+		IsCfg       bool
+		IsEnv       bool
+		IsFlag      bool
+	}{
+		{"", "bool", true, true, "cannot register an unnamed setting", false, false, false, false, false},
+		{"cfgbool", "bool", true, true, "", true, false, true, true, false},
+		{"cfgbool", "bool", false, true, "cfgbool is already registered, cannot re-register settings", true, false, true, true, false},
+		{"", "int", 42, 42, "cannot register an unnamed setting", false, false, false, false, false},
+		{"cfgint", "int", 42, 42, "", true, false, true, true, false},
+		{"cfgint", "int", 84, 42, "cfgint is already registered, cannot re-register settings", true, false, true, true, false},
+		{"", "int64", int64(42), int64(42), "cannot register an unnamed setting", false, false, false, false, false},
+		{"cfgint64", "int64", int64(42), int64(42), "", true, false, true, true, false},
+		{"cfgint64", "int64", int64(84), int64(42), "cfgint64 is already registered, cannot re-register settings", true, false, true, true, false},
+		{"", "string", "bar", "bar", "cannot register an unnamed setting", false, false, false, false, false},
+		{"cfgstring", "string", "bar", "bar", "", true, false, true, true, false},
+		{"cfgstring", "string", "baz", "bar", "cfgstring is already registered, cannot re-register settings", true, false, true, true, false},
+	}
+	cfg := NewCfg("test register")
+	var err error
+	for i, test := range tests {
+		switch test.typ {
+		case "bool":
+			err = cfg.RegisterBoolCfgE(test.name, test.value.(bool))
+		case "int":
+			err = cfg.RegisterIntCfgE(test.name, test.value.(int))
+		case "int64":
+			err = cfg.RegisterInt64CfgE(test.name, test.value.(int64))
+		case "string":
+			err = cfg.RegisterStringCfgE(test.name, test.value.(string))
+		default:
+			t.Errorf("%d: unsupported typ: %s", i, test.typ)
+			continue
+		}
+		if err != nil {
+			if err.Error() != test.expectedErr {
+				t.Errorf("%d error: expected %s got %s", i, test.expectedErr, err.Error())
+			}
+		}
+		if !test.checkValues {
+			continue
+		}
+		if cfg.Get(test.name) != test.expected {
+			t.Errorf("%d: expected %v got %v", i, test.expected, cfg.Get(test.name))
+		}
+		if cfg.IsCore(test.name) != test.IsCore {
+			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, cfg.IsCore(test.name))
+		}
+		if cfg.IsCfg(test.name) != test.IsCfg {
+			t.Errorf("%d expected IsCfg to be %v, got %v", i, test.IsCfg, cfg.IsCfg(test.name))
+		}
+		if cfg.IsEnv(test.name) != test.IsEnv {
+			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, cfg.IsEnv(test.name))
+		}
+		if cfg.IsFlag(test.name) != test.IsFlag {
+			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, cfg.IsFlag(test.name))
 		}
 	}
-
-	cfg.RegisterInt64Cfg("settingint64", int64(42))
-	i64, err := cfg.GetInt64E("settingint64")
-	if err != nil {
-		t.Errorf("%s settingint64: unexpected error %q", cfg.name, err)
-	} else {
-		if i64 != int64(42) {
-			t.Errorf("%s settingint64: expected %d got %d", cfg.name, "42", strconv.Itoa(int(i64)))
-		}
-	}
-
-	cfg.RegisterStringCfg("settingstring", "value")
-	s, err := cfg.GetStringE("settingstring")
-	if err != nil {
-		t.Errorf("%s settingstring: unexpected error %q", cfg.name, err)
-	} else {
-		if s != "value" {
-			t.Errorf("%s settingstring: expected \"value\" got %q", cfg.name, b)
-		}
-	}
-
 }
 
 func TestRegisterFlagSettings(t *testing.T) {
-	cfg := NewCfg("test register flag")
-	cfg.RegisterBoolFlag("settingbool", "b", true, "true", "usage")
-	b, err := cfg.GetBoolE("settingbool")
-	if err != nil {
-		t.Errorf("%s settingbool: unexpected error %q", cfg.name, err)
-	} else {
-		if !b {
-			t.Errorf("%s settingbool: expected true got false", cfg.name)
-		}
+	tests := []struct {
+		name        string
+		short       string
+		typ         string
+		value       interface{}
+		expected    interface{}
+		expectedErr string
+		checkValues bool
+		IsCore      bool
+		IsCfg       bool
+		IsEnv       bool
+		IsFlag      bool
+	}{
+		{"", "", "bool", true, true, "cannot register an unnamed setting", false, false, false, false, false},
+		{"flagbool", "b", "bool", true, true, "", true, false, true, true, true},
+		{"flagbool", "", "bool", false, true, "flagbool is already registered, cannot re-register settings", true, false, true, true, true},
+		{"", "", "int", 42, 42, "cannot register an unnamed setting", false, false, false, false, false},
+		{"flagint", "i", "int", 42, 42, "", true, false, true, true, true},
+		{"flagint", "", "int", 84, 42, "flagint is already registered, cannot re-register settings", true, false, true, true, true},
+		{"", "", "int64", int64(42), int64(42), "cannot register an unnamed setting", false, false, false, false, false},
+		{"flagint64", "6", "int64", int64(42), int64(42), "", true, false, true, true, true},
+		{"flagint64", "", "int64", int64(84), int64(42), "flagint64 is already registered, cannot re-register settings", true, false, true, true, true},
+		{"", "", "string", "bar", "bar", "cannot register an unnamed setting", false, false, false, false, false},
+		{"flagstring", "s", "string", "bar", "bar", "", true, false, true, true, true},
+		{"flagstring", "", "string", "baz", "bar", "flagstring is already registered, cannot re-register settings", true, false, true, true, true},
 	}
-
-	cfg.RegisterIntFlag("settingint", "i", 42, "42", "usage")
-	i, err := cfg.GetIntE("settingint")
-	if err != nil {
-		t.Errorf("%s settingint: unexpected error %q", cfg.name, err)
-	} else {
-		if i != 42 {
-			t.Errorf("%s settingint: expected %d got %d", cfg.name, "42", strconv.Itoa(i))
+	cfg := NewCfg("test register")
+	var err error
+	for i, test := range tests {
+		switch test.typ {
+		case "bool":
+			err = cfg.RegisterBoolFlagE(test.name, test.short, test.value.(bool), "", "usage")
+		case "int":
+			err = cfg.RegisterIntFlagE(test.name, test.short, test.value.(int), "", "usage")
+		case "int64":
+			err = cfg.RegisterInt64FlagE(test.name, test.short, test.value.(int64), "", "usage")
+		case "string":
+			err = cfg.RegisterStringFlagE(test.name, test.short, test.value.(string), "", "usage")
+		default:
+			t.Errorf("%d: unsupported typ: %s", i, test.typ)
+			continue
 		}
-	}
-
-	cfg.RegisterInt64Flag("settingint64", "x", int64(42), "42", "usage")
-	i64, err := cfg.GetInt64E("settingint64")
-	if err != nil {
-		t.Errorf("%s settingint64: unexpected error %q", cfg.name, err)
-	} else {
-		if i64 != int64(42) {
-			t.Errorf("%s settingint64: expected %d got %d", cfg.name, "42", strconv.Itoa(int(i64)))
+		if err != nil {
+			if err.Error() != test.expectedErr {
+				t.Errorf("%d error: expected %s got %s", i, test.expectedErr, err.Error())
+			}
 		}
-	}
-
-	cfg.RegisterStringFlag("settingstring", "s", "value", "value", "usage")
-	s, err := cfg.GetStringE("settingstring")
-	if err != nil {
-		t.Errorf("%s settingstring: unexpected error %q", cfg.name, err)
-	} else {
-		if s != "value" {
-			t.Errorf("%s settingstring: expected \"value\" got %q", cfg.name, b)
+		if !test.checkValues {
+			continue
+		}
+		if cfg.Get(test.name) != test.expected {
+			t.Errorf("%d: expected %v got %v", i, test.expected, cfg.Get(test.name))
+		}
+		if cfg.IsCore(test.name) != test.IsCore {
+			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, cfg.IsCore(test.name))
+		}
+		if cfg.IsCfg(test.name) != test.IsCfg {
+			t.Errorf("%d expected IsCfg to be %v, got %v", i, test.IsCfg, cfg.IsCfg(test.name))
+		}
+		if cfg.IsEnv(test.name) != test.IsEnv {
+			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, cfg.IsEnv(test.name))
+		}
+		if cfg.IsFlag(test.name) != test.IsFlag {
+			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, cfg.IsFlag(test.name))
 		}
 	}
 }

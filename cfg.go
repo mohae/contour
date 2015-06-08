@@ -300,6 +300,78 @@ func (c *Cfg) Name() string {
 	return c.name
 }
 
+// IsCore returns whether the passed setting is a core setting.
+func IsCoreE(name string) (bool, error) { return appCfg.IsCoreE(name) }
+func (c *Cfg) IsCoreE(name string) (bool, error) {
+	c.RWMutex.RLock()
+	defer c.RWMutex.RUnlock()
+	s, ok := c.settings[name]
+	if !ok {
+		return false, fmt.Errorf("IsCore: setting not found: %s", name)
+	}
+	return s.IsCore, nil
+}
+
+func IsCore(name string) bool { return appCfg.IsCore(name) }
+func (c *Cfg) IsCore(name string) bool {
+	b, _ := c.IsCoreE(name)
+	return b
+}
+
+// IsCfg returns whether the passed setting is a cfg setting.
+func IsCfgE(name string) (bool, error) { return appCfg.IsCoreE(name) }
+func (c *Cfg) IsCfgE(name string) (bool, error) {
+	c.RWMutex.RLock()
+	defer c.RWMutex.RUnlock()
+	s, ok := c.settings[name]
+	if !ok {
+		return false, fmt.Errorf("IsCfg: setting not found: %s", name)
+	}
+	return s.IsCfg, nil
+}
+
+func IsCfg(name string) bool { return appCfg.IsCfg(name) }
+func (c *Cfg) IsCfg(name string) bool {
+	b, _ := c.IsCfgE(name)
+	return b
+}
+
+// IsEnv returns whether the passed setting is a env setting.
+func IsEnvE(name string) (bool, error) { return appCfg.IsEnvE(name) }
+func (c *Cfg) IsEnvE(name string) (bool, error) {
+	c.RWMutex.RLock()
+	defer c.RWMutex.RUnlock()
+	s, ok := c.settings[name]
+	if !ok {
+		return false, fmt.Errorf("IsEnv: setting not found: %s", name)
+	}
+	return s.IsEnv, nil
+}
+
+func IsEnv(name string) bool { return appCfg.IsEnv(name) }
+func (c *Cfg) IsEnv(name string) bool {
+	b, _ := c.IsEnvE(name)
+	return b
+}
+
+// IsFlag returns whether the passed setting is a flag setting.
+func IsFlagE(name string) (bool, error) { return appCfg.IsFlagE(name) }
+func (c *Cfg) IsFlagE(name string) (bool, error) {
+	c.RWMutex.RLock()
+	defer c.RWMutex.RUnlock()
+	s, ok := c.settings[name]
+	if !ok {
+		return false, fmt.Errorf("IsFlag: setting not found: %s", name)
+	}
+	return s.IsFlag, nil
+}
+
+func IsFlag(name string) bool { return appCfg.IsFlag(name) }
+func (c *Cfg) IsFlag(name string) bool {
+	b, _ := c.IsFlagE(name)
+	return b
+}
+
 // getCfg() is the entry point for reading the configuration file.
 func (c *Cfg) getCfg() (cfg interface{}, err error) {
 	// if it's not set to use a cfg file, nothing to do

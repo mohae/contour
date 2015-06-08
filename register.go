@@ -64,6 +64,9 @@ func RegisterSetting(typ, name, short string, value interface{}, dflt, usage str
 	return appCfg.RegisterSetting(typ, name, short, value, dflt, usage, IsCore, IsCfg, IsEnv, IsFlag)
 }
 func (c *Cfg) RegisterSetting(typ, name, short string, value interface{}, dflt string, usage string, IsCore, IsCfg, IsEnv, IsFlag bool) error {
+	if name == "" {
+		return fmt.Errorf("cannot register an unnamed setting")
+	}
 	c.RWMutex.RLock()
 	_, ok := c.settings[name]
 	c.RWMutex.RUnlock()
