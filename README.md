@@ -1,77 +1,115 @@
 contour
 =======
-__Under Development__: this includes the readme.
-
-contour: application configuration supporting defaults, configuration files, and flags.
+Contour helps shape your application by supporting application settings, cfg settings, env settings, and flags with minimal extra work.
 
 ## About
-Contour seeks to be a simpe to use configuration package that is flexible and powerful enough to meet more complex uses.
+Contour attempts to be a simple to use configuration package whose behavior can be modified to suit your application's need.  Contour can work with or without configuration files, tolerate missing config files, and use environment settings.
 
-Contour can act like the main configuration by using its functions directly, or you can have any amount of your own custom configurations that your application interacts with directly.
+By default, the contour global cfg, a pointer to which can be obtained via the contour.AppCfg() call, is configured to check environment variables. If a cfg file is successfully set, via RegisterCfgFile(), it will set itself to use a config file.  If any flags are registered, via RegisterFlag*() funcs, flags will be filtered out of passed flags.
 
-Maps are the core data structure used, which is usefull when _n_ gets large.
+For flags, contour supports short flags and will accept either '-' or '--' for both flags and short flags.
 
+## Easy to use:
+### Import `contour`
 To use in a basic application, import the package:
 
 	import "github.com/mohae/contour"
 
+### Register settings
 Configuration variables must be registered for Contour to recognize them. Registering a setting lets Contour know what that setting's datatype is, if it can be modified, and if so, by what. 
 
-Supported datatypes:
-	* Bool
-	* Int
-	* Interface{}
-	* String
-
-Types of configuration settings:
-	* __core__ cannot be updated once registered. These are typically application settings that you wish to make available but do not want anything to be able to overwrite its initial setting, regardless of where the new value is coming from.
-	* __conf__ configuration settings are settings that may be set during registration and can be updated by a configuration file. __conf__ settings must be updated using the `Update*` functions.
-	* __flag__ configuration settings may be set by the application, updated via configuration files, and are exposed as command-line flags. Registering a setting as a flag automatically makes that setting part of the flag filtering process while processing command-line arguments.
-	* __setting__ is just a plain configuration setting. These are not core settings, are not exposed to the configuration file, and are not supported by flags. They are there for you to use within your application however you wish.
-
-Register the configuration variables:
-
-	contour.RegisterCoreString("name", "testapp")
-	contour.RegisterConfString("logconfig", "log.cfg")
-	contour.RegisterFlagBool("logging", false, "l")
-	contour.RegisterSettingInt("ultimateanswer", 42)
-
-Retrieving the set configuration:
-
-	b, err := contour.GetBoolE("logging")
-	lcfg := contour.GetString("logconfig")
+    contour.RegisterBool(key, value)
+    contour.RegisterBoolFlag("log", "l", false, "false", "enable/disable logging")
 	
-	// Get() returns the interface{} for Value. GetInterface() is an alias
-	// for Get()
-	if := contour.Get("ultimateanswer")
+### Initialize the configuration with `InitCfg()`
+Once the settings have been registered, the Cfg needs to be initialized. This will merge the cfg file's values, if applicable, and the environement settings, if applicable, with the application defaults. Once initialized, settings can only be updated according to the rules applied to it's setting type.
 
-Anytime `contour` functions are used, like above, the main `app` configuration is used. These functions are convenience functions that call the `app` config for you. Or you can get a pointer to the `app` config and work with it directly:
+    err := contour.InitCfg()
+	
+### Set the Cfg from args: `FilterArgs()`
+IF flags are being supported command-line args need to be filtered:
 
-	cfg := contour.AppConfig()
-	cfg.RegisterSettingString("greeting", "hello")
+    cmdArgs, err := contour.FilterArgs(args)
+	
+Any args that are left over, after filtering, are returned. No need to create filter variables.
 
-	// Returns "hello": contour.GetString() == cfg.GetString(), in this case.
-	s := contour.GetString("greeting")
+### Use the Cfg
+To get the value of the setting, call `Cfg.Get()`, which returns the value as an ``interface{}`. If you want the value returned as its datatype, call that datatype's Get function, e.g. `Cfg.GetBool(name)` for a `bool` setting.
 
-Or you can get a different configuration by requesting one and providing a key by which the configuration will be identified:
+## Working with `Cfg`
+`Cfg` is the contour struct for configuration setttings. Contour has a global config that is available using helper funcs. A pointer to the contour global cfg can be obtained by calling `contour.AppCfg()`.
 
-	logCfg := contour.NewConfig("log")
+A local Cfg can be obtained by calling `contour.NewCfg(name)`, where `name` is the name of the cfg.GetString.
 
-	logCfg.RegisterFlagBool("logging", true, "l")
+### Setting a configuration file
+A configuration file can be set via the `RegisterCfgFile(fileName)` function. Before setting the Cfg's config filename, if the cfg is set to use env variables, the Cfg will check the `CFGNAME_CFG_FILE` environment variable and see if it is not empty. If the config file environment variable is not empty, it will be used as the application config file, instead of the application default value. 
 
-	lCfg := logCfg.GetBool("logging")
-	aCfg := countour.GetBool("logging")
+This allows for the application default cfg file value to be overridden.
 
-	fmt.Println(lCfg)	// Prints true
-	fmt.Println(aCfg)	// Prints false
+One a config file has been registered, Cfg.useCfg will be set to `true`.
 
-### Precedence
-Contour assu
+## Order of precedence
+Except for the configuration file setting, a Cfg applies setting values in the following order, as is applicable:
 
-## Notes:
-Currently works but not necessarily safe. Even though each setting has a mutex, support for it has not been implemented. Once implemented, each setting will have RW lock support, allowing for multiple concurrent reads and safe writing.
+* Application defaults: these are the values that are used when a setting is registered.
+* cfg file: any cfg or flag settings found in the cfg file are updated with the cfg file value.
+* env variables: any cfg of flag settings found in the env are updated with the env variable value.
+* command-line: any flag settings that are found in the command-line args are updated with the passed value.
 
-## Wishlist:
-_Environment Variable_ support. The original version of contour supported environment variables, but support for it was not implemented in the initial rewrite, to allow for focus on a cleaner precedence hierarchy and simpler management-though it can still get complicated, if you want. Given the usefulness of having configuration in environment variables for some deployment scenarios, it seems like a good idea to add it back in.
+### Modifying a Cfg's behavior
+#### `Cfg.useEnv`
+A Cfg's `useEnv` variable tells the cfg whether or not environment variables should be used. If the Cfg supports environment variables, the environment will be checked for all cfg and flag settings. 
 
-*Slice version*: maps are useful for large numbers, but they are overkill for a large number of applications. For these uses, a slice oriented version, which would be more performant, would be better. 
+Contour generates a setting's environment variable name by prefixing the setting name with the Cfg's name and an underscore,  `_`, separator. The resulting environment setting name will also be in all UPPERCASE, regardless of the original casing.
+    
+Set whether or not to use environment variables:
+    SetUseEnv(bool)
+	myCfg.SetUseEnv(bool)
+	
+Get the current value of `useEnv`:
+    b := UseEnv()
+	b := myCfg.UseEnv()
+	
+#### `Cfg.useCfg`
+A Cfg's `useCfg` variable tells the cfg whether or not to check for a configuration file. If it is `true`, the value of the `cfg_file` setting will be used as the location of the configuration file. Any cfg and flag settings which are found in the config file will be updated with the file's values. 
+
+The setting names in the cfg file will be the same as the setting's for which they apply.
+
+The `useCfg` flag is set automatically when `RegisterCfgFile()` is called.
+
+To get the current value of `useCfg`:
+    b := UseCfg()
+    b := myCfg.UseCfg()
+
+## Cfg settings
+A contour setting is the basic datatype for a setting in contour. It's values are largely determined by how they are registered. Depending on the setting type, their values may, or may not, be updateable. 
+
+Setting names must be unique and their short code must also be unique.
+### supported datatypes
+Currently, only the following datatypes are supported:
+	* bool
+	* int
+	* int64
+	* interface{}
+	* string
+
+For method sets that include datatype support, e.g. `Get*`, the version without a datatype, e.g. `Get()`, will use an interface{}.
+
+### Registering settings
+To use a setting, it must be first registered. Registering the setting ensures that everything gets set properly for a given setting type. What a setting is registered as will affect what operations are allowed on it after registration, e.g. __core__ setting values cannot be changed after registration.
+
+All registration functions are in the form of `Register{datatype}{setting-type}`, with the __setting-type__ being optional.
+
+#### Core settings
+Core settings are settings, which once registered, cannot be modified: 
+	contour.RegisterStringCore("corestring", "this is a core setting and cannot be changed after registration")
+	
+Cfg settings are settings that are exposed as configuration settings. Only cfg and flag settings can be in config files. If the Cfg supports environment variables, cfg settings are also exposed as environment variables. Once a cfg setting has been registered, they can only be updated using `Update` functions.
+	contour.RegisterBoolCfg("cfgbool", false)
+	
+Flag settings are settings that are available as command-line flags. Flags are also exposed as configuration file settings and environment variables. Flags can be updated using the `Update` functions until `FilterArgs()` has been done. Once the args have been filtered, any changes to their value must be done with the `Override()` function.
+	contour.RegisterStringFlag("flagstring", "this is a flag setting and can be used as a command-line flag")
+
+Regular settings are settings that are not exposed in the config file, enviornment variables, or command-line args. Unlike Core settings, regular settings are modifiable.
+	contour.RegisterInt("int", 42)
+
