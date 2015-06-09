@@ -151,19 +151,19 @@ func TestUpdateStrings(t *testing.T) {
 		err := UpdateStringE(test.key, test.value)
 		if err != nil {
 			if test.err != err.Error() {
-				t.Errorf("%d: expected %q got %q", i, test.err, err)
+				t.Errorf("%d: expected %q got %q", i, test.err, err.Error())
 			}
 			continue
 		}
 		s, err := GetStringE(test.key)
 		if err != nil {
 			if test.err != err.Error() {
-				t.Errorf("%d: expected %q got %q", i, test.err, err)
+				t.Errorf("%d: expected %q got %q", i, test.err, err.Error())
 			}
 			continue
 		}
 		if s != test.value {
-			t.Errorf("%d: expected %t got %s", i, test.value, s)
+			t.Errorf("%d: expected %s got %s", i, test.value, s)
 		}
 		// Non-e
 		UpdateString(test.key, fmt.Sprintf("%s %s", test.value, test.value))

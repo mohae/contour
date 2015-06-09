@@ -21,7 +21,7 @@ func (c *Cfg) Override(k string, v interface{}) error {
 	// If it can't be overriden,
 	s, ok := c.settings[k]
 	if !ok {
-		return fmt.Errorf("%s not found: cannot override")
+		return fmt.Errorf("%s not found: cannot override", k)
 	}
 	if s.IsCore || !s.IsFlag {
 		return fmt.Errorf("%s is not a flag: only flags can be overridden", k)

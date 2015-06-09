@@ -490,7 +490,7 @@ func GetEnvName(s string) string { return appCfg.GetEnvName(s) }
 func (c *Cfg) GetEnvName(s string) string {
 	c.RWMutex.RLock()
 	defer c.RWMutex.RUnlock()
-	return strings.ToUpper(fmt.Sprintf("%s_%s", c.name))
+	return strings.ToUpper(fmt.Sprintf("%s_%s", c.name, s))
 }
 
 // getFileBytes reads from the passed path and returns its contents as bytes,

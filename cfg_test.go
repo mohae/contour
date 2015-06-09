@@ -401,7 +401,7 @@ func TestIsFuncs(t *testing.T) {
 		b, err = IsEnvE(test.name)
 		if err != nil {
 			if err.Error() != fmt.Sprintf("IsEnv%s", test.err) {
-				t.Errorf("%d: expected %q got %", i, fmt.Sprintf("IsEnv%s", test.err), err.Error())
+				t.Errorf("%d: expected %q got %s", i, fmt.Sprintf("IsEnv%s", test.err), err.Error())
 			}
 		} else {
 			if b != test.IsEnv {
@@ -556,13 +556,14 @@ func TestSetCfg(t *testing.T) {
 		return
 	}
 	appCfg = newTestCfg()
+	appCfg.SetName("rancher")
 	appCfg.RegisterCfgFile(CfgFile, tests[5].fullPath)
 	for i, test := range tests {
 		appCfg.UpdateString(CfgFile, test.fullPath)
 		appCfg.UpdateString(CfgFormat, test.format.String())
 		appCfg.SetUseCfg(test.useCfg)
 		appCfg.SetUseEnv(test.useEnv)
-		os.Setenv(fmt.Sprintf("rancher_", test.name), test.envValue)
+		os.Setenv(GetEnvName(test.name), test.envValue)
 		err := appCfg.SetCfg()
 		if err != nil {
 			if test.err != err.Error() {
@@ -621,7 +622,7 @@ func TestProcessCfg(t *testing.T) {
 		}
 		if test.expected == nil {
 			if c != nil {
-				t.Errorf("%d: expected %v, got %v", test.expected, c)
+				t.Errorf("%d: expected %v, got %v", i, test.expected, c)
 			}
 			continue
 		}
