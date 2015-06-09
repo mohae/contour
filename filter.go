@@ -23,7 +23,7 @@ func (c *Cfg) FilterArgs(args []string) ([]string, error) {
 	}
 	// the arg slice may be modified, any --flags get normalized to -flag
 	args, flags := c.getPassedFlags(args)
-	c.RWMutex.RLock()
+	c.RWMutex.Lock()
 	// Parse args for flags
 	err = c.flagSet.Parse(args)
 	if err != nil {
@@ -31,7 +31,7 @@ func (c *Cfg) FilterArgs(args []string) ([]string, error) {
 	}
 	// Get the remaining args
 	cmdArgs := c.flagSet.Args()
-	c.RWMutex.RUnlock()
+	c.RWMutex.Unlock()
 	// Process the captured values
 	for _, n := range flags {
 		c.RWMutex.RLock()

@@ -35,7 +35,7 @@ func (c *Cfg) RegisterCfgFile(k, v string) error {
 	// check to see if the env var is set
 	c.RWMutex.RLock()
 	if c.useEnv {
-		fname := os.Getenv(fmt.Sprintf("%s_%s", c.name, k))
+		fname := os.Getenv(c.GetEnvName(k))
 		if fname != "" {
 			v = fname
 		}
