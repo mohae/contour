@@ -76,8 +76,8 @@ var appCfg *Cfg
 // comes with. These are public and are directly settable if you wish to use
 // your own values, just set them before doing anything with Contour.
 var (
-	CfgFile   string = "cfgfile"
-	CfgFormat string = "cfgformat"
+	CfgFile   string = "cfg_file"
+	CfgFormat string = "cfg_format"
 )
 
 func init() {

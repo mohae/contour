@@ -76,6 +76,7 @@ func NewCfg(name string) *Cfg {
 		flagSet:           flag.NewFlagSet(name, flag.ContinueOnError),
 		settings:          map[string]setting{},
 		cfgVars:           map[string]struct{}{},
+		useCfg:            true,
 		useEnv:            true,
 		filterVars:        map[string]interface{}{},
 		boolFilterNames:   []string{},
@@ -482,6 +483,14 @@ func (c *Cfg) canOverride(k string) bool {
 		return false
 	}
 	return true
+}
+
+// GetEnvName returns the env variable name version of the passed string
+func GetEnvName(s string) string { return appCfg.GetEnvName(s) }
+func (c *Cfg) GetEnvName(s string) string {
+	c.RWMutex.RLock()
+	defer c.RWMutex.RUnlock()
+	return fmt.Sprintf("%s_%s", c.name)
 }
 
 // getFileBytes reads from the passed path and returns its contents as bytes,

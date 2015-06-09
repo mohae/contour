@@ -2,8 +2,7 @@ package contour
 
 import (
 	"fmt"
-
-	//jww "github.com/spf13/jwalterweatherman"
+	"strings"
 )
 
 // FilterArgs takes the passed args and filter's the flags out of them.  The
@@ -22,6 +21,8 @@ func (c *Cfg) FilterArgs(args []string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	// the arg slice may be modified, any --flags get normalized to -flag
+	args, flags := c.getPassedFlags(args)
 	c.RWMutex.RLock()
 	// Parse args for flags
 	err = c.flagSet.Parse(args)
@@ -32,95 +33,24 @@ func (c *Cfg) FilterArgs(args []string) ([]string, error) {
 	cmdArgs := c.flagSet.Args()
 	c.RWMutex.RUnlock()
 	// Process the captured values
-	for _, v := range c.boolFilterNames {
-		if v == "" {
-			continue
-		}
+	for _, n := range flags {
 		c.RWMutex.RLock()
-		ptr, ok := c.filterVars[v]
-		c.RWMutex.RUnlock()
+		ptr, ok := c.filterVars[n]
 		if !ok {
 			continue
 		}
-		// see if the pointer is nil, if it is, the flag wasn't present
-		if ptr == nil {
-			continue
-		}
-		s, err := c.GetBoolE(v)
-		if err != nil {
-			return nil, fmt.Errorf("unable to process arg filter %s: %s", v, err.Error())
-		}
-		var b bool
-		switch ptr.(type) {
-		case bool:
-			b = ptr.(bool)
-		case *bool:
-			b = *ptr.(*bool)
-		}
-		if s != b {
-			c.Override(v, b)
-		}
-	}
-	for _, v := range c.intFilterNames {
-		if v == "" {
-			continue
-		}
-		c.RWMutex.RLock()
-		ptr, ok := c.filterVars[v]
 		c.RWMutex.RUnlock()
-		if !ok {
-			continue
-		}
-		// see if the pointer is nil, if it is, the flag wasn't present
-		if ptr == nil {
-			continue
-		}
-		s, err := c.GetIntE(v)
-		if err != nil {
-			return nil, fmt.Errorf("unable to process arg filter %s: %s", v, err.Error())
-		}
-		var i int
-		switch ptr.(type) {
-		case int:
-			i = ptr.(int)
-		case *int:
-			i = *ptr.(*int)
-		}
-		if s != i {
-			c.Override(v, i)
-		}
-	}
-	for _, v := range c.stringFilterNames {
-		if v == "" {
-			continue
-		}
-		c.RWMutex.RLock()
-		ptr, ok := c.filterVars[v]
-		c.RWMutex.RUnlock()
-		if !ok {
-			continue
-		}
-		// see if the pointer is nil, if it is, the flag wasn't present
-		if ptr == nil {
-			continue
-		}
-		s, err := c.GetStringE(v)
-		if err != nil {
-			return nil, fmt.Errorf("unable to process arg filter %s: %s", v, err.Error())
-		}
-		var st string
-		switch ptr.(type) {
-		case string:
-			st = ptr.(string)
-		case *string:
-			st = *ptr.(*string)
-		}
-		if s != st {
-			c.Override(v, st)
-		}
+		c.Override(n, ptr)
 	}
 	c.RWMutex.Lock()
 	c.argsFiltered = true
+	// nil these out as they are no longer needed
+	c.boolFilterNames = nil
+	c.intFilterNames = nil
+	c.int64FilterNames = nil
+	c.stringFilterNames = nil
+	c.filterVars = nil
+	c.shortFlags = nil
 	c.RWMutex.Unlock()
 	return cmdArgs, nil
 }
@@ -136,31 +66,15 @@ func (c *Cfg) setCfgFlags() error {
 			case "bool":
 				c.filterVars[s.Name] = c.flagSet.Bool(s.Name, s.Value.(bool), s.Usage)
 				c.boolFilterNames = append(c.boolFilterNames, s.Name)
-				if s.Short != "" {
-					c.filterVars[s.Short] = c.flagSet.Bool(s.Short, s.Value.(bool), s.Usage)
-					c.boolFilterNames = append(c.boolFilterNames, s.Short)
-				}
 			case "int":
 				c.filterVars[s.Name] = c.flagSet.Int(s.Name, s.Value.(int), s.Usage)
 				c.intFilterNames = append(c.intFilterNames, s.Name)
-				if s.Short != "" {
-					c.filterVars[s.Short] = c.flagSet.Int(s.Short, s.Value.(int), s.Usage)
-					c.intFilterNames = append(c.intFilterNames, s.Short)
-				}
 			case "int64":
 				c.filterVars[s.Name] = c.flagSet.Int64(s.Name, s.Value.(int64), s.Usage)
 				c.int64FilterNames = append(c.int64FilterNames, s.Name)
-				if s.Short != "" {
-					c.filterVars[s.Short] = c.flagSet.Int64(s.Short, s.Value.(int64), s.Usage)
-					c.int64FilterNames = append(c.int64FilterNames, s.Short)
-				}
 			case "string":
 				c.filterVars[s.Name] = c.flagSet.String(s.Name, s.Value.(string), s.Usage)
 				c.stringFilterNames = append(c.stringFilterNames, s.Name)
-				if s.Short != "" {
-					c.filterVars[s.Short] = c.flagSet.String(s.Short, s.Value.(string), s.Usage)
-					c.stringFilterNames = append(c.stringFilterNames, s.Short)
-				}
 			}
 		}
 	}
@@ -168,60 +82,44 @@ func (c *Cfg) setCfgFlags() error {
 	return nil
 }
 
-// Filter Methods obtain a list of flags of the filter type, e.g. boolFilter
-// for bool flags, and returns them.
-// GetBoolFilterNames returns a list of filter names (flags).
-func GetBoolFilterNames() []string { return appCfg.GetBoolFilterNames() }
-func (c *Cfg) GetBoolFilterNames() []string {
+// getPassedFlags returns a slice of flags that exist in the arg list. The
+// original args are not affected,
+func (c *Cfg) getPassedFlags(args []string) ([]string, []string) {
+	// keeps track of what flags
+	var flags []string
 	c.RWMutex.RLock()
 	defer c.RWMutex.RUnlock()
-	var names []string
-	for k, setting := range c.settings {
-		if setting.IsFlag && setting.Type == "bool" {
-			names = append(names, k)
+	for i, arg := range args {
+		if strings.HasPrefix(arg, "--") {
+			arg = arg[1:len(arg)]
+			args[i] = arg
+		}
+		if strings.HasPrefix(arg, "-") {
+			arg = strings.TrimPrefix(arg, "-")
+			// if the key can be split by =, it's the first element
+			split := strings.Split(arg, "=")
+			arg = split[0]
+			// Check to see if this is a short flag, if so, use the full flag name.
+			n, ok := c.shortFlags[arg]
+			if ok {
+				arg = n
+				// replace the short version with the arg.
+				if len(split) == 1 {
+					args[i] = "-" + arg
+				} else {
+					split[0] = "-" + arg
+					args[i] = strings.Join(split, "=")
+				}
+			}
+			// Check to see if it already exists and is a flag before adding it
+			s, ok := c.settings[arg]
+			if !ok {
+				continue
+			}
+			if s.IsFlag {
+				flags = append(flags, arg)
+			}
 		}
 	}
-	return names
-}
-
-// GetIntFilterNames returns a list of filter names (flags).
-func GetIntFilterNames() []string { return appCfg.GetBoolFilterNames() }
-func (c *Cfg) GetIntFilterNames() []string {
-	c.RWMutex.RLock()
-	defer c.RWMutex.RUnlock()
-	var names []string
-	for k, setting := range c.settings {
-		if setting.IsFlag && setting.Type == "int" {
-			names = append(names, k)
-		}
-	}
-	return names
-}
-
-// GetInt64FilterNames returns a list of filter names (flags).
-func GetInt64FilterNames() []string { return appCfg.GetBoolFilterNames() }
-func (c *Cfg) GetInt64FilterNames() []string {
-	c.RWMutex.RLock()
-	defer c.RWMutex.RUnlock()
-	var names []string
-	for k, setting := range c.settings {
-		if setting.IsFlag && setting.Type == "int64" {
-			names = append(names, k)
-		}
-	}
-	return names
-}
-
-// GetStringFilterNames returns a list of filter names (flags).
-func GetStringFilterNames() []string { return appCfg.GetBoolFilterNames() }
-func (c *Cfg) GetStringFilterNames() []string {
-	c.RWMutex.RLock()
-	defer c.RWMutex.RUnlock()
-	var names []string
-	for k, setting := range c.settings {
-		if setting.IsFlag && setting.Type == "string" {
-			names = append(names, k)
-		}
-	}
-	return names
+	return args, flags
 }
