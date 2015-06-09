@@ -1,15 +1,21 @@
 package contour
 
 import (
+	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"testing"
+	"time"
 
 	"github.com/mohae/customjson"
 )
 
 func init() {
 	log.SetOutput(ioutil.Discard)
+	rand.Seed(int64(time.Now().Nanosecond()))
+
 }
 
 type basic struct {
@@ -209,156 +215,225 @@ var testCfgs = map[string]Cfg{
 }
 
 func newTestCfg() *Cfg {
-	return &Cfg{settings: map[string]setting{
-		"corebool": setting{
-			Type:   "bool",
-			Value:  true,
-			IsCore: true,
-		},
-		"coreint": setting{
-			Type:   "int",
-			Value:  42,
-			IsCore: true,
-		},
-		"coreint64": setting{
-			Type:   "int64",
-			Value:  int64(42),
-			IsCore: true,
-		},
-		"corestring": setting{
-			Type:   "string",
-			Value:  "a core string",
-			IsCore: true,
-		},
-		"coreslice": setting{
-			Type:   "string-slice",
-			Value:  []string{},
-			IsCore: true,
-		},
-		"coremap": setting{
-			Type:   "map",
-			Value:  map[string]interface{}{},
-			IsCore: true,
-		},
-		"cfgbool": setting{
-			Type:  "bool",
-			Value: true,
-			Short: "",
-			IsCfg: true,
-			IsEnv: true,
-		},
-		"cfgint": setting{
-			Type:  "int",
-			Value: 42,
-			IsCfg: true,
-			IsEnv: true,
-		},
-		"cfgint64": setting{
-			Type:  "int64",
-			Value: int64(42),
-			IsCfg: true,
-			IsEnv: true,
-		},
-		"cfgstring": setting{
-			Type:  "string",
-			Value: "a cfg string",
-			Short: "",
-			IsCfg: true,
-			IsEnv: true,
-		},
-		"cfgslice": setting{
-			Type:  "string-slice",
-			Value: []string{},
-			Short: "",
-			IsCfg: true,
-			IsEnv: true,
-		},
-		"cfgmap": setting{
-			Type:  "map",
-			Value: map[string]interface{}{},
-			Short: "",
-			IsCfg: true,
-			IsEnv: true,
-		},
-		"flagbool": setting{
-			Type:   "bool",
-			Value:  true,
-			Short:  "",
-			IsCfg:  true,
-			IsEnv:  true,
-			IsFlag: true,
-		},
-		"flagint": setting{
-			Type:   "int",
-			Value:  42,
-			Short:  "",
-			IsCfg:  true,
-			IsEnv:  true,
-			IsFlag: true,
-		},
-		"flagint64": setting{
-			Type:   "int64",
-			Value:  int64(42),
-			Short:  "",
-			IsCfg:  true,
-			IsEnv:  true,
-			IsFlag: true,
-		},
-		"flagstring": setting{
-			Type:   "string",
-			Value:  "a flag string",
-			Short:  "",
-			IsCfg:  true,
-			IsEnv:  true,
-			IsFlag: true,
-		},
-		"flagslice": setting{
-			Type:   "string-slice",
-			Value:  []string{},
-			Short:  "",
-			IsCfg:  true,
-			IsEnv:  true,
-			IsFlag: true,
-		},
-		"flagmap": setting{
-			Type:   "map",
-			Value:  map[string]interface{}{},
-			Short:  "",
-			IsCfg:  true,
-			IsEnv:  true,
-			IsFlag: true,
-		},
-		"bool": setting{
-			Type:  "bool",
-			Value: true,
-			Short: "b",
-		},
-		"int": setting{
-			Type:  "int",
-			Value: 42,
-			Short: "i",
-		},
-		"int64": setting{
-			Type:  "int64",
-			Value: int64(42),
-			Short: "",
-		},
-		"string": setting{
-			Type:  "string",
-			Value: "a string",
-			Short: "s",
-		},
-		"slice": setting{
-			Type:  "string-slice",
-			Value: []string{},
-			Short: "s",
-		},
-		"map": setting{
-			Type:  "map",
-			Value: map[string]interface{}{},
-			Short: "s",
-		},
-	}}
+	return &Cfg{
+		flagSet:           flag.NewFlagSet(fmt.Sprintf("rancher-%d", rand.Int63()), flag.ContinueOnError),
+		useCfg:            true,
+		useEnv:            true,
+		filterVars:        map[string]interface{}{},
+		boolFilterNames:   []string{},
+		intFilterNames:    []string{},
+		int64FilterNames:  []string{},
+		stringFilterNames: []string{},
+		settings: map[string]setting{
+			"corebool": setting{
+				Type:   "bool",
+				Name:   "corebool",
+				Value:  true,
+				IsCore: true,
+			},
+			"coreint": setting{
+				Type:   "int",
+				Name:   "coreint",
+				Value:  42,
+				IsCore: true,
+			},
+			"coreint64": setting{
+				Type:   "int64",
+				Name:   "coreint64",
+				Value:  int64(42),
+				IsCore: true,
+			},
+			"corestring": setting{
+				Type:   "string",
+				Name:   "corestring",
+				Value:  "a core string",
+				IsCore: true,
+			},
+			"coreslice": setting{
+				Type:   "string-slice",
+				Name:   "coreslice",
+				Value:  []string{},
+				IsCore: true,
+			},
+			"coremap": setting{
+				Type:   "map",
+				Name:   "coremap",
+				Value:  map[string]interface{}{},
+				IsCore: true,
+			},
+			"cfgbool": setting{
+				Type:  "bool",
+				Name:  "cfgbool",
+				Value: true,
+				Short: "",
+				IsCfg: true,
+				IsEnv: true,
+			},
+			"cfgint": setting{
+				Type:  "int",
+				Name:  "cfgint",
+				Value: 42,
+				IsCfg: true,
+				IsEnv: true,
+			},
+			"cfgint64": setting{
+				Type:  "int64",
+				Name:  "cfgint64",
+				Value: int64(42),
+				IsCfg: true,
+				IsEnv: true,
+			},
+			"cfgstring": setting{
+				Type:  "string",
+				Name:  "cfgstring",
+				Value: "a cfg string",
+				Short: "",
+				IsCfg: true,
+				IsEnv: true,
+			},
+			"cfgslice": setting{
+				Type:  "string-slice",
+				Name:  "cfgslice",
+				Value: []string{},
+				Short: "",
+				IsCfg: true,
+				IsEnv: true,
+			},
+			"cfgmap": setting{
+				Type:  "map",
+				Name:  "cfgmap",
+				Value: map[string]interface{}{},
+				Short: "",
+				IsCfg: true,
+				IsEnv: true,
+			},
+			"flagbool": setting{
+				Type:   "bool",
+				Name:   "flagbool",
+				Value:  true,
+				Short:  "",
+				IsCfg:  true,
+				IsEnv:  true,
+				IsFlag: true,
+			},
+			"flagbool-tst": setting{
+				Type:   "bool",
+				Name:   "flagbool-tst",
+				Value:  true,
+				Short:  "",
+				IsCfg:  true,
+				IsEnv:  true,
+				IsFlag: true,
+			},
+			"flagint": setting{
+				Type:   "int",
+				Name:   "flagint",
+				Value:  42,
+				Short:  "",
+				IsCfg:  true,
+				IsEnv:  true,
+				IsFlag: true,
+			},
+			"flagint-tst": setting{
+				Type:   "int",
+				Name:   "flagint-tst",
+				Value:  42,
+				Short:  "",
+				IsCfg:  true,
+				IsEnv:  true,
+				IsFlag: true,
+			},
+			"flagint64": setting{
+				Type:   "int64",
+				Name:   "flagint64",
+				Value:  int64(42),
+				Short:  "",
+				IsCfg:  true,
+				IsEnv:  true,
+				IsFlag: true,
+			},
+			"flagint64-tst": setting{
+				Type:   "int64",
+				Name:   "flagint64-tst",
+				Value:  int64(42),
+				Short:  "",
+				IsCfg:  true,
+				IsEnv:  true,
+				IsFlag: true,
+			},
+			"flagstring": setting{
+				Type:   "string",
+				Name:   "flagstring",
+				Value:  "a flag string",
+				Short:  "",
+				IsCfg:  true,
+				IsEnv:  true,
+				IsFlag: true,
+			},
+			"flagstring-tst": setting{
+				Type:   "string",
+				Name:   "flagstring-tst",
+				Value:  "a flag string",
+				Short:  "",
+				IsCfg:  true,
+				IsEnv:  true,
+				IsFlag: true,
+			},
+			"flagslice": setting{
+				Type:   "string-slice",
+				Name:   "flagslice",
+				Value:  []string{},
+				Short:  "",
+				IsCfg:  true,
+				IsEnv:  true,
+				IsFlag: true,
+			},
+			"flagmap": setting{
+				Type:   "map",
+				Name:   "flagmap",
+				Value:  map[string]interface{}{},
+				Short:  "",
+				IsCfg:  true,
+				IsEnv:  true,
+				IsFlag: true,
+			},
+			"bool": setting{
+				Type:  "bool",
+				Name:  "bool",
+				Value: true,
+				Short: "b",
+			},
+			"int": setting{
+				Type:  "int",
+				Name:  "int",
+				Value: 42,
+				Short: "i",
+			},
+			"int64": setting{
+				Type:  "int64",
+				Name:  "int64",
+				Value: int64(42),
+				Short: "",
+			},
+			"string": setting{
+				Type:  "string",
+				Name:  "string",
+				Value: "a string",
+				Short: "s",
+			},
+			"slice": setting{
+				Type:  "string-slice",
+				Name:  "slice",
+				Value: []string{},
+				Short: "s",
+			},
+			"map": setting{
+				Type:  "map",
+				Name:  "map",
+				Value: map[string]interface{}{},
+				Short: "s",
+			},
+		}}
 }
 
 func TestNotFoundErr(t *testing.T) {

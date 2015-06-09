@@ -49,10 +49,10 @@ type Cfg struct {
 	// interface contains pointer to a variable
 	filterVars map[string]interface{}
 	// flag filters by type
-	boolFilters   []string
-	intFilters    []string
-	int64Filters  []string
-	stringFilters []string
+	boolFilterNames   []string
+	intFilterNames    []string
+	int64FilterNames  []string
+	stringFilterNames []string
 	// maps short flags to the long version
 	shortFlags map[string]string
 }
@@ -69,7 +69,21 @@ func AppCfg() *Cfg {
 
 // NewConfig returns a *Cfg to the caller
 func NewCfg(name string) *Cfg {
-	return &Cfg{name: name, errOnMissingCfg: true, searchPath: true, flagSet: flag.NewFlagSet(name, flag.ContinueOnError), settings: map[string]setting{}, cfgVars: map[string]struct{}{}, useEnv: true, shortFlags: map[string]string{}}
+	return &Cfg{
+		name:              name,
+		errOnMissingCfg:   true,
+		searchPath:        true,
+		flagSet:           flag.NewFlagSet(name, flag.ContinueOnError),
+		settings:          map[string]setting{},
+		cfgVars:           map[string]struct{}{},
+		useEnv:            true,
+		filterVars:        map[string]interface{}{},
+		boolFilterNames:   []string{},
+		intFilterNames:    []string{},
+		int64FilterNames:  []string{},
+		stringFilterNames: []string{},
+		shortFlags:        map[string]string{},
+	}
 }
 
 // UpdateFromEnv updates the cfg settings from env vars: only when the Cfg's
