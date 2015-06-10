@@ -249,6 +249,11 @@ func (c *Cfg) SetCfg() error {
 		// Load the Cfg
 		buff, err := getFileBytes(fname)
 		if err != nil {
+			// only return nil if the error is 'no such file or directory'
+			if !c.errOnMissingCfg && strings.HasSuffix(err.Error(), "no such file or directory") {
+				return nil
+			}
+			// otherwise its an error
 			return fmt.Errorf("reading %s failed: %s", fname, err.Error())
 		}
 		err = c.UpdateFromCfg(buff)
