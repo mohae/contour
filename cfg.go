@@ -24,6 +24,9 @@ type Cfg struct {
 	name string
 	sync.RWMutex
 	errOnMissingCfg bool
+	// configuration setting names that the caller uses
+	cfgFormatSettingName string
+	cfgFileSettingName   string
 	// search the path env var, in addition to pwd & executalbe dir, for cfc file.
 	searchPath bool
 	flagSet    *flag.FlagSet
@@ -70,20 +73,21 @@ func AppCfg() *Cfg {
 // NewConfig returns a *Cfg to the caller
 func NewCfg(name string) *Cfg {
 	return &Cfg{
-		name:              name,
-		errOnMissingCfg:   true,
-		searchPath:        true,
-		flagSet:           flag.NewFlagSet(name, flag.ContinueOnError),
-		settings:          map[string]setting{},
-		cfgVars:           map[string]struct{}{},
-		useCfg:            true,
-		useEnv:            true,
-		filterVars:        map[string]interface{}{},
-		boolFilterNames:   []string{},
-		intFilterNames:    []string{},
-		int64FilterNames:  []string{},
-		stringFilterNames: []string{},
-		shortFlags:        map[string]string{},
+		name:                 name,
+		errOnMissingCfg:      true,
+		searchPath:           true,
+		cfgFormatSettingName: "cfg_format",
+		flagSet:              flag.NewFlagSet(name, flag.ContinueOnError),
+		settings:             map[string]setting{},
+		cfgVars:              map[string]struct{}{},
+		useCfg:               true,
+		useEnv:               true,
+		filterVars:           map[string]interface{}{},
+		boolFilterNames:      []string{},
+		intFilterNames:       []string{},
+		int64FilterNames:     []string{},
+		stringFilterNames:    []string{},
+		shortFlags:           map[string]string{},
 	}
 }
 
@@ -237,7 +241,7 @@ func (c *Cfg) SetCfg() error {
 	useCfg := c.useCfg
 	useEnv := c.useEnv
 	c.RWMutex.RUnlock()
-	fname, err := c.GetStringE(CfgFile)
+	fname, err := c.GetStringE(c.CfgFileSettingName())
 	if err != nil {
 		return fmt.Errorf("SetCfg failed: %s", err.Error())
 	}
@@ -259,6 +263,37 @@ func (c *Cfg) SetCfg() error {
 		}
 	}
 	return nil
+}
+
+// SetCfgFormatSettingName sets the Cfg.cfgFormatSettingName to the recieved
+// value, if it's not empty.
+func SetCfgFormatSettingName(s string) { appCfg.SetCfgFormatSettingName(s) }
+func (c *Cfg) SetCfgFormatSettingName(s string) {
+	if s == "" {
+		return
+	}
+	c.RWMutex.Lock()
+	c.cfgFormatSettingName = s
+	c.RWMutex.Unlock()
+}
+
+// CfgFormatSettingName returns the value of Cfg.cfgFormatSettingName.
+func CfgFormatSettingName() string { return appCfg.CfgFormatSettingName() }
+func (c *Cfg) CfgFormatSettingName() string {
+	c.RWMutex.RLock()
+	defer c.RWMutex.RUnlock()
+	return c.cfgFormatSettingName
+}
+
+// No SetCfgFileSettingName because this is set during registration of the
+// Cfg file.
+
+// CfgFileSettingName returns the value of Cfg.cfgFileSettingName.
+func CfgFileSettingName() string { return appCfg.CfgFileSettingName() }
+func (c *Cfg) CfgFileSettingName() string {
+	c.RWMutex.RLock()
+	defer c.RWMutex.RUnlock()
+	return c.cfgFileSettingName
 }
 
 // UpdateFromCfg updates the application's default values with the setting
@@ -406,7 +441,7 @@ func (c *Cfg) processCfg(buff []byte) (cfg interface{}, err error) {
 	if !c.useCfg {
 		return nil, nil
 	}
-	setting, ok := c.settings[CfgFile]
+	setting, ok := c.settings[c.cfgFileSettingName]
 	if !ok {
 		// Wasn't configured, nothing to do. Not an error.
 		return nil, nil
@@ -420,14 +455,14 @@ func (c *Cfg) processCfg(buff []byte) (cfg interface{}, err error) {
 	}
 	// This shouldn't happend, but lots of things happen that shouldn't.  It should
 	// have been registered already. so if it doesn't exit, err.
-	format, ok := c.settings[CfgFormat]
+	format, ok := c.settings[c.cfgFormatSettingName]
 	if !ok {
 		return nil, fmt.Errorf("processCfg error: format was not set")
 	}
 	if format.Value.(string) == "" {
 		return nil, fmt.Errorf("processCfg error: format was not set")
 	}
-	format, _ = c.settings[CfgFormat]
+	format, _ = c.settings[c.cfgFormatSettingName]
 	cfg, err = unmarshalCfgBytes(ParseFormat(format.Value.(string)), buff)
 	if err != nil {
 		return nil, fmt.Errorf("processCfg unmarshal error, %s: %s", n, err.Error())

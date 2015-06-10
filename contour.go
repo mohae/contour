@@ -72,14 +72,6 @@ func ParseFormat(s string) Format {
 // appCfg: contour's global config; contour config functinos operate on this.
 var appCfg *Cfg
 
-// Contour variable names for the pre-configured core setting names that it
-// comes with. These are public and are directly settable if you wish to use
-// your own values, just set them before doing anything with Contour.
-var (
-	CfgFile   string = "cfg_file"
-	CfgFormat string = "cfg_format"
-)
-
 func init() {
 	appCfg = NewCfg(app)
 }

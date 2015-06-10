@@ -30,28 +30,32 @@ func (c *Cfg) RegisterCfgFile(k, v string) error {
 		return fmt.Errorf("RegisterCfgFile expected a cfg filename: none received")
 	}
 	if k == "" {
-		return fmt.Errorf("RegisterCfgFile expected a configuration key: none received")
+		return fmt.Errorf("RegisterCfgFile expected a configuration setting name as the key: none received")
 	}
+	// store the key value being used as the configuration setting name by caller
+	c.RWMutex.Lock()
+	c.cfgFileSettingName = k
+	// get this now, while we have the lock.
+	formatSettingName := c.cfgFormatSettingName
+	c.RWMutex.Unlock()
 	// check to see if the env var is set
-	c.RWMutex.RLock()
 	if c.useEnv {
 		fname := os.Getenv(c.GetEnvName(k))
 		if fname != "" {
 			v = fname
 		}
 	}
-	c.RWMutex.RUnlock()
 	c.RegisterStringCore(k, v)
 	// Register it first. If a valid cfg format isn't found, an error/ will be returned,
 	// so registering it afterwords would mean the setting would not exist.
-	c.RegisterString(CfgFormat, "")
+	c.RegisterString(formatSettingName, "")
 	format, err := formatFromFilename(v)
 	if err != nil {
 		return err
 	}
 	// Now we can update the format, since it wasn't set before, it can be set now before
 	// it becomes read only.
-	c.UpdateString(CfgFormat, format.String())
+	c.UpdateString(formatSettingName, format.String())
 	c.RWMutex.Lock()
 	c.useCfg = true
 	c.RWMutex.Unlock()

@@ -439,7 +439,7 @@ func TestSetCfg(t *testing.T) {
 	}
 	// clean up on exit
 	defer os.RemoveAll(tmpDir)
-	fname := "testcfg,json"
+	fname := "testcfg.json"
 	tests := []struct {
 		name      string
 		fullPath  string
@@ -557,10 +557,10 @@ func TestSetCfg(t *testing.T) {
 	}
 	appCfg = newTestCfg()
 	appCfg.SetName("rancher")
-	appCfg.RegisterCfgFile(CfgFile, tests[5].fullPath)
+	appCfg.RegisterCfgFile("cfg_file", tests[5].fullPath)
 	for i, test := range tests {
-		appCfg.UpdateString(CfgFile, test.fullPath)
-		appCfg.UpdateString(CfgFormat, test.format.String())
+		appCfg.UpdateString("cfg_file", test.fullPath)
+		appCfg.UpdateString(appCfg.CfgFormatSettingName(), test.format.String())
 		appCfg.SetUseCfg(test.useCfg)
 		appCfg.SetUseEnv(test.useEnv)
 		os.Setenv(GetEnvName(test.name), test.envValue)
@@ -588,7 +588,7 @@ func TestProcessCfg(t *testing.T) {
 	}
 	// clean up on exit
 	defer os.RemoveAll(tmpDir)
-	fname := "testcfg,json"
+	fname := "testcfg.json"
 	// create temp file names
 	tests := []struct {
 		name     string
@@ -600,7 +600,7 @@ func TestProcessCfg(t *testing.T) {
 	}{
 		{"", false, "", "", nil, ""},
 		{fname, true, filepath.Join(tmpDir, fname), "", nil, "processCfg error: format was not set"},
-		{fname, true, filepath.Join(tmpDir, fname), "xyz", nil, "processCfg unmarshal error, testcfg,json: unsupported cfg format: unsupported"},
+		{fname, true, filepath.Join(tmpDir, fname), "xyz", nil, "processCfg unmarshal error, testcfg.json: unsupported cfg format: unsupported"},
 		{fname, true, filepath.Join(tmpDir, fname), "json", jsonTestResults, ""},
 	}
 	// write the tmp json cfg file
@@ -609,10 +609,10 @@ func TestProcessCfg(t *testing.T) {
 		t.Errorf("cannot do tests: %s", err.Error())
 	}
 	tCfg := newTestCfg()
-	tCfg.RegisterCfgFile(CfgFile, fname)
+	tCfg.RegisterCfgFile("cfg_file", fname)
 	for i, test := range tests {
 		tCfg.useCfg = test.UseCfg
-		tCfg.UpdateString(CfgFormat, test.format)
+		tCfg.UpdateString(tCfg.cfgFormatSettingName, test.format)
 		c, err := tCfg.processCfg(jsonTest)
 		if err != nil {
 			if err.Error() != test.err {

@@ -21,7 +21,7 @@ func TestRegisterCfgFile(t *testing.T) {
 	}
 	for _, test := range tests {
 		cfg := NewCfg(test.name)
-		err := cfg.RegisterCfgFile(CfgFile, test.filename)
+		err := cfg.RegisterCfgFile("cfg_file", test.filename)
 		if err != nil {
 			if test.err == "" {
 				t.Errorf("RegisterCfgFilename %s: unexpected error: %q", test.name, err)
@@ -33,7 +33,7 @@ func TestRegisterCfgFile(t *testing.T) {
 		cont:
 			continue
 		}
-		fname, err := cfg.GetStringE(CfgFile)
+		fname, err := cfg.GetStringE("cfg_file")
 		if err != nil {
 			t.Errorf("RegisterCfgFilename %s: unexpected error retrieving filename, %q", test.name, err)
 			continue
@@ -42,7 +42,7 @@ func TestRegisterCfgFile(t *testing.T) {
 			t.Errorf("RegisterCfgFilename %s: expected %q got %q", test.name, test.filename, fname)
 			continue
 		}
-		format, err := cfg.GetStringE(CfgFormat)
+		format, err := cfg.GetStringE(cfg.cfgFormatSettingName)
 		if err != nil {
 			t.Errorf("RegisterCfgFilename format %s: unexpected error retrieving ext, %q", test.name, err)
 			continue
