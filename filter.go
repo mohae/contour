@@ -23,6 +23,9 @@ func (c *Cfg) FilterArgs(args []string) ([]string, error) {
 	}
 	// the arg slice may be modified, any --flags get normalized to -flag
 	args, flags := c.getPassedFlags(args)
+	if flags == nil {
+		return args, nil
+	}
 	c.RWMutex.Lock()
 	// Parse args for flags
 	err = c.flagSet.Parse(args)
