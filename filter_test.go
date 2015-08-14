@@ -5,12 +5,6 @@ import (
 	"testing"
 )
 
-//func TestGetFilterNames(t *testing.T) {
-//	appCfg = newTestCfg()
-//	filterNames := appCfg.GetBoolFilterNames()
-//
-//}
-
 func TestGetBoolFilter(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -26,18 +20,21 @@ func TestGetBoolFilter(t *testing.T) {
 		{"flagbool", "f", false, false, ""},
 		{"cb", "", false, false, ""},
 	}
+	_ = tests
 	appCfg = newTestCfg()
 	appCfg.SetName("rancher-test")
 	// check that an unfiltered boolflag's var is nil
 	if appCfg.filterVars["flagbool-tst"] != nil {
 		t.Errorf("flags that weren't present in the args should be nil, flagbool-test wasn't")
 	}
+
 	args, err := appCfg.FilterArgs([]string{"-flagbool=false", "-fake", "command"})
 	if err != nil {
 		if !strings.HasPrefix(err.Error(), "parse of command-line arguments failed: flag provided but not defined: -fake") {
 			t.Errorf("expected \" parse of command-line arguments failed: flag provided but not defined: -fake\", got %q", err.Error())
 		}
 	}
+	_ = args
 	appCfg = newTestCfg()
 	appCfg.SetName("rancher-test")
 	args, err = appCfg.FilterArgs([]string{"-flagbool=false", "fake", "command"})
@@ -69,6 +66,7 @@ func TestGetBoolFilter(t *testing.T) {
 			}
 		}
 	}
+
 	// args not filtered shouldn't be affected
 	b, err := appCfg.GetBoolE("flagbool-tst")
 	if err != nil {

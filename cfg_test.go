@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -67,7 +68,7 @@ func TestLoadEnv(t *testing.T) {
 		case "flagstring":
 			RegisterStringFlag(test.name, "", test.origValue.(string), "", "")
 		}
-		os.Setenv(fmt.Sprintf("%s_%s", Name(), test.name), test.envValue)
+		os.Setenv(strings.ToUpper(fmt.Sprintf("%s_%s", Name(), test.name)), test.envValue)
 	}
 	UpdateFromEnv()
 	for _, test := range tests {

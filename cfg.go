@@ -98,7 +98,9 @@ func NewCfg(name string) *Cfg {
 //
 // A setting's env name is a concatonation of the cfg's name, an underscore
 // (_), and the setting name, e.g. a Cfg with the name 'rancher' and a setting
-// whose name is 'log' will result in 'rancher_log'.
+// whose name is 'log' will result in 'RANCHER_LOG'.
+//
+// Env variables are assumed to be UPPER_CASE
 func UpdateFromEnv() error { return appCfg.UpdateFromEnv() }
 func (c *Cfg) UpdateFromEnv() error {
 	c.RWMutex.RLock()
@@ -112,7 +114,7 @@ func (c *Cfg) UpdateFromEnv() error {
 		if !v.IsEnv {
 			continue
 		}
-		tmp := os.Getenv(fmt.Sprintf("%s_%s", name, k))
+		tmp := os.Getenv(strings.ToUpper(fmt.Sprintf("%s_%s", name, k)))
 		if tmp != "" {
 			c.RWMutex.RUnlock()
 			switch v.Type {
@@ -122,13 +124,13 @@ func (c *Cfg) UpdateFromEnv() error {
 			case "int":
 				i, err := strconv.Atoi(tmp)
 				if err != nil {
-					return fmt.Errorf("Loadenv error while parsing %s: %s", fmt.Sprintf("%s_%s", name, k), err)
+					return fmt.Errorf("Loadenv error while parsing %s: %s", strings.ToUpper(fmt.Sprintf("%s_%s", name, k)), err)
 				}
 				err = c.UpdateIntE(k, i)
 			case "int64":
 				i, err := strconv.ParseInt(tmp, 10, 64)
 				if err != nil {
-					return fmt.Errorf("Loadenv error while parsing %s: %s", fmt.Sprintf("%s_%s", name, k), err)
+					return fmt.Errorf("Loadenv error while parsing %s: %s", strings.ToUpper(fmt.Sprintf("%s_%s", name, k)), err)
 				}
 				err = c.UpdateInt64E(k, i)
 			case "string":
@@ -137,7 +139,7 @@ func (c *Cfg) UpdateFromEnv() error {
 				return fmt.Errorf("%s has an unsupported env variable type: %s", k, v.Type)
 			}
 			if err != nil {
-				return fmt.Errorf("Loadenv error while setting %s: %s", fmt.Sprintf("%s_%s", name, k), err)
+				return fmt.Errorf("Loadenv error while setting %s: %s", strings.ToUpper(fmt.Sprintf("%s_%s", name, k)), err)
 			}
 			// lock to check next setting, if there is one.
 			c.RWMutex.RLock()
