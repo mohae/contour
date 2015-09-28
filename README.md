@@ -7,7 +7,26 @@ Contour attempts to be a simple to use configuration package whose behavior can 
 
 By default, the contour global cfg, a pointer to which can be obtained via the contour.AppCfg() call, is configured to check environment variables. If a cfg file is successfully set, via RegisterCfgFile(), it will set itself to use a config file.  If any flags are registered, via RegisterFlag*() funcs, flags will be filtered out of passed flags.
 
-For flags, contour supports short flags and will accept either '-' or '--' for both flags and short flags.
+For flags, contour supports short flags and will accept either '-' or '--' for both flags and short flags; it is inconsistent with POSIX.
+
+### Supported configuration sources
+Contour supports various sources for configuration information:
+
+* Application defaults
+* Configuration file formats
+  * JSON**
+  * TOML
+* Environment variables
+* CLI flags.
+
+Other than Application defaults, none of the others are required.  Contour can be configured to not error on the absence of a configuration file, if it is set to use one. 
+
+#### JSON support
+Standard compliant JSON, as defined in RFC 4627.  It also supports commented json. Even though this will offend some people, comments are useful in configuration files.  Before unmarshaling, these comments are stripped out of the JSON so that the JSON is RFC 4627 compliant.
+
+Both line comments and block comments are supported. Line comments can start with either `//` or `#` and terminate at the end of the current line. Block comments start with `/*` and end with `*/`.  If those characters are found within a key or value, they are ignored.
+
+I use `cjsn`, commented JSON, as the file extension. Since there is no such thing as commented JSON, any file extension, other than `json` or `jsn` will work. To avoid confusion using the standard JSON extensions for JSON files with comments is not recommended.
 
 ## Easy to use:
 ### Import `contour`
@@ -27,13 +46,13 @@ Once the settings have been registered, the Cfg needs to be initialized. This wi
     err := contour.InitCfg()
 	
 ### Set the Cfg from args: `FilterArgs()`
-IF flags are being supported command-line args need to be filtered:
+If CLI flags are used, the command-line args need to be filtered:
 
-    cmdArgs, err := contour.FilterArgs(args)
+    args, err := contour.FilterArgs(args)
 	
 Any args that are left over, after filtering, are returned. No need to create filter variables.
 
-### Use the Cfg
+### Using the Configuration Information
 To get the value of the setting, call `Cfg.Get()`, which returns the value as an ``interface{}`. If you want the value returned as its datatype, call that datatype's Get function, e.g. `Cfg.GetBool(name)` for a `bool` setting.
 
 ## Working with `Cfg`
@@ -85,6 +104,7 @@ To get the current value of `useCfg`:
 A contour setting is the basic datatype for a setting in contour. It's values are largely determined by how they are registered. Depending on the setting type, their values may, or may not, be updateable. 
 
 Setting names must be unique and their short code must also be unique.
+
 ### supported datatypes
 Currently, only the following datatypes are supported:
 	* bool
@@ -93,7 +113,7 @@ Currently, only the following datatypes are supported:
 	* interface{}
 	* string
 
-For method sets that include datatype support, e.g. `Get*`, the version without a datatype, e.g. `Get()`, will use an interface{}.
+For method sets that include datatype support, e.g. `Get*`, the version without a datatype, e.g. `Get()`, will return an interface{}.
 
 ### Registering settings
 To use a setting, it must be first registered. Registering the setting ensures that everything gets set properly for a given setting type. What a setting is registered as will affect what operations are allowed on it after registration, e.g. __core__ setting values cannot be changed after registration.
