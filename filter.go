@@ -26,8 +26,6 @@ func (c *Cfg) FilterArgs(args []string) ([]string, error) {
 	if flags == nil {
 		return args, nil
 	}
-	_ = args
-	_ = flags
 	c.RWMutex.Lock()
 	// Parse args for flags
 	err = c.flagSet.Parse(args)

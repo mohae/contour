@@ -34,7 +34,6 @@ func TestGetBoolFilter(t *testing.T) {
 			t.Errorf("expected \" parse of command-line arguments failed: flag provided but not defined: -fake\", got %q", err.Error())
 		}
 	}
-	_ = args
 	appCfg = newTestCfg()
 	appCfg.SetName("rancher-test")
 	args, err = appCfg.FilterArgs([]string{"-flagbool=false", "fake", "command"})
