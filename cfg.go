@@ -1,7 +1,6 @@
 package contour
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -11,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/BurntSushi/toml"
+	json "github.com/mohae/ersatzjson"
 )
 
 // Cfg is a group of Settings and holds all of the application setting
