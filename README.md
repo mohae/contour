@@ -1,5 +1,6 @@
 contour
 =======
+[![Build Status](https://travis-ci.org/mohae/contour.png)](https://travis-ci.org/mohae/contour)
 Contour helps shape your application by supporting application settings, cfg settings, env settings, and flags with minimal extra work.
 
 ## About
