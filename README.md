@@ -24,11 +24,11 @@ Contour supports various sources for configuration information:
 Other than Application defaults, none of the others are required.  Contour can be configured to not error on the absence of a configuration file, if it is set to use one. 
 
 #### JSON support
-Standard compliant JSON, as defined in RFC 4627.  It also supports commented json via the [CJSN](https://github.com/mohae/cjsn) package.. Even though this will offend some people, comments are useful in configuration files.  Before unmarshaling, these comments are stripped out of the JSON so that the JSON is RFC 4627 compliant.
+Standard compliant JSON, as defined in RFC 4627.  It also supports commented json via the [CJSON](https://github.com/mohae/cjson) package.. Even though this will offend some people, comments are useful in configuration files.  Before unmarshaling, these comments are stripped out of the JSON so that the JSON is RFC 4627 compliant.
 
 Both line comments and block comments are supported. Line comments can start with either `//` or `#` and terminate at the end of the current line. Block comments start with `/*` and end with `*/`.  If those characters are found within a key or value, they are ignored.
 
-I use `cjsn`, commented JSON, as the file extension. Since there is no such thing as commented JSON, any file extension, other than `json` or `jsn` will work. To avoid confusion using the standard JSON extensions for JSON files with comments is not recommended.
+I use either `cjson` `cjsn`, commented JSON, as the file extension. Since there is no such thing as commented JSON, any file extension, other than `json` or `jsn` will work. To avoid confusion using the standard JSON extensions for JSON files with comments is not recommended.
 
 ## Easy to use:
 ### Import `contour`

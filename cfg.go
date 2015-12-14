@@ -10,7 +10,7 @@ import (
 	"sync"
 
 	"github.com/BurntSushi/toml"
-	"github.com/mohae/cjsn"
+	"github.com/mohae/cjson"
 )
 
 // Cfg is a group of Settings and holds all of the application setting
@@ -585,7 +585,7 @@ func unmarshalCfgBytes(f Format, buff []byte) (interface{}, error) {
 	var ret interface{}
 	switch f {
 	case JSON:
-		err := cjsn.Unmarshal(buff, &ret)
+		err := cjson.Unmarshal(buff, &ret)
 		if err != nil {
 			return nil, err
 		}
