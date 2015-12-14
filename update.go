@@ -71,7 +71,7 @@ func (c *Cfg) UpdateString(k, v string) {
 //
 // It is assumed that RegisterCfgFile has already been called, if it hasn't
 // nothing will be done.
-func UpdateCfgFile(k, v string) { appCfg.UpdateCfgFile(v) }
+func UpdateCfgFile(k, v string) { appCfg.UpdateCfgFile(k, v) }
 func (c *Cfg) UpdateCfgFile(k, v string) {
 	c.RWMutex.Lock()
 	defer c.RWMutex.Unlock()
