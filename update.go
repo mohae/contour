@@ -63,3 +63,22 @@ func UpdateString(k string, v string) { appCfg.UpdateString(k, v) }
 func (c *Cfg) UpdateString(k, v string) {
 	c.UpdateStringE(k, v)
 }
+
+// UpdateCfgFile updates the set config file information.  This only sets
+// the filename, the format is not changed.  This does the update
+// directly because the cfg filename is a core setting; it will fail the
+// canUpdate check.
+//
+// It is assumed that RegisterCfgFile has already been called, if it hasn't
+// nothing will be done.
+func UpdateCfgFile(k, v string) { appCfg.UpdateCfgFile(v) }
+func (c *Cfg) UpdateCfgFile(k, v string) {
+	c.RWMutex.Lock()
+	defer c.RWMutex.Unlock()
+	s, ok := c.settings[k]
+	if !ok {
+		return
+	}
+	s.Value = v
+	c.settings[k] = s
+}
