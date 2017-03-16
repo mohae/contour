@@ -41,6 +41,20 @@ LogFileLevel = "debug"
 LogStdoutLevel = "error"
 `)
 
+var tomlResults = map[string]interface{}{
+	"appVar1": true,
+	"appVar2": false,
+	"appVar3": "42",
+	"appVar4": "zip",
+	"appVar5": []string{"less", "sass", "scss"},
+	"logging": map[string]interface{}{
+		"Logging":        true,
+		"LogCfg":         "test/test.toml",
+		"LogFileLevel":   "debug",
+		"LogStdoutLevel": "error",
+	},
+}
+
 var jsonExample = []byte(`
 {
 	"appVar1": true,
@@ -60,6 +74,20 @@ var jsonExample = []byte(`
 	}
 }
 `)
+
+var jsonResults = map[string]interface{}{
+	"appVar1": true,
+	"appVar2": false,
+	"appVar3": "42",
+	"appVar4": "zip",
+	"appVar5": []string{"less", "sass", "scss"},
+	"logging": map[string]interface{}{
+		"logging":        true,
+		"logcfg":         "test/test.toml",
+		"logfilelevel":   "debug",
+		"logstdoutlevel": "error",
+	},
+}
 
 var jsonTest = []byte(`
 {
@@ -92,66 +120,6 @@ var jsonTest = []byte(`
 }
 `)
 
-var yamlExample = []byte(`appVar1: true
-appVar2: false
-appVar3: 42
-appVar4: zip
-appVar5:
-  - less
-  - iass
-  - scss
-
-logging:
-  - Logging: true
-  - LogCfg: test/test.yaml
-  - LogFileLevel: debug
-  - LogStdoutLevel: error
-`)
-
-var xmlExample = []byte(`
-<appVar1>true</appVar1>
-<appVar2>false</appVar2>
-<appVar3>42</appVar3>
-<appVar4>zip</appVar4>
-<appVar5>less</appVar5>
-<appVar5>sass</appVar5>
-<appVar5>scss</appVar5>
-<logging>
-	<logging>true</logging>
-	<logcfg>test/test.toml</logcfg>
-	<logfilelevel>debug</logfilelevel>
-	<logstdoutlevel>error</logstdoutlevel>
-</logging>
-`)
-
-var tomlResults = map[string]interface{}{
-	"appVar1": true,
-	"appVar2": false,
-	"appVar3": "42",
-	"appVar4": "zip",
-	"appVar5": []string{"less", "sass", "scss"},
-	"logging": map[string]interface{}{
-		"Logging":        true,
-		"LogCfg":         "test/test.toml",
-		"LogFileLevel":   "debug",
-		"LogStdoutLevel": "error",
-	},
-}
-
-var jsonResults = map[string]interface{}{
-	"appVar1": true,
-	"appVar2": false,
-	"appVar3": "42",
-	"appVar4": "zip",
-	"appVar5": []string{"less", "sass", "scss"},
-	"logging": map[string]interface{}{
-		"logging":        true,
-		"logcfg":         "test/test.toml",
-		"logfilelevel":   "debug",
-		"logstdoutlevel": "error",
-	},
-}
-
 var jsonTestResults = map[string]interface{}{
 	"cfgbool":    true,
 	"flagbool":   true,
@@ -174,6 +142,22 @@ var jsonTestResults = map[string]interface{}{
 	},
 }
 
+var yamlExample = []byte(`appVar1: true
+appVar2: false
+appVar3: 42
+appVar4: zip
+appVar5:
+  - less
+  - iass
+  - scss
+
+logging:
+  - Logging: true
+  - LogCfg: test/test.yaml
+  - LogFileLevel: debug
+  - LogStdoutLevel: error
+`)
+
 var yamlResults = map[interface{}]interface{}{
 	"appVar1": true,
 	"appVar2": false,
@@ -188,19 +172,22 @@ var yamlResults = map[interface{}]interface{}{
 	},
 }
 
-var xmlResults = map[string]interface{}{
-	"appVar1": true,
-	"appVar2": false,
-	"appVar3": "42",
-	"appVar4": "zip",
-	"appVar5": []string{"less", "sass", "scss"},
-	"logging": map[string]interface{}{
-		"logging":        true,
-		"logcfg":         "test/test.toml",
-		"logfilelevel":   "debug",
-		"logstdoutlevel": "error",
-	},
-}
+var xmlExample = []byte(`<cfg>
+	<appVar1>true</appVar1>
+	<appVar2>false</appVar2>
+	<appVar3>42</appVar3>
+	<appVar4>zip</appVar4>
+	<appVar5>less</appVar5>
+	<appVar5>sass</appVar5>
+	<appVar5>scss</appVar5>
+	<logging>
+		<logging>true</logging>
+		<logcfg>test/test.toml</logcfg>
+		<logfilelevel>debug</logfilelevel>
+		<logstdoutlevel>error</logstdoutlevel>
+	</logging>
+</cfg>
+`)
 
 var emptyCfgs map[string]Cfg
 var testCfgs = map[string]Cfg{
@@ -475,7 +462,6 @@ func TestFormatString(t *testing.T) {
 		{"json", JSON, "json"},
 		{"toml", TOML, "toml"},
 		{"yaml", YAML, "yaml"},
-		{"xml", XML, "xml"},
 	}
 	for _, test := range tests {
 		s := test.format.String()

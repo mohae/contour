@@ -13,7 +13,6 @@ const (
 	JSON
 	TOML
 	YAML
-	XML
 )
 
 type Format int
@@ -26,8 +25,6 @@ func (f Format) String() string {
 		return "toml"
 	case YAML:
 		return "yaml"
-	case XML:
-		return "xml"
 	default:
 		return "unsupported"
 	}
@@ -43,8 +40,6 @@ func (f Format) isSupported() bool {
 		return true
 	case TOML:
 		return true
-	case XML:
-		return false
 	}
 	return false
 }
@@ -58,8 +53,6 @@ func ParseFormatE(s string) (Format, error) {
 		return TOML, nil
 	case "yaml", "yml":
 		return YAML, nil
-	case "xml":
-		return XML, nil
 	}
 	return Unsupported, UnsupportedFormatErr{s}
 }

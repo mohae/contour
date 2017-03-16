@@ -644,7 +644,7 @@ func TestFormatFromFilename(t *testing.T) {
 		{"a cfgfilename with a toml extension", 0, "cfg.toml", "toml", ""},
 		{"a cfgfilename with a toml extension", 0, "cfg.yaml", "yaml", ""},
 		{"a cfgfilename with a toml extension", 0, "cfg.yml", "yaml", ""},
-		{"a cfgfilename with a toml extension", 0, "cfg.xml", "xml", ""},
+		{"a cfgfilename with a toml extension", 0, "cfg.xml", "", "xml: unsupported configuration format"},
 		{"a cfgfilename with a toml extension", 0, "cfg.ini", "", "ini: unsupported configuration format"},
 	}
 	for _, test := range tests {
@@ -694,7 +694,6 @@ func TestUnmarshalCfgBytes(t *testing.T) {
 		{"json cfg", JSON, jsonExample, jsonResults, ""},
 		{"toml cfg", TOML, tomlExample, tomlResults, ""},
 		{"yaml cfg", YAML, yamlExample, yamlResults, ""},
-		{"xml cfg", XML, xmlExample, []byte(""), "xml: unsupported configuration format"},
 		{"unsupported cfg", Unsupported, []byte(""), []byte(""), "unsupported: unsupported configuration format"},
 	}
 	for _, test := range tests {

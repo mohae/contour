@@ -586,18 +586,20 @@ func unmarshalCfgBytes(f Format, buff []byte) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
+		return ret, nil
 	case TOML:
 		_, err := toml.Decode(string(buff), &ret)
 		if err != nil {
 			return nil, err
 		}
+		return ret, nil
 	case YAML:
 		err := yaml.Unmarshal(buff, &ret)
 		if err != nil {
 			return nil, err
 		}
+		return ret, nil
 	default:
 		return nil, UnsupportedFormatErr{f.String()}
 	}
-	return ret, nil
 }
