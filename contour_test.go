@@ -8,8 +8,6 @@ import (
 	"math/rand"
 	"testing"
 	"time"
-
-	"github.com/mohae/customjson"
 )
 
 func init() {
@@ -24,8 +22,6 @@ type basic struct {
 	expected    string
 	expectedErr string
 }
-
-var toString = customjson.NewMarshalString()
 
 var tomlExample = []byte(`
 appVar1 = true

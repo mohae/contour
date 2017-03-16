@@ -52,7 +52,7 @@ func (f Format) isSupported() bool {
 func ParseFormatE(s string) (Format, error) {
 	ls := strings.ToLower(s)
 	switch ls {
-	case "json", "jsn":
+	case "json", "jsn", "cjsn", "cjson":
 		return JSON, nil
 	case "toml", "tml":
 		return TOML, nil
