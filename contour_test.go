@@ -92,16 +92,14 @@ var jsonTest = []byte(`
 }
 `)
 
-var yamlExample = []byte(`
-appVar1: true
+var yamlExample = []byte(`appVar1: true
 appVar2: false
 appVar3: 42
 appVar4: zip
 appVar5:
   - less
-  -	iass
-  -	scss
-
+  - iass
+  - scss
 
 logging:
   - Logging: true
@@ -176,13 +174,13 @@ var jsonTestResults = map[string]interface{}{
 	},
 }
 
-var yamlResults = map[string]interface{}{
+var yamlResults = map[interface{}]interface{}{
 	"appVar1": true,
 	"appVar2": false,
-	"appVar3": "42",
+	"appVar3": 42,
 	"appVar4": "zip",
 	"appVar5": []string{"less", "sass", "scss"},
-	"logging": map[string]interface{}{
+	"logging": map[interface{}]interface{}{
 		"logging":        true,
 		"logcfg":         "test/test.toml",
 		"logfilelevel":   "debug",

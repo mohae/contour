@@ -693,7 +693,7 @@ func TestUnmarshalCfgBytes(t *testing.T) {
 	}{
 		{"json cfg", JSON, jsonExample, jsonResults, ""},
 		{"toml cfg", TOML, tomlExample, tomlResults, ""},
-		{"yaml cfg", YAML, yamlExample, []byte(""), "yaml: unsupported configuration format"},
+		{"yaml cfg", YAML, yamlExample, yamlResults, ""},
 		{"xml cfg", XML, xmlExample, []byte(""), "xml: unsupported configuration format"},
 		{"unsupported cfg", Unsupported, []byte(""), []byte(""), "unsupported: unsupported configuration format"},
 	}
@@ -707,45 +707,83 @@ func TestUnmarshalCfgBytes(t *testing.T) {
 			}
 			if err.Error() != test.expectedErr {
 				t.Errorf("%s: expected %q; got %q", test.name, test.expectedErr, err)
-				continue
 			}
-		} else {
-			val, ok := ires.(map[string]interface{})["appVar1"]
+			continue
+		}
+		if test.format == YAML {
+			val, ok := ires.(map[interface{}]interface{})["appVar1"]
 			if !ok {
 				t.Errorf("appVar1 not found")
 			} else {
-				if val != test.expected.(map[string]interface{})["appVar1"] {
-					t.Errorf("appVar1: expected %q, got %q", test.expected.(map[string]interface{})["appVar1"], val)
+				if val != test.expected.(map[interface{}]interface{})["appVar1"] {
+					t.Errorf("appVar1: expected %v, got %v", test.expected.(map[interface{}]interface{})["appVar1"], val)
 				}
 			}
-			val, ok = ires.(map[string]interface{})["appVar2"]
+			val, ok = ires.(map[interface{}]interface{})["appVar2"]
 			if !ok {
 				t.Errorf("appVar2 not found")
 			} else {
-				if val != test.expected.(map[string]interface{})["appVar2"] {
-					t.Errorf("appVar2: expected %q, got %q", test.expected.(map[string]interface{})["appVar2"], val)
+				if val != test.expected.(map[interface{}]interface{})["appVar2"] {
+					t.Errorf("appVar2: expected %v, got %v", test.expected.(map[interface{}]interface{})["appVar2"], val)
 				}
 			}
-			val, ok = ires.(map[string]interface{})["appVar3"]
+			val, ok = ires.(map[interface{}]interface{})["appVar3"]
 			if !ok {
 				t.Errorf("appVar3 not found")
 			} else {
-				if val != test.expected.(map[string]interface{})["appVar3"] {
-					t.Errorf("appVar3: expected %q, got %q", test.expected.(map[string]interface{})["appVar3"], val)
+				if val != test.expected.(map[interface{}]interface{})["appVar3"] {
+					t.Errorf("appVar3: expected %v, got %v", test.expected.(map[interface{}]interface{})["appVar3"], val)
 				}
 			}
-			val, ok = ires.(map[string]interface{})["appVar4"]
+			val, ok = ires.(map[interface{}]interface{})["appVar4"]
 			if !ok {
 				t.Errorf("appVar4 not found")
 			} else {
-				if val != test.expected.(map[string]interface{})["appVar4"] {
-					t.Errorf("appVar4: expected %q, got %q", test.expected.(map[string]interface{})["appVar4"], val)
+				if val != test.expected.(map[interface{}]interface{})["appVar4"] {
+					t.Errorf("appVar4: expected %v, got %v", test.expected.(map[interface{}]interface{})["appVar4"], val)
 				}
 			}
-			val, ok = ires.(map[string]interface{})["appVar5"]
+			val, ok = ires.(map[interface{}]interface{})["appVar5"]
 			if !ok {
 				t.Errorf("appVar5 not found")
 			}
+			continue
+		}
+		val, ok := ires.(map[string]interface{})["appVar1"]
+		if !ok {
+			t.Errorf("appVar1 not found")
+		} else {
+			if val != test.expected.(map[string]interface{})["appVar1"] {
+				t.Errorf("appVar1: expected %v, got %v", test.expected.(map[string]interface{})["appVar1"], val)
+			}
+		}
+		val, ok = ires.(map[string]interface{})["appVar2"]
+		if !ok {
+			t.Errorf("appVar2 not found")
+		} else {
+			if val != test.expected.(map[string]interface{})["appVar2"] {
+				t.Errorf("appVar2: expected %v, got %v", test.expected.(map[string]interface{})["appVar2"], val)
+			}
+		}
+		val, ok = ires.(map[string]interface{})["appVar3"]
+		if !ok {
+			t.Errorf("appVar3 not found")
+		} else {
+			if val != test.expected.(map[string]interface{})["appVar3"] {
+				t.Errorf("appVar3: expected %v, got %v", test.expected.(map[string]interface{})["appVar3"], val)
+			}
+		}
+		val, ok = ires.(map[string]interface{})["appVar4"]
+		if !ok {
+			t.Errorf("appVar4 not found")
+		} else {
+			if val != test.expected.(map[string]interface{})["appVar4"] {
+				t.Errorf("appVar4: expected %v, got %v", test.expected.(map[string]interface{})["appVar4"], val)
+			}
+		}
+		val, ok = ires.(map[string]interface{})["appVar5"]
+		if !ok {
+			t.Errorf("appVar5 not found")
 		}
 	}
 }

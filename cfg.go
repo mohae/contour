@@ -11,6 +11,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/mohae/cjson"
+	"gopkg.in/yaml.v2"
 )
 
 // Cfg is a group of Settings and holds all of the application setting
@@ -576,9 +577,7 @@ func formatFromFilename(s string) (Format, error) {
 // Supported formats:
 //   json
 //   toml
-// TODO
-//   add YAML support
-//   add HCL support
+//   yaml
 func unmarshalCfgBytes(f Format, buff []byte) (interface{}, error) {
 	var ret interface{}
 	switch f {
@@ -589,6 +588,11 @@ func unmarshalCfgBytes(f Format, buff []byte) (interface{}, error) {
 		}
 	case TOML:
 		_, err := toml.Decode(string(buff), &ret)
+		if err != nil {
+			return nil, err
+		}
+	case YAML:
+		err := yaml.Unmarshal(buff, &ret)
 		if err != nil {
 			return nil, err
 		}
