@@ -101,6 +101,7 @@ func NewCfg(name string) *Cfg {
 // whose name is 'log' will result in 'RANCHER_LOG'.
 //
 // Env variables are assumed to be UPPER_CASE
+//
 func UpdateFromEnv() error { return appCfg.UpdateFromEnv() }
 func (c *Cfg) UpdateFromEnv() error {
 	c.RWMutex.RLock()
@@ -124,22 +125,22 @@ func (c *Cfg) UpdateFromEnv() error {
 			case "int":
 				i, err := strconv.Atoi(tmp)
 				if err != nil {
-					return fmt.Errorf("Loadenv error while parsing %s: %s", strings.ToUpper(fmt.Sprintf("%s_%s", name, k)), err)
+					return fmt.Errorf("getenv %s: %s", strings.ToUpper(fmt.Sprintf("%s_%s", name, k)), err)
 				}
 				err = c.UpdateIntE(k, i)
 			case "int64":
 				i, err := strconv.ParseInt(tmp, 10, 64)
 				if err != nil {
-					return fmt.Errorf("Loadenv error while parsing %s: %s", strings.ToUpper(fmt.Sprintf("%s_%s", name, k)), err)
+					return fmt.Errorf("getenv %s: %s", strings.ToUpper(fmt.Sprintf("%s_%s", name, k)), err)
 				}
 				err = c.UpdateInt64E(k, i)
 			case "string":
 				err = c.UpdateStringE(k, tmp)
 			default:
-				return fmt.Errorf("%s has an unsupported env variable type: %s", k, v.Type)
+				return fmt.Errorf("%s: unsupported env variable type: %s", strings.ToUpper(fmt.Sprintf("%s_%s", name, k)), v.Type)
 			}
 			if err != nil {
-				return fmt.Errorf("Loadenv error while setting %s: %s", strings.ToUpper(fmt.Sprintf("%s_%s", name, k)), err)
+				return fmt.Errorf("get env %s: %s", strings.ToUpper(fmt.Sprintf("%s_%s", name, k)), err)
 			}
 			// lock to check next setting, if there is one.
 			c.RWMutex.RLock()
@@ -245,7 +246,7 @@ func (c *Cfg) SetCfg() error {
 	c.RWMutex.RUnlock()
 	fname, err := c.GetStringE(c.CfgFileSettingName())
 	if err != nil {
-		return fmt.Errorf("SetCfg failed: %s", err.Error())
+		return fmt.Errorf("set configuration failed: %s", err)
 	}
 	if useCfg {
 		// Load the Cfg
@@ -256,7 +257,7 @@ func (c *Cfg) SetCfg() error {
 				return nil
 			}
 			// otherwise its an error
-			return fmt.Errorf("reading %s failed: %s", fname, err.Error())
+			return fmt.Errorf("reading %s failed: %s", fname, err)
 		}
 		err = c.UpdateFromCfg(buff)
 		if err != nil {
@@ -266,7 +267,7 @@ func (c *Cfg) SetCfg() error {
 	if useEnv {
 		err = c.UpdateFromEnv()
 		if err != nil {
-			return fmt.Errorf("setting cfg from env failed: %s", err.Error())
+			return fmt.Errorf("setting configuration from env failed: %s", err)
 		}
 	}
 	return nil
@@ -308,7 +309,7 @@ func (c *Cfg) CfgFileSettingName() string {
 func (c *Cfg) UpdateFromCfg(buff []byte) error {
 	cfgSettings, err := c.processCfg(buff)
 	if err != nil {
-		return fmt.Errorf("UpdateFromCfg error processing cfg data: %s", err.Error())
+		return fmt.Errorf("update configuration from data failed: %s", err)
 	}
 	// if nothing was returned and no error, nothing to do
 	if cfgSettings == nil {
@@ -319,7 +320,7 @@ func (c *Cfg) UpdateFromCfg(buff []byte) error {
 		// otherwise update the setting
 		err = c.updateE(k, v)
 		if err != nil {
-			return fmt.Errorf("UpdateFromCfg error updating setting: %s", err.Error())
+			return fmt.Errorf("update configuration from data failed: %s", err)
 		}
 	}
 	return nil
@@ -375,7 +376,7 @@ func (c *Cfg) IsCoreE(name string) (bool, error) {
 	defer c.RWMutex.RUnlock()
 	s, ok := c.settings[name]
 	if !ok {
-		return false, fmt.Errorf("IsCore: setting not found: %q", name)
+		return false, SettingNotFoundErr{typ: Core, name: name}
 	}
 	return s.IsCore, nil
 }
@@ -393,7 +394,7 @@ func (c *Cfg) IsCfgE(name string) (bool, error) {
 	defer c.RWMutex.RUnlock()
 	s, ok := c.settings[name]
 	if !ok {
-		return false, fmt.Errorf("IsCfg: setting not found: %q", name)
+		return false, SettingNotFoundErr{typ: File, name: name}
 	}
 	return s.IsCfg, nil
 }
@@ -411,7 +412,7 @@ func (c *Cfg) IsEnvE(name string) (bool, error) {
 	defer c.RWMutex.RUnlock()
 	s, ok := c.settings[name]
 	if !ok {
-		return false, fmt.Errorf("IsEnv: setting not found: %q", name)
+		return false, SettingNotFoundErr{typ: Env, name: name}
 	}
 	return s.IsEnv, nil
 }
@@ -429,7 +430,7 @@ func (c *Cfg) IsFlagE(name string) (bool, error) {
 	defer c.RWMutex.RUnlock()
 	s, ok := c.settings[name]
 	if !ok {
-		return false, fmt.Errorf("IsFlag: setting not found: %q", name)
+		return false, SettingNotFoundErr{typ: Flag, name: name}
 	}
 	return s.IsFlag, nil
 }
@@ -464,15 +465,15 @@ func (c *Cfg) processCfg(buff []byte) (cfg interface{}, err error) {
 	// have been registered already. so if it doesn't exit, err.
 	format, ok := c.settings[c.cfgFormatSettingName]
 	if !ok {
-		return nil, fmt.Errorf("processCfg error: format was not set")
+		return nil, fmt.Errorf("process configuration: format was not set")
 	}
 	if format.Value.(string) == "" {
-		return nil, fmt.Errorf("processCfg error: format was not set")
+		return nil, fmt.Errorf("process configuration: format was not set")
 	}
 	format, _ = c.settings[c.cfgFormatSettingName]
 	cfg, err = unmarshalCfgBytes(ParseFormat(format.Value.(string)), buff)
 	if err != nil {
-		return nil, fmt.Errorf("processCfg unmarshal error, %s: %s", n, err.Error())
+		return nil, fmt.Errorf("unmarshal configuration: %s: %s", n, err)
 	}
 	return cfg, nil
 }
@@ -485,15 +486,15 @@ func (c *Cfg) canUpdate(k string) (bool, error) {
 	defer c.RWMutex.RUnlock()
 	s, ok := c.settings[k]
 	if !ok {
-		return false, fmt.Errorf("cannot update %q: setting not found", k)
+		return false, SettingNotFoundErr{name: k}
 	}
 	// See if there are any settings that prevent it from being overridden.  Core and
 	// environment variables are never settable. Core must be set during registration.
 	if s.IsCore {
-		return false, fmt.Errorf("cannot update %q: core settings cannot be updated", k)
+		return false, fmt.Errorf("%s: core settings cannot be updated", k)
 	}
 	if s.IsFlag && c.argsFiltered {
-		return false, fmt.Errorf("cannot update %q: flag settings cannot be updated after arg filtering", k)
+		return false, fmt.Errorf("%s: flag settings cannot be updated after arg filtering", k)
 	}
 	// Everything else is updateable.
 	return true, nil
@@ -551,25 +552,22 @@ func getFileBytes(p string) ([]byte, error) {
 // be the extension.
 func formatFromFilename(s string) (Format, error) {
 	if s == "" {
-		return Unsupported, fmt.Errorf("no config filename")
+		return Unsupported, fmt.Errorf("no configuration filename")
 	}
 	parts := strings.Split(s, ".")
 	format := ""
 	// case 0 has already been evaluated
 	switch len(parts) {
 	case 1:
-		return Unsupported, fmt.Errorf("unable to determine %s's config format: no extension", strings.TrimSpace(s))
+		return Unsupported, fmt.Errorf("unable to determine %s's format: no extension", strings.TrimSpace(s))
 	case 2:
 		format = parts[1]
 	default:
 		// assume its the last part
 		format = parts[len(parts)-1]
 	}
-	f := ParseFormat(format)
-	if !f.isSupported() {
-		return Unsupported, unsupportedFormatErr(format)
-	}
-	return f, nil
+
+	return ParseFormatE(format)
 }
 
 // unmarshalCfgBytes accepts bytes and unmarshals them using the correct
@@ -595,8 +593,7 @@ func unmarshalCfgBytes(f Format, buff []byte) (interface{}, error) {
 			return nil, err
 		}
 	default:
-		err := unsupportedFormatErr(f.String())
-		return nil, err
+		return nil, UnsupportedFormatErr{f.String()}
 	}
 	return ret, nil
 }

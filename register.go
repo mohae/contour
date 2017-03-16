@@ -27,10 +27,10 @@ import (
 func RegisterCfgFile(k, v string) error { return appCfg.RegisterCfgFile(k, v) }
 func (c *Cfg) RegisterCfgFile(k, v string) error {
 	if v == "" {
-		return fmt.Errorf("RegisterCfgFile expected a cfg filename: none received")
+		return fmt.Errorf("cannot register configuration file: no name provided")
 	}
 	if k == "" {
-		return fmt.Errorf("RegisterCfgFile expected a configuration setting name as the key: none received")
+		return fmt.Errorf("cannot register configuration file: no key provided")
 	}
 	// store the key value being used as the configuration setting name by caller
 	c.RWMutex.Lock()

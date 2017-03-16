@@ -11,13 +11,13 @@ func TestRegisterCfgFile(t *testing.T) {
 		format   string
 		err      string
 	}{
-		{"empty", "", "", "RegisterCfgFile expected a cfg filename: none received"},
-		{"no extension", "cfg", "", "unable to determine cfg's config format: no extension"},
+		{"empty", "", "", "cannot register configuration file: no name provided"},
+		{"no extension", "cfg", "", "unable to determine cfg's format: no extension"},
 		{"toml", "cfg.toml", "toml", ""},
 		{"yaml", "cfg.yaml", "yaml", ""},
 		{"json", "cfg.json", "json", ""},
-		{"xml", "cfg.xml", "xml", "unsupported cfg format: xml"},
-		{"undefined", "cfg.bss", "bss", "unsupported cfg format: bss"},
+		{"xml", "cfg.xml", "xml", "xml: unsupported configuration format"},
+		{"undefined", "cfg.bss", "bss", "bss: unsupported configuration format"},
 	}
 	for _, test := range tests {
 		cfg := NewCfg(test.name)

@@ -61,7 +61,7 @@ func ParseFormatE(s string) (Format, error) {
 	case "xml":
 		return XML, nil
 	}
-	return Unsupported, unsupportedFormatErr(ls)
+	return Unsupported, UnsupportedFormatErr{s}
 }
 
 func ParseFormat(s string) Format {
@@ -69,6 +69,30 @@ func ParseFormat(s string) Format {
 	return f
 }
 
+const (
+	Core Type = iota + 1
+	File
+	Env
+	Flag
+)
+
+// Type is type of flag
+type Type int
+
+func (t Type) String() string {
+	switch t {
+	case Core:
+		return "core"
+	case File:
+		return "file"
+	case Env:
+		return "env"
+	case Flag:
+		return "flag"
+	default:
+		return "unknown"
+	}
+}
 // appCfg: contour's global config; contour config functinos operate on this.
 var appCfg *Cfg
 
@@ -76,17 +100,34 @@ func init() {
 	appCfg = NewCfg(app)
 }
 
-// notFoundErr returns a standadized notFoundErr.
-func notFoundErr(k string) error {
-	return fmt.Errorf("not found: %s", k)
+// NotFoundErr occurs when the value was not found.
+type NotFoundErr struct {
+	v string
 }
 
-// settingNotFoundErr standadized settingNotFoundErr.
-func settingNotFoundErr(k string) error {
-	return fmt.Errorf("setting not found: %s", k)
+func (e NotFoundErr) Error() string {
+	return fmt.Sprintf("%s: not found", e.v)
 }
 
-// unsupportedFormatErr standadized the unsupportedFormatErr.
-func unsupportedFormatErr(k string) error {
-	return fmt.Errorf("unsupported cfg format: %s", k)
+// SettingNotFoundErr occurs when a setting isn't found.
+type SettingNotFoundErr struct {
+	typ Type
+	name string
+}
+
+func (e SettingNotFoundErr) Error() string {
+	if e.typ <= 0 {
+		return fmt.Sprintf("%s: setting not found", e.name)
+	}
+	return fmt.Sprintf("%s: %s setting not found", e.name, e.typ)
+}
+
+// UnsupportedFormatErr occurs when the string cannot be matched to a
+// supported configuration format.
+type UnsupportedFormatErr struct {
+	v string
+}
+
+func (e UnsupportedFormatErr) Error() string {
+	return fmt.Sprintf("%s: unsupported configuration format", e.v)
 }

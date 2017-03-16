@@ -239,53 +239,53 @@ func TestCanUpdate(t *testing.T) {
 		err          string
 	}{
 		// 0
-		{"corebool", false, false, "cannot update \"corebool\": core settings cannot be updated"},
-		{"x-corebool", false, false, "cannot update \"x-corebool\": setting not found"},
-		{"coreint", false, false, "cannot update \"coreint\": core settings cannot be updated"},
-		{"x-coreint", false, false, "cannot update \"x-coreint\": setting not found"},
-		{"coreint64", false, false, "cannot update \"coreint64\": core settings cannot be updated"},
+		{"corebool", false, false, "corebool: core settings cannot be updated"},
+		{"x-corebool", false, false, "x-corebool: setting not found"},
+		{"coreint", false, false, "coreint: core settings cannot be updated"},
+		{"x-coreint", false, false, "x-coreint: setting not found"},
+		{"coreint64", false, false, "coreint64: core settings cannot be updated"},
 		// 5
-		{"x-coreint64", false, false, "cannot update \"x-coreint64\": setting not found"},
-		{"corestring", false, false, "cannot update \"corestring\": core settings cannot be updated"},
-		{"x-corestring", false, false, "cannot update \"x-corestring\": setting not found"},
+		{"x-coreint64", false, false, "x-coreint64: setting not found"},
+		{"corestring", false, false, "corestring: core settings cannot be updated"},
+		{"x-corestring", false, false, "x-corestring: setting not found"},
 		{"cfgbool", false, true, ""},
-		{"x-cfgbool", false, false, "cannot update \"x-cfgbool\": setting not found"},
+		{"x-cfgbool", false, false, "x-cfgbool: setting not found"},
 		// 10
 		{"cfgint", false, true, ""},
-		{"x-cfgint", false, false, "cannot update \"x-cfgint\": setting not found"},
+		{"x-cfgint", false, false, "x-cfgint: setting not found"},
 		{"cfgint64", false, true, ""},
-		{"x-cfgint64", false, false, "cannot update \"x-cfgint64\": setting not found"},
+		{"x-cfgint64", false, false, "x-cfgint64: setting not found"},
 		{"cfgstring", false, true, ""},
 		// 15
-		{"x-cfgstring", false, false, "cannot update \"x-cfgstring\": setting not found"},
+		{"x-cfgstring", false, false, "x-cfgstring: setting not found"},
 		{"flagbool", false, true, ""},
-		{"x-flagbool", false, false, "cannot update \"x-flagbool\": setting not found"},
+		{"x-flagbool", false, false, "x-flagbool: setting not found"},
 		{"flagint", false, true, ""},
-		{"x-flagint", false, false, "cannot update \"x-flagint\": setting not found"},
+		{"x-flagint", false, false, "x-flagint: setting not found"},
 		// 20
 		{"flagint64", false, true, ""},
-		{"x-flagint64", false, false, "cannot update \"x-flagint64\": setting not found"},
+		{"x-flagint64", false, false, "x-flagint64: setting not found"},
 		{"flagstring", false, true, ""},
-		{"x-flagstring", false, false, "cannot update \"x-flagstring\": setting not found"},
-		{"flagbool", true, false, "cannot update \"flagbool\": flag settings cannot be updated after arg filtering"},
+		{"x-flagstring", false, false, "x-flagstring: setting not found"},
+		{"flagbool", true, false, "flagbool: flag settings cannot be updated after arg filtering"},
 		// 25
-		{"x-flagbool", true, false, "cannot update \"x-flagbool\": setting not found"},
-		{"flagint", true, false, "cannot update \"flagint\": flag settings cannot be updated after arg filtering"},
-		{"x-flagint", true, false, "cannot update \"x-flagint\": setting not found"},
-		{"flagint64", true, false, "cannot update \"flagint64\": flag settings cannot be updated after arg filtering"},
-		{"x-flagint64", true, false, "cannot update \"x-flagint64\": setting not found"},
+		{"x-flagbool", true, false, "x-flagbool: setting not found"},
+		{"flagint", true, false, "flagint: flag settings cannot be updated after arg filtering"},
+		{"x-flagint", true, false, "x-flagint: setting not found"},
+		{"flagint64", true, false, "flagint64: flag settings cannot be updated after arg filtering"},
+		{"x-flagint64", true, false, "x-flagint64: setting not found"},
 		// 30
-		{"flagstring", true, false, "cannot update \"flagstring\": flag settings cannot be updated after arg filtering"},
-		{"x-flagstring", true, false, "cannot update \"x-flagstring\": setting not found"},
+		{"flagstring", true, false, "flagstring: flag settings cannot be updated after arg filtering"},
+		{"x-flagstring", true, false, "x-flagstring: setting not found"},
 		{"bool", false, true, ""},
-		{"x-bool", false, false, "cannot update \"x-bool\": setting not found"},
+		{"x-bool", false, false, "x-bool: setting not found"},
 		{"int", false, true, ""},
 		// 35
-		{"x-int", false, false, "cannot update \"x-int\": setting not found"},
+		{"x-int", false, false, "x-int: setting not found"},
 		{"int64", false, true, ""},
-		{"x-int64", false, false, "cannot update \"x-int64\": setting not found"},
+		{"x-int64", false, false, "x-int64: setting not found"},
 		{"string", false, true, ""},
-		{"x-string", false, false, "cannot update \"x-string\": setting not found"},
+		{"x-string", false, false, "x-string: setting not found"},
 	}
 	appCfg = newTestCfg()
 	for i, test := range tests {
@@ -360,7 +360,7 @@ func TestIsFuncs(t *testing.T) {
 		IsFlag bool
 		err    string
 	}{
-		{"", false, false, false, false, ": setting not found: \"\""},
+		{"", false, false, false, false, " setting not found"},
 		{"string", false, false, false, false, ""},
 		{"corebool", true, false, false, false, ""},
 		{"cfgint", false, true, true, false, ""},
@@ -371,8 +371,8 @@ func TestIsFuncs(t *testing.T) {
 		// Core
 		b, err := IsCoreE(test.name)
 		if err != nil {
-			if err.Error() != fmt.Sprintf("IsCore%s", test.err) {
-				t.Errorf("%d: expected %q got %q", i, fmt.Sprintf("IsCore%s", test.err), err.Error())
+			if err.Error() != fmt.Sprintf(": core%s", test.err) {
+				t.Errorf("%d: expected %q got %q", i, fmt.Sprintf(": core%s", test.err), err.Error())
 			}
 		} else {
 			if b != test.IsCore {
@@ -386,8 +386,8 @@ func TestIsFuncs(t *testing.T) {
 		// Cfg
 		b, err = IsCfgE(test.name)
 		if err != nil {
-			if err.Error() != fmt.Sprintf("IsCfg%s", test.err) {
-				t.Errorf("%d: expected %q got %q", i, fmt.Sprintf("IsCfg%s", test.err), err.Error())
+			if err.Error() != fmt.Sprintf(": file%s", test.err) {
+				t.Errorf("%d: expected %q got %q", i, fmt.Sprintf(": file%s", test.err), err.Error())
 			}
 		} else {
 			if b != test.IsCfg {
@@ -401,8 +401,8 @@ func TestIsFuncs(t *testing.T) {
 		// Env
 		b, err = IsEnvE(test.name)
 		if err != nil {
-			if err.Error() != fmt.Sprintf("IsEnv%s", test.err) {
-				t.Errorf("%d: expected %q got %s", i, fmt.Sprintf("IsEnv%s", test.err), err.Error())
+			if err.Error() != fmt.Sprintf(": env%s", test.err) {
+				t.Errorf("%d: expected %q got %s", i, fmt.Sprintf(": env%s", test.err), err.Error())
 			}
 		} else {
 			if b != test.IsEnv {
@@ -416,8 +416,8 @@ func TestIsFuncs(t *testing.T) {
 		// Flag
 		b, err = IsFlagE(test.name)
 		if err != nil {
-			if err.Error() != fmt.Sprintf("IsFlag%s", test.err) {
-				t.Errorf("%d: expected %q got %q", i, fmt.Sprintf("IsFlag%s", test.err), err.Error())
+			if err.Error() != fmt.Sprintf(": flag%s", test.err) {
+				t.Errorf("%d: expected %q got %q", i, fmt.Sprintf(": flag%s", test.err), err.Error())
 			}
 		} else {
 			if b != test.IsFlag {
@@ -454,9 +454,9 @@ func TestSetCfg(t *testing.T) {
 	}{
 		// 0
 		{"", "", Unsupported, false, false, false, "", nil, ""},
-		{"", "", Unsupported, true, false, false, "", nil, fmt.Sprintf("UpdateFromCfg error processing cfg data: processCfg unmarshal error, %s: unsupported cfg format: unsupported", filepath.Join(tmpDir, fname))},
+		{"", "", Unsupported, true, false, false, "", nil, fmt.Sprintf("update configuration from data failed: unmarshal configuration: %s: unsupported: unsupported configuration format", filepath.Join(tmpDir, fname))},
 		{"", "", Unsupported, false, true, false, "", nil, ""},
-		{"", "", Unsupported, true, true, false, "", nil, fmt.Sprintf("UpdateFromCfg error processing cfg data: processCfg unmarshal error, %s: unsupported cfg format: unsupported", filepath.Join(tmpDir, fname))},
+		{"", "", Unsupported, true, true, false, "", nil, fmt.Sprintf("update configuration from data failed: unmarshal configuration: %s: unsupported: unsupported configuration format", filepath.Join(tmpDir, fname))},
 		{"", filepath.Join(tmpDir, fname), JSON, false, false, false, "", nil, ""},
 		// 5
 		{"", filepath.Join(tmpDir, fname), JSON, true, false, false, "", nil, ""},
@@ -577,7 +577,6 @@ func TestSetCfg(t *testing.T) {
 			continue
 		}
 	}
-
 }
 
 // Test processCfg
@@ -600,8 +599,8 @@ func TestProcessCfg(t *testing.T) {
 		err      string
 	}{
 		{"", false, "", "", nil, ""},
-		{fname, true, filepath.Join(tmpDir, fname), "", nil, "processCfg error: format was not set"},
-		{fname, true, filepath.Join(tmpDir, fname), "xyz", nil, "processCfg unmarshal error, testcfg.json: unsupported cfg format: unsupported"},
+		{fname, true, filepath.Join(tmpDir, fname), "", nil, "process configuration: format was not set"},
+		{fname, true, filepath.Join(tmpDir, fname), "xyz", nil, "unmarshal configuration: testcfg.json: unsupported: unsupported configuration format"},
 		{fname, true, filepath.Join(tmpDir, fname), "json", jsonTestResults, ""},
 	}
 	// write the tmp json cfg file
@@ -637,16 +636,16 @@ func TestProcessCfg(t *testing.T) {
 // Testing
 func TestFormatFromFilename(t *testing.T) {
 	tests := []basic{
-		{"an empty cfgfilename", "", "", "no config filename"},
-		{"a cfgfilename without an extension", "cfg", "", "unable to determine cfg's config format: no extension"},
-		{"a cfgfilename with an invalid extension", "cfg.bmp", "", "unsupported cfg format: bmp"},
-		{"a cfgfilename with a json extension", "cfg.json", "json", ""},
-		{"a path and multi dot cfgfilename with a json extension", "path/to/custom.cfg.json", "json", ""},
-		{"a cfgfilename with a toml extension", "cfg.toml", "toml", ""},
-		{"a cfgfilename with a toml extension", "cfg.yaml", "yaml", ""},
-		{"a cfgfilename with a toml extension", "cfg.yml", "yaml", ""},
-		{"a cfgfilename with a toml extension", "cfg.xml", "xml", "unsupported cfg format: xml"},
-		{"a cfgfilename with a toml extension", "cfg.ini", "", "unsupported cfg format: ini"},
+		{"an empty cfgfilename", 0, "", "", "no configuration filename"},
+		{"a cfgfilename without an extension", 0, "cfg", "", "unable to determine cfg's format: no extension"},
+		{"a cfgfilename with an invalid extension", 0, "cfg.bmp", "", "bmp: unsupported configuration format"},
+		{"a cfgfilename with a json extension", 0, "cfg.json", "json", ""},
+		{"a path and multi dot cfgfilename with a json extension", 0, "path/to/custom.cfg.json", "json", ""},
+		{"a cfgfilename with a toml extension", 0, "cfg.toml", "toml", ""},
+		{"a cfgfilename with a toml extension", 0, "cfg.yaml", "yaml", ""},
+		{"a cfgfilename with a toml extension", 0, "cfg.yml", "yaml", ""},
+		{"a cfgfilename with a toml extension", 0, "cfg.xml", "xml", ""},
+		{"a cfgfilename with a toml extension", 0, "cfg.ini", "", "ini: unsupported configuration format"},
 	}
 	for _, test := range tests {
 		format, err := formatFromFilename(test.value)
@@ -667,13 +666,13 @@ func TestFormatFromFilename(t *testing.T) {
 
 func TestIsSupportedFormat(t *testing.T) {
 	tests := []basic{
-		{"empty format test", "", "false", ""},
-		{"invalid format test", "bmp", "false", ""},
-		{"json format test", "json", "true", ""},
-		{"tom format testl", "toml", "true", ""},
-		{"yaml format test", "yaml", "true", ""},
-		{"yml format test", "yml", "true", ""},
-		{"xml format test", "xml", "false", ""},
+		{"empty format test", 0, "", "false", ""},
+		{"invalid format test", 0, "bmp", "false", ""},
+		{"json format test", 0, "json", "true", ""},
+		{"tom format testl", 0, "toml", "true", ""},
+		{"yaml format test", 0, "yaml", "true", ""},
+		{"yml format test", 0, "yml", "true", ""},
+		{"xml format test", 0, "xml", "false", ""},
 	}
 	for i, test := range tests {
 		formatString := ParseFormat(test.value)
@@ -694,9 +693,9 @@ func TestUnmarshalCfgBytes(t *testing.T) {
 	}{
 		{"json cfg", JSON, jsonExample, jsonResults, ""},
 		{"toml cfg", TOML, tomlExample, tomlResults, ""},
-		{"yaml cfg", YAML, yamlExample, []byte(""), "unsupported cfg format: yaml"},
-		{"xml cfg", XML, xmlExample, []byte(""), "unsupported cfg format: xml"},
-		{"unsupported cfg", Unsupported, []byte(""), []byte(""), "unsupported cfg format: unsupported"},
+		{"yaml cfg", YAML, yamlExample, []byte(""), "yaml: unsupported configuration format"},
+		{"xml cfg", XML, xmlExample, []byte(""), "xml: unsupported configuration format"},
+		{"unsupported cfg", Unsupported, []byte(""), []byte(""), "unsupported: unsupported configuration format"},
 	}
 	for _, test := range tests {
 		bites := []byte(test.value)

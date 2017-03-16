@@ -12,9 +12,9 @@ func TestUpdateBools(t *testing.T) {
 		value bool
 		err   string
 	}{
-		{"", false, "cannot update \"\": setting not found"},
-		{"corebool", false, "cannot update \"corebool\": core settings cannot be updated"},
-		{"corebool", true, "cannot update \"corebool\": core settings cannot be updated"},
+		{"", false, ": setting not found"},
+		{"corebool", false, "corebool: core settings cannot be updated"},
+		{"corebool", true, "corebool: core settings cannot be updated"},
 		{"flagbool", false, ""},
 		{"flagbool", true, ""},
 		{"cfgbool", false, ""},
@@ -56,8 +56,8 @@ func TestUpdateInts(t *testing.T) {
 		value int
 		err   string
 	}{
-		{"", 0, "cannot update \"\": setting not found"},
-		{"coreint", 42, "cannot update \"coreint\": core settings cannot be updated"},
+		{"", 0, ": setting not found"},
+		{"coreint", 42, "coreint: core settings cannot be updated"},
 		{"flagint", 42, ""},
 		{"cfgint", 42, ""},
 		{"int", 42, ""},
@@ -96,8 +96,8 @@ func TestUpdateInt64s(t *testing.T) {
 		value int64
 		err   string
 	}{
-		{"coreint64", int64(42), "cannot update \"coreint64\": core settings cannot be updated"},
-		{"", int64(0), "cannot update \"\": setting not found"},
+		{"coreint64", int64(42), "coreint64: core settings cannot be updated"},
+		{"", int64(0), ": setting not found"},
 		{"flagint64", int64(42), ""},
 		{"cfgint64", int64(42), ""},
 		{"int", int64(42), ""},
@@ -136,9 +136,9 @@ func TestUpdateStrings(t *testing.T) {
 		value string
 		err   string
 	}{
-		{"", "false", "cannot update \"\": setting not found"},
-		{"corestring", "false", "cannot update \"corestring\": core settings cannot be updated"},
-		{"corestring", "t", "cannot update \"corestring\": core settings cannot be updated"},
+		{"", "false", ": setting not found"},
+		{"corestring", "false", "corestring: core settings cannot be updated"},
+		{"corestring", "t", "corestring: core settings cannot be updated"},
 		{"flagstring", "false", ""},
 		{"flagstring", "t", ""},
 		{"cfgstring", "false", ""},

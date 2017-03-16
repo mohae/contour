@@ -13,7 +13,7 @@ func (c *Cfg) GetE(k string) (interface{}, error) {
 	defer c.RWMutex.RUnlock()
 	_, ok := c.settings[k]
 	if !ok {
-		return nil, notFoundErr(k)
+		return nil, SettingNotFoundErr{name: k}
 	}
 	return c.settings[k].Value, nil
 }

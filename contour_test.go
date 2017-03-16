@@ -13,11 +13,11 @@ import (
 func init() {
 	log.SetOutput(ioutil.Discard)
 	rand.Seed(int64(time.Now().Nanosecond()))
-
 }
 
 type basic struct {
 	name        string
+	typ         Type
 	value       string
 	expected    string
 	expectedErr string
@@ -435,11 +435,11 @@ func newTestCfg() *Cfg {
 
 func TestNotFoundErr(t *testing.T) {
 	tests := []basic{
-		basic{"notFoundErr test1", "setting", "not found: setting", ""},
-		basic{"notFoundErr test2", "grail", "not found: grail", ""},
+		basic{"notFoundErr test1", 0, "setting", "setting: not found", ""},
+		basic{"notFoundErr test2", 0, "grail", "grail: not found", ""},
 	}
 	for _, test := range tests {
-		err := notFoundErr(test.value)
+		err := error(NotFoundErr{test.value})
 		if err != nil {
 			if err.Error() != test.expected {
 				t.Errorf("%s: expected %s, got %s", test.name, test.expected, err.Error())
@@ -455,11 +455,12 @@ func TestNotFoundErr(t *testing.T) {
 
 func TestSettingNotFoundErr(t *testing.T) {
 	tests := []basic{
-		basic{"notFoundErr test1", "dinosaur", "setting not found: dinosaur", ""},
-		basic{"notFoundErr test2", "swallow type", "setting not found: swallow type", ""},
+		basic{name: "notFoundErr test1", value: "dinosaur", expected: "dinosaur: setting not found", expectedErr: ""},
+		basic{name: "notFoundErr test2", typ: Core, value: "swallow", expected: "swallow: core setting not found", expectedErr: ""},
 	}
+
 	for _, test := range tests {
-		err := settingNotFoundErr(test.value)
+		err := error(SettingNotFoundErr{typ: test.typ, name: test.value})
 		if err.Error() != test.expected {
 			t.Errorf("%s: expected %q got %q", test.name, test.expected, err)
 		}
