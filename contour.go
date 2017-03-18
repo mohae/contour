@@ -44,7 +44,10 @@ func (f Format) isSupported() bool {
 	return false
 }
 
-func ParseFormatE(s string) (Format, error) {
+// ParseFormat takes a string and returns the Format it represents or an
+// UnsupportedFormatErr if it can't be matched to a format. The string is
+// normalized to lower case before matching.
+func ParseFormat(s string) (Format, error) {
 	ls := strings.ToLower(s)
 	switch ls {
 	case "json", "jsn", "cjsn", "cjson":
@@ -55,11 +58,6 @@ func ParseFormatE(s string) (Format, error) {
 		return YAML, nil
 	}
 	return Unsupported, UnsupportedFormatErr{s}
-}
-
-func ParseFormat(s string) Format {
-	f, _ := ParseFormatE(s)
-	return f
 }
 
 // These settings are in order of precedence. Each setting type can be set by

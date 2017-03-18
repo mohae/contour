@@ -454,9 +454,9 @@ func TestSetCfg(t *testing.T) {
 	}{
 		// 0
 		{"", "", Unsupported, false, false, false, "", nil, ""},
-		{"", "", Unsupported, true, false, false, "", nil, fmt.Sprintf("update configuration from data failed: unmarshal configuration: %s: unsupported: unsupported configuration format", filepath.Join(tmpDir, fname))},
+		{"", "", Unsupported, true, false, false, "", nil, "update configuration from data failed: unsupported: unsupported configuration format"},
 		{"", "", Unsupported, false, true, false, "", nil, ""},
-		{"", "", Unsupported, true, true, false, "", nil, fmt.Sprintf("update configuration from data failed: unmarshal configuration: %s: unsupported: unsupported configuration format", filepath.Join(tmpDir, fname))},
+		{"", "", Unsupported, true, true, false, "", nil, "update configuration from data failed: unsupported: unsupported configuration format"},
 		{"", filepath.Join(tmpDir, fname), JSON, false, false, false, "", nil, ""},
 		// 5
 		{"", filepath.Join(tmpDir, fname), JSON, true, false, false, "", nil, ""},
@@ -600,7 +600,7 @@ func TestProcessCfg(t *testing.T) {
 	}{
 		{"", false, "", "", nil, ""},
 		{fname, true, filepath.Join(tmpDir, fname), "", nil, "process configuration: format was not set"},
-		{fname, true, filepath.Join(tmpDir, fname), "xyz", nil, "unmarshal configuration: testcfg.json: unsupported: unsupported configuration format"},
+		{fname, true, filepath.Join(tmpDir, fname), "xyz", nil, "xyz: unsupported configuration format"},
 		{fname, true, filepath.Join(tmpDir, fname), "json", jsonTestResults, ""},
 	}
 	// write the tmp json cfg file
@@ -675,8 +675,9 @@ func TestIsSupportedFormat(t *testing.T) {
 		{"xml format test", 0, "xml", "false", ""},
 	}
 	for i, test := range tests {
-		formatString := ParseFormat(test.value)
-		is := formatString.isSupported()
+		// we don't care about error on this, only the supported part
+		f, _ := ParseFormat(test.value)
+		is := f.isSupported()
 		if strconv.FormatBool(is) != test.expected {
 			t.Errorf("%d: expected %v, got %v", i, test.expected, is)
 		}

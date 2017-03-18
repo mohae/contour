@@ -472,7 +472,11 @@ func (c *Cfg) processCfg(buff []byte) (cfg interface{}, err error) {
 		return nil, fmt.Errorf("process configuration: format was not set")
 	}
 	format, _ = c.settings[c.cfgFormatSettingName]
-	cfg, err = unmarshalCfgBytes(ParseFormat(format.Value.(string)), buff)
+	f, err := ParseFormat(format.Value.(string))
+	if err != nil {
+		return nil, err
+	}
+	cfg, err = unmarshalCfgBytes(f, buff)
 	if err != nil {
 		return nil, fmt.Errorf("unmarshal configuration: %s: %s", n, err)
 	}
@@ -568,7 +572,7 @@ func formatFromFilename(s string) (Format, error) {
 		format = parts[len(parts)-1]
 	}
 
-	return ParseFormatE(format)
+	return ParseFormat(format)
 }
 
 // unmarshalCfgBytes accepts bytes and unmarshals them using the correct
