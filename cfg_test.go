@@ -101,8 +101,8 @@ func TestCfgBools(t *testing.T) {
 	}
 	appCfg = NewCfg("test")
 	for _, test := range bTests {
-		SetErrOnMissingCfg(test.val)
-		b := ErrOnMissingCfg()
+		SetErrOnMissingFile(test.val)
+		b := ErrOnMissingFile()
 		if b != test.expected {
 			t.Errorf("ErrOnMissingCfg:  expected %v, got %v", test.expected, b)
 		}

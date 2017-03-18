@@ -24,7 +24,9 @@ import (
 type Cfg struct {
 	name string
 	sync.RWMutex
-	errOnMissingCfg bool
+	// if an attempt to load configuration from a file should error if the file
+	// does not exist.
+	errOnMissingFile bool
 	// configuration setting names that the caller uses
 	cfgFormatSettingName string
 	cfgFileSettingName   string
@@ -75,7 +77,7 @@ func AppCfg() *Cfg {
 func NewCfg(name string) *Cfg {
 	return &Cfg{
 		name:                 name,
-		errOnMissingCfg:      true,
+		errOnMissingFile:     true,
 		searchPath:           true,
 		cfgFormatSettingName: "cfg_format",
 		flagSet:              flag.NewFlagSet(name, flag.ContinueOnError),
@@ -155,21 +157,21 @@ func (c *Cfg) UpdateFromEnv() error {
 	return nil
 }
 
-// ErrOnMissingCfg returns whether a missing config file should result in an
+// ErrOnMissingFile returns whether a missing config file should result in an
 // error. This only applies when useCfg == true
-func ErrOnMissingCfg() bool { return appCfg.ErrOnMissingCfg() }
-func (c *Cfg) ErrOnMissingCfg() bool {
+func ErrOnMissingFile() bool { return appCfg.ErrOnMissingFile() }
+func (c *Cfg) ErrOnMissingFile() bool {
 	c.RWMutex.RLock()
 	defer c.RWMutex.RUnlock()
-	return c.errOnMissingCfg
+	return c.errOnMissingFile
 }
 
-// SetErrOnMissingCfg returns whether a missing config file should result in an
-// error. This only applies when useCfg == true
-func SetErrOnMissingCfg(b bool) { appCfg.SetErrOnMissingCfg(b) }
-func (c *Cfg) SetErrOnMissingCfg(b bool) {
+// SetErrOnMissingFile returns whether a missing config file should result in an
+// error. This only applies when useFile == true
+func SetErrOnMissingFile(b bool) { appCfg.SetErrOnMissingFile(b) }
+func (c *Cfg) SetErrOnMissingFile(b bool) {
 	c.RWMutex.Lock()
-	c.errOnMissingCfg = b
+	c.errOnMissingFile = b
 	c.RWMutex.Unlock()
 }
 
@@ -254,7 +256,7 @@ func (c *Cfg) SetCfg() error {
 		buff, err := getFileBytes(fname)
 		if err != nil {
 			// only return nil if the error is 'no such file or directory'
-			if !c.errOnMissingCfg && strings.HasSuffix(err.Error(), "no such file or directory") {
+			if !c.errOnMissingFile && strings.HasSuffix(err.Error(), "no such file or directory") {
 				return nil
 			}
 			// otherwise its an error
