@@ -60,6 +60,45 @@ func ParseFormat(s string) (Format, error) {
 	return Unsupported, UnsupportedFormatErr{s}
 }
 
+const (
+	_interface dataType = iota + 1
+	_bool
+	_int
+	_int64
+	_string
+)
+
+// dataType is the setting's data type.
+type dataType int
+
+func (t dataType) String() string {
+	switch t {
+	case _string:
+		return "string"
+	case _int:
+		return "int"
+	case _int64:
+		return "int64"
+	case _bool:
+		return "bool"
+	case _interface:
+		return "interface{}"
+	}
+	return "unknown data type"
+}
+
+// DataTypeErr occurs when the requested setting's data type is different than
+// the type requested.
+type DataTypeErr struct {
+	name string
+	is   string
+	not  dataType
+}
+
+func (e DataTypeErr) Error() string {
+	return fmt.Sprintf("%s is %s, not %s", e.name, e.is, e.not)
+}
+
 // These settings are in order of precedence. Each setting type can be set by
 // any of the types with higher precedence if contour is configured to use that
 // type.
