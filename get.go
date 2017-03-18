@@ -1,5 +1,7 @@
 package contour
 
+import "reflect"
+
 // Get functions and methods.
 //
 // E versions, these return the error. Non-e versions are just wrapped calls to
@@ -37,8 +39,8 @@ func (c *Cfg) GetBoolE(k string) (bool, error) {
 	case *bool:
 		return *v.(*bool), nil
 	}
-	// Should never happen, getting here counts as false
-	return false, nil
+	// Isn't a bool.
+	return false, DataTypeErr{name: k, is: reflect.TypeOf(v).String(), not: _bool}
 }
 
 func GetBool(k string) bool { return appCfg.GetBool(k) }
@@ -60,7 +62,9 @@ func (c *Cfg) GetIntE(k string) (int, error) {
 	case *int:
 		return *v.(*int), nil
 	}
-	return 0, nil
+
+	// Isn't an int.
+	return 0, DataTypeErr{name: k, is: reflect.TypeOf(v).String(), not: _int}
 }
 
 func GetInt(k string) int { return appCfg.GetInt(k) }
@@ -82,7 +86,9 @@ func (c *Cfg) GetInt64E(k string) (int64, error) {
 	case *int64:
 		return *v.(*int64), nil
 	}
-	return 0, nil
+
+	// Isn't an int64.
+	return 0, DataTypeErr{name: k, is: reflect.TypeOf(v).String(), not: _int64}
 }
 
 func GetInt64(k string) int64 { return appCfg.GetInt64(k) }
@@ -104,7 +110,9 @@ func (c *Cfg) GetStringE(k string) (string, error) {
 	case *string:
 		return *v.(*string), nil
 	}
-	return "", nil
+
+	// Isn't a string.
+	return "", DataTypeErr{name: k, is: reflect.TypeOf(v).String(), not: _string}
 }
 
 func GetString(k string) string { return appCfg.GetString(k) }

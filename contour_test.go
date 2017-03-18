@@ -446,6 +446,40 @@ func TestSettingNotFoundErr(t *testing.T) {
 	}
 }
 
+func TestDataTypeErr(t *testing.T) {
+	tests := []struct {
+		name     string
+		typ      dataType
+		expected string
+	}{
+		{"corebool", _int, "corebool is bool, not int"},
+		{"corestring", _int64, "corestring is string, not int64"},
+		{"coreint", _bool, "coreint is int, not bool"},
+		{"coreint64", _string, "coreint64 is int64, not string"},
+	}
+
+	var err error
+	for _, test := range tests {
+		switch test.typ {
+		case _bool:
+			_, err = GetBoolE(test.name)
+		case _int:
+			_, err = GetIntE(test.name)
+		case _int64:
+			_, err = GetInt64E(test.name)
+		case _string:
+			_, err = GetStringE(test.name)
+		}
+		if err == nil {
+			t.Errorf("%s: expected error, got none", test.name)
+			continue
+		}
+		if err.Error() != test.expected {
+			t.Errorf("%s: got %s want %s", test.name, err, test.expected)
+		}
+	}
+}
+
 func TestFormatString(t *testing.T) {
 	tests := []struct {
 		name     string
