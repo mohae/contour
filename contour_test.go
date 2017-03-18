@@ -420,19 +420,13 @@ func newTestCfg() *Cfg {
 
 func TestNotFoundErr(t *testing.T) {
 	tests := []basic{
-		basic{"notFoundErr test1", 0, "setting", "setting: not found", ""},
-		basic{"notFoundErr test2", 0, "grail", "grail: not found", ""},
+		basic{"notFoundErr test1", 0, "setting", "", "setting: not found"},
+		basic{"notFoundErr test2", 0, "grail", "", "grail: not found"},
 	}
 	for _, test := range tests {
 		err := error(NotFoundErr{test.value})
-		if err != nil {
-			if err.Error() != test.expected {
-				t.Errorf("%s: expected %s, got %s", test.name, test.expected, err.Error())
-			}
-			continue
-		}
-		if test.expected != "" {
-			t.Errorf("%s: expected %s, got no error", test.name, test.expected)
+		if err.Error() != test.expectedErr {
+			t.Errorf("%s: expected %s, got %s", test.name, test.expectedErr, err.Error())
 		}
 	}
 
@@ -440,14 +434,14 @@ func TestNotFoundErr(t *testing.T) {
 
 func TestSettingNotFoundErr(t *testing.T) {
 	tests := []basic{
-		basic{name: "notFoundErr test1", value: "dinosaur", expected: "dinosaur: setting not found", expectedErr: ""},
-		basic{name: "notFoundErr test2", settingType: Core, value: "swallow", expected: "swallow: core setting not found", expectedErr: ""},
+		basic{name: "notFoundErr test1", value: "dinosaur", expected: "", expectedErr: "dinosaur: setting not found"},
+		basic{name: "notFoundErr test2", settingType: Core, value: "swallow", expected: "", expectedErr: "swallow: core setting not found"},
 	}
 
 	for _, test := range tests {
 		err := error(SettingNotFoundErr{settingType: test.settingType, name: test.value})
-		if err.Error() != test.expected {
-			t.Errorf("%s: expected %q got %q", test.name, test.expected, err)
+		if err.Error() != test.expectedErr {
+			t.Errorf("%s: expected %q got %q", test.name, test.expectedErr, err)
 		}
 	}
 }
