@@ -377,7 +377,7 @@ func (c *Cfg) IsCoreE(name string) (bool, error) {
 	defer c.RWMutex.RUnlock()
 	s, ok := c.settings[name]
 	if !ok {
-		return false, SettingNotFoundErr{typ: Core, name: name}
+		return false, SettingNotFoundErr{settingType: Core, name: name}
 	}
 	return s.IsCore, nil
 }
@@ -395,7 +395,7 @@ func (c *Cfg) IsCfgE(name string) (bool, error) {
 	defer c.RWMutex.RUnlock()
 	s, ok := c.settings[name]
 	if !ok {
-		return false, SettingNotFoundErr{typ: File, name: name}
+		return false, SettingNotFoundErr{settingType: File, name: name}
 	}
 	return s.IsCfg, nil
 }
@@ -413,7 +413,7 @@ func (c *Cfg) IsEnvE(name string) (bool, error) {
 	defer c.RWMutex.RUnlock()
 	s, ok := c.settings[name]
 	if !ok {
-		return false, SettingNotFoundErr{typ: Env, name: name}
+		return false, SettingNotFoundErr{settingType: Env, name: name}
 	}
 	return s.IsEnv, nil
 }
@@ -431,7 +431,7 @@ func (c *Cfg) IsFlagE(name string) (bool, error) {
 	defer c.RWMutex.RUnlock()
 	s, ok := c.settings[name]
 	if !ok {
-		return false, SettingNotFoundErr{typ: Flag, name: name}
+		return false, SettingNotFoundErr{settingType: Flag, name: name}
 	}
 	return s.IsFlag, nil
 }

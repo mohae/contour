@@ -62,17 +62,24 @@ func ParseFormat(s string) Format {
 	return f
 }
 
+// These settings are in order of precedence. Each setting type can be set by
+// any of the types with higher precedence if contour is configured to use that
+// type.
 const (
-	Core Type = iota + 1
-	File
+	// Core settings are immutable once set.
+	Core SettingType = iota + 1
+	// Env settings can be set from environment variables
 	Env
+	// File settings can be set from a configuration file.
+	File
+	// Flag settings can be set from flags.
 	Flag
 )
 
-// Type is type of flag
-type Type int
+// SettingType is type of setting
+type SettingType int
 
-func (t Type) String() string {
+func (t SettingType) String() string {
 	switch t {
 	case Core:
 		return "core"
@@ -86,6 +93,7 @@ func (t Type) String() string {
 		return "unknown"
 	}
 }
+
 // appCfg: contour's global config; contour config functinos operate on this.
 var appCfg *Cfg
 
@@ -104,15 +112,15 @@ func (e NotFoundErr) Error() string {
 
 // SettingNotFoundErr occurs when a setting isn't found.
 type SettingNotFoundErr struct {
-	typ Type
-	name string
+	settingType SettingType
+	name        string
 }
 
 func (e SettingNotFoundErr) Error() string {
-	if e.typ <= 0 {
+	if e.settingType <= 0 {
 		return fmt.Sprintf("%s: setting not found", e.name)
 	}
-	return fmt.Sprintf("%s: %s setting not found", e.name, e.typ)
+	return fmt.Sprintf("%s: %s setting not found", e.name, e.settingType)
 }
 
 // UnsupportedFormatErr occurs when the string cannot be matched to a

@@ -17,7 +17,7 @@ func init() {
 
 type basic struct {
 	name        string
-	typ         Type
+	settingType SettingType
 	value       string
 	expected    string
 	expectedErr string
@@ -441,11 +441,11 @@ func TestNotFoundErr(t *testing.T) {
 func TestSettingNotFoundErr(t *testing.T) {
 	tests := []basic{
 		basic{name: "notFoundErr test1", value: "dinosaur", expected: "dinosaur: setting not found", expectedErr: ""},
-		basic{name: "notFoundErr test2", typ: Core, value: "swallow", expected: "swallow: core setting not found", expectedErr: ""},
+		basic{name: "notFoundErr test2", settingType: Core, value: "swallow", expected: "swallow: core setting not found", expectedErr: ""},
 	}
 
 	for _, test := range tests {
-		err := error(SettingNotFoundErr{typ: test.typ, name: test.value})
+		err := error(SettingNotFoundErr{settingType: test.settingType, name: test.value})
 		if err.Error() != test.expected {
 			t.Errorf("%s: expected %q got %q", test.name, test.expected, err)
 		}
