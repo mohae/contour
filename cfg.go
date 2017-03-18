@@ -541,6 +541,16 @@ func (c *Cfg) GetEnvName(s string) string {
 	return strings.ToUpper(fmt.Sprintf("%s_%s", c.name, s))
 }
 
+// Exists returns if a setting with the key exists.
+func Exists(k string) bool { return appCfg.Exists(k) }
+func (c *Cfg) Exists(k string) bool {
+	_, err := c.GetE(k)
+	if err == nil {
+		return true
+	}
+	return false
+}
+
 // getFileBytes reads from the passed path and returns its contents as bytes,
 // or an error.  The entire contents of the file are read at once.
 func getFileBytes(p string) ([]byte, error) {

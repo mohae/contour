@@ -787,3 +787,24 @@ func TestUnmarshalCfgBytes(t *testing.T) {
 		}
 	}
 }
+
+func TestExists(t *testing.T) {
+	tests := []struct {
+		k      string
+		exists bool
+	}{
+		{"", false},
+		{"x", false},
+		{"y", true},
+		{"z", true},
+	}
+	appCfg = newTestCfg()
+	appCfg.RegisterInt("y", 11)
+	appCfg.RegisterInt("z", 42)
+	for i, test := range tests {
+		exists := appCfg.Exists(test.k)
+		if exists != test.exists {
+			t.Errorf("%d: got %v, want %v", i, exists, test.exists)
+		}
+	}
+}
