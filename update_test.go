@@ -31,7 +31,7 @@ func TestUpdateBools(t *testing.T) {
 			}
 			continue
 		}
-		b, err := GetBoolE(test.key)
+		b, err := BoolE(test.key)
 		if err != nil {
 			if test.err != err.Error() {
 				t.Errorf("%d: expected %q got %q", i, test.err, err.Error())
@@ -43,7 +43,7 @@ func TestUpdateBools(t *testing.T) {
 		}
 		// Non-E
 		UpdateBool(test.key, false)
-		b = GetBool(test.key)
+		b = Bool(test.key)
 		if b != false {
 			t.Errorf("%d: expected false got %v", i, b)
 		}
@@ -71,7 +71,7 @@ func TestUpdateInts(t *testing.T) {
 			}
 			continue
 		}
-		i, err := GetIntE(test.key)
+		i, err := IntE(test.key)
 		if err != nil {
 			if test.err != err.Error() {
 				t.Errorf("%d: expected %q got %q", i, test.err, err)
@@ -83,7 +83,7 @@ func TestUpdateInts(t *testing.T) {
 		}
 		// Non-e
 		UpdateInt(test.key, test.value+10)
-		i = GetInt(test.key)
+		i = Int(test.key)
 		if i != test.value+10 {
 			t.Errorf("%d: expected %v got %v", i, test.value+10, i)
 		}
@@ -111,7 +111,7 @@ func TestUpdateInt64s(t *testing.T) {
 			}
 			continue
 		}
-		i64, err := GetInt64E(test.key)
+		i64, err := Int64E(test.key)
 		if err != nil {
 			if test.err != err.Error() {
 				t.Errorf("%d: expected %q got %q", i, test.err, err.Error())
@@ -123,7 +123,7 @@ func TestUpdateInt64s(t *testing.T) {
 		}
 		// Non-e
 		UpdateInt64(test.key, test.value+int64(10))
-		i64 = GetInt64(test.key)
+		i64 = Int64(test.key)
 		if i64 != test.value+int64(10) {
 			t.Errorf("%d: expected %v got %v", i, test.value+int64(10), i64)
 		}
@@ -155,7 +155,7 @@ func TestUpdateStrings(t *testing.T) {
 			}
 			continue
 		}
-		s, err := GetStringE(test.key)
+		s, err := StringE(test.key)
 		if err != nil {
 			if test.err != err.Error() {
 				t.Errorf("%d: expected %q got %q", i, test.err, err.Error())
@@ -167,7 +167,7 @@ func TestUpdateStrings(t *testing.T) {
 		}
 		// Non-e
 		UpdateString(test.key, fmt.Sprintf("%s %s", test.value, test.value))
-		s = GetString(test.key)
+		s = String(test.key)
 		if s != fmt.Sprintf("%s %s", test.value, test.value) {
 			t.Errorf("%d: expected %v got %v", i, fmt.Sprintf("%s %s", test.value, test.value), s)
 		}

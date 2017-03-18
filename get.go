@@ -26,9 +26,11 @@ func (c *Cfg) Get(k string) interface{} {
 	return s
 }
 
-// GetBoolE returns the setting Value as a bool.
-func GetBoolE(k string) (bool, error) { return appCfg.GetBoolE(k) }
-func (c *Cfg) GetBoolE(k string) (bool, error) {
+// BoolE returns the key's value as a bool. A SettingNotFoundErr is returned
+// if the key is not valid. If the setting's type is not a bool, a DataTypeErr
+// will be returned.
+func BoolE(k string) (bool, error) { return appCfg.BoolE(k) }
+func (c *Cfg) BoolE(k string) (bool, error) {
 	v, err := c.GetE(k)
 	if err != nil {
 		return false, err
@@ -43,15 +45,19 @@ func (c *Cfg) GetBoolE(k string) (bool, error) {
 	return false, DataTypeErr{name: k, is: reflect.TypeOf(v).String(), not: _bool}
 }
 
-func GetBool(k string) bool { return appCfg.GetBool(k) }
-func (c *Cfg) GetBool(k string) bool {
-	s, _ := c.GetBoolE(k)
+// Bool returns the key's value as a bool. A false will be returned if the key
+// either doesn't exist or is not a bool setting.
+func Bool(k string) bool { return appCfg.Bool(k) }
+func (c *Cfg) Bool(k string) bool {
+	s, _ := c.BoolE(k)
 	return s
 }
 
-// GetIntE returns the setting Value as an int.
-func GetIntE(k string) (int, error) { return appCfg.GetIntE(k) }
-func (c *Cfg) GetIntE(k string) (int, error) {
+// IntE returns the key's value as an int. A SettingNotFoundErr is returned if
+// the key is not valid. If the setting's type is not an int, a DataTypeErr
+// will be returned.
+func IntE(k string) (int, error) { return appCfg.IntE(k) }
+func (c *Cfg) IntE(k string) (int, error) {
 	v, err := c.GetE(k)
 	if err != nil {
 		return 0, err
@@ -67,15 +73,19 @@ func (c *Cfg) GetIntE(k string) (int, error) {
 	return 0, DataTypeErr{name: k, is: reflect.TypeOf(v).String(), not: _int}
 }
 
-func GetInt(k string) int { return appCfg.GetInt(k) }
-func (c *Cfg) GetInt(k string) int {
-	s, _ := c.GetIntE(k)
+// Int returns the key's value as an int. A 0 will be returned if the key
+// either doesn't exist or is not an int setting.
+func Int(k string) int { return appCfg.Int(k) }
+func (c *Cfg) Int(k string) int {
+	s, _ := c.IntE(k)
 	return s
 }
 
-// GetInt64E returns the setting Value as an int64.
-func GetInt64E(k string) (int64, error) { return appCfg.GetInt64E(k) }
-func (c *Cfg) GetInt64E(k string) (int64, error) {
+// Int64E returns the key's value as an int64. A SettingNotFoundErr is returned
+// if the key is not valid. If the setting's type is not an int64, a
+// DataTypeErr will be returned.
+func Int64E(k string) (int64, error) { return appCfg.Int64E(k) }
+func (c *Cfg) Int64E(k string) (int64, error) {
 	v, err := c.GetE(k)
 	if err != nil {
 		return 0, err
@@ -91,15 +101,19 @@ func (c *Cfg) GetInt64E(k string) (int64, error) {
 	return 0, DataTypeErr{name: k, is: reflect.TypeOf(v).String(), not: _int64}
 }
 
-func GetInt64(k string) int64 { return appCfg.GetInt64(k) }
-func (c *Cfg) GetInt64(k string) int64 {
-	s, _ := c.GetInt64E(k)
+// Int64 returns the key's value as an int64. A 0 will be returned if the key
+// either doesn't exist or is not a bool setting.
+func Int64(k string) int64 { return appCfg.Int64(k) }
+func (c *Cfg) Int64(k string) int64 {
+	s, _ := c.Int64E(k)
 	return s
 }
 
-// GetStringE returns the setting Value as a string.
-func GetStringE(k string) (string, error) { return appCfg.GetStringE(k) }
-func (c *Cfg) GetStringE(k string) (string, error) {
+// StringE returns the key's value as a string. A SettingNotFoundErr is
+// returned if the key is not gvalid. If the setting's type is not a string, a
+// DataTypeErr will be returned.
+func StringE(k string) (string, error) { return appCfg.StringE(k) }
+func (c *Cfg) StringE(k string) (string, error) {
 	v, err := c.GetE(k)
 	if err != nil {
 		return "", err
@@ -115,8 +129,10 @@ func (c *Cfg) GetStringE(k string) (string, error) {
 	return "", DataTypeErr{name: k, is: reflect.TypeOf(v).String(), not: _string}
 }
 
-func GetString(k string) string { return appCfg.GetString(k) }
-func (c *Cfg) GetString(k string) string {
-	s, _ := c.GetStringE(k)
+// String returns the key's value as a string. An empty string, "", will be
+// returned if the key either doesn't exist or is not a string setting.
+func String(k string) string { return appCfg.String(k) }
+func (c *Cfg) String(k string) string {
+	s, _ := c.StringE(k)
 	return s
 }

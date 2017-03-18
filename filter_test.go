@@ -67,7 +67,7 @@ func TestGetBoolFilter(t *testing.T) {
 	}
 
 	// args not filtered shouldn't be affected
-	b, err := appCfg.GetBoolE("flagbool-tst")
+	b, err := appCfg.BoolE("flagbool-tst")
 	if err != nil {
 		t.Errorf("Expected no error, got %s", err.Error())
 	} else {

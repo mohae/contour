@@ -462,13 +462,13 @@ func TestDataTypeErr(t *testing.T) {
 	for _, test := range tests {
 		switch test.typ {
 		case _bool:
-			_, err = GetBoolE(test.name)
+			_, err = BoolE(test.name)
 		case _int:
-			_, err = GetIntE(test.name)
+			_, err = IntE(test.name)
 		case _int64:
-			_, err = GetInt64E(test.name)
+			_, err = Int64E(test.name)
 		case _string:
-			_, err = GetStringE(test.name)
+			_, err = StringE(test.name)
 		}
 		if err == nil {
 			t.Errorf("%s: expected error, got none", test.name)

@@ -245,7 +245,7 @@ func (c *Cfg) SetCfg() error {
 	useCfg := c.useCfg
 	useEnv := c.useEnv
 	c.RWMutex.RUnlock()
-	fname, err := c.GetStringE(c.CfgFileSettingName())
+	fname, err := c.StringE(c.CfgFileSettingName())
 	if err != nil {
 		return fmt.Errorf("set configuration failed: %s", err)
 	}

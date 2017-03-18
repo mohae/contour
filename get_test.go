@@ -21,7 +21,7 @@ func TestGetsE(t *testing.T) {
 			t.Errorf("Expected \"true\", got %t", b)
 		}
 	}
-	rb, err := GetBoolE("corebool")
+	rb, err := BoolE("corebool")
 	if err != nil {
 		t.Errorf("Expected error to be nil, got %q", err.Error())
 	} else {
@@ -29,7 +29,7 @@ func TestGetsE(t *testing.T) {
 			t.Errorf("Expected \"true\", got %t", rb)
 		}
 	}
-	ri, err := GetIntE("coreint")
+	ri, err := IntE("coreint")
 	if err != nil {
 		t.Errorf("Expected error to be nil, got %q", err.Error())
 	} else {
@@ -37,7 +37,7 @@ func TestGetsE(t *testing.T) {
 			t.Errorf("Expected 42, got %d", ri)
 		}
 	}
-	ri64, err := GetInt64E("coreint64")
+	ri64, err := Int64E("coreint64")
 	if err != nil {
 		t.Errorf("Expected error to be nil, got %q", err.Error())
 	} else {
@@ -45,7 +45,7 @@ func TestGetsE(t *testing.T) {
 			t.Errorf("Expected 42, got %d", ri)
 		}
 	}
-	rs, err := GetStringE("corestring")
+	rs, err := StringE("corestring")
 	if err != nil {
 		t.Errorf("Expected error to be nil, got %q", err.Error())
 	} else {
@@ -68,19 +68,19 @@ func TestGets(t *testing.T) {
 	if !b {
 		t.Errorf("Expected \"true\", got %t", r)
 	}
-	rb := GetBool("corebool")
+	rb := Bool("corebool")
 	if !rb {
 		t.Errorf("Expected true, got %t", rb)
 	}
-	ri := GetInt("coreint")
+	ri := Int("coreint")
 	if ri != 42 {
 		t.Errorf("Expected 42, got %d", ri)
 	}
-	ri64 := GetInt64("coreint64")
+	ri64 := Int64("coreint64")
 	if ri64 != int64(42) {
 		t.Errorf("Expected 42, got %d", ri)
 	}
-	rs := GetString("corestring")
+	rs := String("corestring")
 	if rs != "a core string" {
 		t.Errorf("Expected \"a core string\", got %q", rs)
 	}
