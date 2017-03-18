@@ -112,15 +112,3 @@ func (c *Cfg) GetString(k string) string {
 	s, _ := c.GetStringE(k)
 	return s
 }
-
-// GetInterfaceE is a convenience wrapper function to Get
-func GetInterfaceE(k string) (interface{}, error) { return appCfg.GetInterfaceE(k) }
-func (c *Cfg) GetInterfaceE(k string) (interface{}, error) {
-	return c.GetE(k)
-}
-
-func GetInterface(k string) interface{} { return appCfg.GetInterface(k) }
-func (c *Cfg) GetInterface(k string) interface{} {
-	i, _ := c.GetInterfaceE(k)
-	return i
-}

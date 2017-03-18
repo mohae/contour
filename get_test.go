@@ -53,21 +53,6 @@ func TestGetsE(t *testing.T) {
 			t.Errorf("Expected \"a core string\", got %q", rs)
 		}
 	}
-	rif, err := GetInterfaceE("corebool")
-	if err != nil {
-		t.Errorf("Expected error to be nil, got %q", err.Error())
-	} else {
-		var b bool
-		switch rif.(type) {
-		case bool:
-			b = rif.(bool)
-		case *bool:
-			b = *rif.(*bool)
-		}
-		if !b {
-			t.Errorf("Expected \"true\", got %t", b)
-		}
-	}
 }
 
 func TestGets(t *testing.T) {
@@ -98,15 +83,5 @@ func TestGets(t *testing.T) {
 	rs := GetString("corestring")
 	if rs != "a core string" {
 		t.Errorf("Expected \"a core string\", got %q", rs)
-	}
-	rif := GetInterface("corebool")
-	switch rif.(type) {
-	case bool:
-		b = rif.(bool)
-	case *bool:
-		b = *rif.(*bool)
-	}
-	if !b {
-		t.Errorf("Expected true, got %t", b)
 	}
 }
