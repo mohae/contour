@@ -82,8 +82,8 @@ func (c *Cfg) Int(k string) int {
 }
 
 // Int64E returns the key's value as an int64. A SettingNotFoundErr is returned
-// if the key is not valid. If the setting's type is not an int64, a
-// DataTypeErr will be returned.
+// if the key is not valid. If the setting's type is neither an int64 nor an
+// int, a DataTypeErr will be returned.
 func Int64E(k string) (int64, error) { return appCfg.Int64E(k) }
 func (c *Cfg) Int64E(k string) (int64, error) {
 	v, err := c.GetE(k)
@@ -95,14 +95,18 @@ func (c *Cfg) Int64E(k string) (int64, error) {
 		return v.(int64), nil
 	case *int64:
 		return *v.(*int64), nil
+	case int:
+		return int64(v.(int)), nil
+	case *int:
+		return int64(*v.(*int)), nil
 	}
 
-	// Isn't an int64.
+	// Is neither an int64 nor an int.
 	return 0, DataTypeErr{name: k, is: reflect.TypeOf(v).String(), not: _int64}
 }
 
 // Int64 returns the key's value as an int64. A 0 will be returned if the key
-// either doesn't exist or is not a bool setting.
+// either doesn't exist or is neither an int64 nor an int setting.
 func Int64(k string) int64 { return appCfg.Int64(k) }
 func (c *Cfg) Int64(k string) int64 {
 	s, _ := c.Int64E(k)
