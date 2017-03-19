@@ -34,7 +34,7 @@ func (c *Cfg) RegisterCfgFile(k, v string) error {
 	}
 	// store the key value being used as the configuration setting name by caller
 	c.RWMutex.Lock()
-	c.cfgFileSettingName = k
+	c.confFileKey = k
 	// cache this while we have the lock; technically racy but useEnv shouldn't
 	// be modified while a config file is being registered.
 	use := c.useEnv

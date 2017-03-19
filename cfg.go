@@ -27,8 +27,9 @@ type Cfg struct {
 	sync.RWMutex
 	// if an attempt to load configuration from a file should error if the file
 	// does not exist.
-	errOnMissingFile   bool
-	cfgFileSettingName string
+	errOnMissingFile bool
+	// the key for the conf file setting.
+	confFileKey string
 	// search the path env var, in addition to pwd & executalbe dir, for cfc file.
 	searchPath bool
 	flagSet    *flag.FlagSet
@@ -245,7 +246,7 @@ func (c *Cfg) SetCfg() error {
 	useCfg := c.useCfg
 	useEnv := c.useEnv
 	c.RWMutex.RUnlock()
-	fname, err := c.StringE(c.CfgFileSettingName())
+	fname, err := c.StringE(c.ConfFileKey())
 	if err != nil {
 		return fmt.Errorf("set configuration failed: %s", err)
 	}
@@ -273,12 +274,12 @@ func (c *Cfg) SetCfg() error {
 	return nil
 }
 
-// CfgFileSettingName returns the value of Cfg.cfgFileSettingName.
-func CfgFileSettingName() string { return appCfg.CfgFileSettingName() }
-func (c *Cfg) CfgFileSettingName() string {
+// ConfFileKey returns the value of confFileKey.
+func ConfFileKey() string { return appCfg.ConfFileKey() }
+func (c *Cfg) ConfFileKey() string {
 	c.RWMutex.RLock()
 	defer c.RWMutex.RUnlock()
-	return c.cfgFileSettingName
+	return c.confFileKey
 }
 
 // updateFromCfg updates the application's default values with the setting
@@ -426,7 +427,7 @@ func (c *Cfg) processCfg(buff []byte) (cfg interface{}, err error) {
 	if !c.useCfg {
 		return nil, nil
 	}
-	setting, ok := c.settings[c.cfgFileSettingName]
+	setting, ok := c.settings[c.confFileKey]
 	if !ok {
 		// Wasn't configured, nothing to do. Not an error.
 		return nil, nil

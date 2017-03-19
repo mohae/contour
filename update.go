@@ -75,10 +75,10 @@ func UpdateCfgFile(v string) { appCfg.UpdateCfgFile(v) }
 func (c *Cfg) UpdateCfgFile(v string) {
 	c.RWMutex.Lock()
 	defer c.RWMutex.Unlock()
-	s, ok := c.settings[c.cfgFileSettingName]
+	s, ok := c.settings[c.confFileKey]
 	if !ok {
 		return
 	}
 	s.Value = v
-	c.settings[c.cfgFileSettingName] = s
+	c.settings[c.confFileKey] = s
 }
