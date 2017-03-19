@@ -260,7 +260,7 @@ func (c *Cfg) SetCfg() error {
 			}
 			return fmt.Errorf("update configuration from file failed: %s", err)
 		}
-		err = c.updateFromCfg(buff)
+		err = c.updateFromCfgBytes(buff)
 		if err != nil {
 			return err
 		}
@@ -282,10 +282,10 @@ func (c *Cfg) ConfFileKey() string {
 	return c.confFileKey
 }
 
-// updateFromCfg updates the application's default values with the setting
+// updateFromCfgBytes updates the application's default values with the setting
 // values found in the cfg. Only Cfg and Flag settings are updated.
-func (c *Cfg) updateFromCfg(buff []byte) error {
-	cfgSettings, err := c.processCfg(buff)
+func (c *Cfg) updateFromCfgBytes(buff []byte) error {
+	cfgSettings, err := c.processCfgBytes(buff)
 	if err != nil {
 		return fmt.Errorf("update configuration from data failed: %s", err)
 	}
@@ -419,8 +419,8 @@ func (c *Cfg) IsFlag(name string) bool {
 	return b
 }
 
-// processCfg() is the entry point for reading the configuration file.
-func (c *Cfg) processCfg(buff []byte) (cfg interface{}, err error) {
+// processCfgBytes() is the entry point for reading the configuration bytes.
+func (c *Cfg) processCfgBytes(buff []byte) (cfg interface{}, err error) {
 	// if it's not set to use a cfg file, nothing to do
 	c.RWMutex.Lock()
 	defer c.RWMutex.Unlock()
@@ -556,7 +556,7 @@ func formatFromFilename(s string) (Format, error) {
 	return ParseFormat(format)
 }
 
-// unmarshalCfgBytes accepts bytes and unmarshals them using the correct
+// unmarshalConfBytes accepts bytes and unmarshals them using the correct
 // format. Either the unmarshaled data or an error is returned.
 //
 // Supported formats:

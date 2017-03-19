@@ -611,7 +611,7 @@ func TestProcessCfg(t *testing.T) {
 	for i, test := range tests {
 		tCfg.useCfg = test.UseCfg
 		tCfg.UpdateCfgFile(test.file)
-		c, err := tCfg.processCfg(jsonTest)
+		c, err := tCfg.processCfgBytes(jsonTest)
 		if err != nil {
 			if err.Error() != test.err {
 				t.Errorf("%d: expected %q, got %q", i, test.err, err.Error())
