@@ -561,7 +561,7 @@ func TestSetCfg(t *testing.T) {
 	tstCfg.SetName("rancher")
 	tstCfg.RegisterCfgFile("cfg_file", tests[5].fullPath)
 	for i, test := range tests {
-		tstCfg.UpdateCfgFile("cfg_file", test.fullPath)
+		tstCfg.UpdateCfgFile(test.fullPath)
 		tstCfg.SetUseCfg(test.useCfg)
 		tstCfg.SetUseEnv(test.useEnv)
 		os.Setenv(GetEnvName(test.name), test.envValue)
@@ -610,7 +610,7 @@ func TestProcessCfg(t *testing.T) {
 	tCfg.RegisterCfgFile("cfg_file", fname)
 	for i, test := range tests {
 		tCfg.useCfg = test.UseCfg
-		tCfg.UpdateCfgFile("cfg_file", test.file)
+		tCfg.UpdateCfgFile(test.file)
 		c, err := tCfg.processCfg(jsonTest)
 		if err != nil {
 			if err.Error() != test.err {

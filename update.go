@@ -71,14 +71,14 @@ func (c *Cfg) UpdateString(k, v string) {
 //
 // It is assumed that RegisterCfgFile has already been called, if it hasn't
 // nothing will be done.
-func UpdateCfgFile(k, v string) { appCfg.UpdateCfgFile(k, v) }
-func (c *Cfg) UpdateCfgFile(k, v string) {
+func UpdateCfgFile(v string) { appCfg.UpdateCfgFile(v) }
+func (c *Cfg) UpdateCfgFile(v string) {
 	c.RWMutex.Lock()
 	defer c.RWMutex.Unlock()
-	s, ok := c.settings[k]
+	s, ok := c.settings[c.cfgFileSettingName]
 	if !ok {
 		return
 	}
 	s.Value = v
-	c.settings[k] = s
+	c.settings[c.cfgFileSettingName] = s
 }
