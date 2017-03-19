@@ -454,10 +454,11 @@ func TestSetCfg(t *testing.T) {
 	}{
 		// 0
 		{"", "", Unsupported, false, false, false, "", nil, ""},
-		{"", "", Unsupported, true, false, false, "", nil, "update configuration from data failed: unsupported: unsupported configuration format"},
+		{"", "", Unsupported, true, false, false, "", nil, "update configuration from file failed: no configuration filename"},
 		{"", "", Unsupported, false, true, false, "", nil, ""},
-		{"", "", Unsupported, true, true, false, "", nil, "update configuration from data failed: unsupported: unsupported configuration format"},
+		{"", "", Unsupported, true, true, false, "", nil, "update configuration from file failed: no configuration filename"},
 		{"", filepath.Join(tmpDir, fname), JSON, false, false, false, "", nil, ""},
+
 		// 5
 		{"", filepath.Join(tmpDir, fname), JSON, true, false, false, "", nil, ""},
 		{"", filepath.Join(tmpDir, fname), JSON, false, true, false, "", nil, ""},
@@ -556,16 +557,15 @@ func TestSetCfg(t *testing.T) {
 		t.Errorf("cannot do tests, %s", err.Error())
 		return
 	}
-	appCfg = newTestCfg()
-	appCfg.SetName("rancher")
-	appCfg.RegisterCfgFile("cfg_file", tests[5].fullPath)
+	tstCfg := newTestCfg()
+	tstCfg.SetName("rancher")
+	tstCfg.RegisterCfgFile("cfg_file", tests[5].fullPath)
 	for i, test := range tests {
-		appCfg.UpdateString("cfg_file", test.fullPath)
-		appCfg.UpdateString(appCfg.CfgFormatSettingName(), test.format.String())
-		appCfg.SetUseCfg(test.useCfg)
-		appCfg.SetUseEnv(test.useEnv)
+		tstCfg.UpdateCfgFile("cfg_file", test.fullPath)
+		tstCfg.SetUseCfg(test.useCfg)
+		tstCfg.SetUseEnv(test.useEnv)
 		os.Setenv(GetEnvName(test.name), test.envValue)
-		err := appCfg.SetCfg()
+		err := tstCfg.SetCfg()
 		if err != nil {
 			if test.err != err.Error() {
 				t.Errorf("%d: expected %s, got %s", i, test.err, err.Error())
@@ -588,20 +588,18 @@ func TestProcessCfg(t *testing.T) {
 	}
 	// clean up on exit
 	defer os.RemoveAll(tmpDir)
-	fname := "testcfg.json"
+	fname := "testcfg"
 	// create temp file names
 	tests := []struct {
-		name     string
 		UseCfg   bool
 		file     string
-		format   string
 		expected interface{}
 		err      string
 	}{
-		{"", false, "", "", nil, ""},
-		{fname, true, filepath.Join(tmpDir, fname), "", nil, "process configuration: format was not set"},
-		{fname, true, filepath.Join(tmpDir, fname), "xyz", nil, "xyz: unsupported configuration format"},
-		{fname, true, filepath.Join(tmpDir, fname), "json", jsonTestResults, ""},
+		{false, "", nil, ""},
+		{true, filepath.Join(tmpDir, fname), nil, ": unsupported configuration format"},
+		{true, filepath.Join(tmpDir, fname+".xyz"), nil, "xyz: unsupported configuration format"},
+		{true, filepath.Join(tmpDir, fname+".json"), jsonTestResults, ""},
 	}
 	// write the tmp json cfg file
 	err = ioutil.WriteFile(filepath.Join(tmpDir, fname), jsonTest, 0777)
@@ -612,7 +610,7 @@ func TestProcessCfg(t *testing.T) {
 	tCfg.RegisterCfgFile("cfg_file", fname)
 	for i, test := range tests {
 		tCfg.useCfg = test.UseCfg
-		tCfg.UpdateString(tCfg.cfgFormatSettingName, test.format)
+		tCfg.UpdateCfgFile("cfg_file", test.file)
 		c, err := tCfg.processCfg(jsonTest)
 		if err != nil {
 			if err.Error() != test.err {

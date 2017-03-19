@@ -8,16 +8,15 @@ func TestRegisterCfgFile(t *testing.T) {
 	tests := []struct {
 		name     string
 		filename string
-		format   string
 		err      string
 	}{
-		{"empty", "", "", "cannot register configuration file: no name provided"},
-		{"no extension", "cfg", "", "unable to determine cfg's format: no extension"},
-		{"toml", "cfg.toml", "toml", ""},
-		{"yaml", "cfg.yaml", "yaml", ""},
-		{"json", "cfg.json", "json", ""},
-		{"xml", "cfg.xml", "xml", "xml: unsupported configuration format"},
-		{"undefined", "cfg.bss", "bss", "bss: unsupported configuration format"},
+		{"empty", "", "cannot register configuration file: no name provided"},
+		{"no extension", "cfg", "unable to determine cfg's format: no extension"},
+		{"toml", "cfg.toml", ""},
+		{"yaml", "cfg.yaml", ""},
+		{"json", "cfg.json", ""},
+		{"xml", "cfg.xml", "xml: unsupported configuration format"},
+		{"undefined", "cfg.bss", "bss: unsupported configuration format"},
 	}
 	for _, test := range tests {
 		cfg := NewCfg(test.name)
@@ -41,14 +40,6 @@ func TestRegisterCfgFile(t *testing.T) {
 		if fname != test.filename {
 			t.Errorf("RegisterCfgFilename %s: expected %q got %q", test.name, test.filename, fname)
 			continue
-		}
-		format, err := cfg.StringE(cfg.cfgFormatSettingName)
-		if err != nil {
-			t.Errorf("RegisterCfgFilename format %s: unexpected error retrieving ext, %q", test.name, err)
-			continue
-		}
-		if format != test.format {
-			t.Errorf("RegisterCfgFilename format %s: expected %q got %q", test.name, test.format, format)
 		}
 	}
 }

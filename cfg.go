@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -26,10 +27,8 @@ type Cfg struct {
 	sync.RWMutex
 	// if an attempt to load configuration from a file should error if the file
 	// does not exist.
-	errOnMissingFile bool
-	// configuration setting names that the caller uses
-	cfgFormatSettingName string
-	cfgFileSettingName   string
+	errOnMissingFile   bool
+	cfgFileSettingName string
 	// search the path env var, in addition to pwd & executalbe dir, for cfc file.
 	searchPath bool
 	flagSet    *flag.FlagSet
@@ -76,21 +75,20 @@ func AppCfg() *Cfg {
 // NewConfig returns a *Cfg to the caller
 func NewCfg(name string) *Cfg {
 	return &Cfg{
-		name:                 name,
-		errOnMissingFile:     true,
-		searchPath:           true,
-		cfgFormatSettingName: "cfg_format",
-		flagSet:              flag.NewFlagSet(name, flag.ContinueOnError),
-		settings:             map[string]setting{},
-		cfgVars:              map[string]struct{}{},
-		useCfg:               true,
-		useEnv:               true,
-		filterVars:           map[string]interface{}{},
-		boolFilterNames:      []string{},
-		intFilterNames:       []string{},
-		int64FilterNames:     []string{},
-		stringFilterNames:    []string{},
-		shortFlags:           map[string]string{},
+		name:              name,
+		errOnMissingFile:  true,
+		searchPath:        true,
+		flagSet:           flag.NewFlagSet(name, flag.ContinueOnError),
+		settings:          map[string]setting{},
+		cfgVars:           map[string]struct{}{},
+		useCfg:            true,
+		useEnv:            true,
+		filterVars:        map[string]interface{}{},
+		boolFilterNames:   []string{},
+		intFilterNames:    []string{},
+		int64FilterNames:  []string{},
+		stringFilterNames: []string{},
+		shortFlags:        map[string]string{},
 	}
 }
 
@@ -259,8 +257,7 @@ func (c *Cfg) SetCfg() error {
 			if !c.errOnMissingFile && strings.HasSuffix(err.Error(), "no such file or directory") {
 				return nil
 			}
-			// otherwise its an error
-			return fmt.Errorf("reading %s failed: %s", fname, err)
+			return fmt.Errorf("update configuration from file failed: %s", err)
 		}
 		err = c.UpdateFromCfg(buff)
 		if err != nil {
@@ -275,29 +272,6 @@ func (c *Cfg) SetCfg() error {
 	}
 	return nil
 }
-
-// SetCfgFormatSettingName sets the Cfg.cfgFormatSettingName to the recieved
-// value, if it's not empty.
-func SetCfgFormatSettingName(s string) { appCfg.SetCfgFormatSettingName(s) }
-func (c *Cfg) SetCfgFormatSettingName(s string) {
-	if s == "" {
-		return
-	}
-	c.RWMutex.Lock()
-	c.cfgFormatSettingName = s
-	c.RWMutex.Unlock()
-}
-
-// CfgFormatSettingName returns the value of Cfg.cfgFormatSettingName.
-func CfgFormatSettingName() string { return appCfg.CfgFormatSettingName() }
-func (c *Cfg) CfgFormatSettingName() string {
-	c.RWMutex.RLock()
-	defer c.RWMutex.RUnlock()
-	return c.cfgFormatSettingName
-}
-
-// No SetCfgFileSettingName because this is set during registration of the
-// Cfg file.
 
 // CfgFileSettingName returns the value of Cfg.cfgFileSettingName.
 func CfgFileSettingName() string { return appCfg.CfgFileSettingName() }
@@ -464,17 +438,8 @@ func (c *Cfg) processCfg(buff []byte) (cfg interface{}, err error) {
 		//	Possible add a CfgFileRequired flag
 		return nil, nil
 	}
-	// This shouldn't happend, but lots of things happen that shouldn't.  It should
-	// have been registered already. so if it doesn't exit, err.
-	format, ok := c.settings[c.cfgFormatSettingName]
-	if !ok {
-		return nil, fmt.Errorf("process configuration: format was not set")
-	}
-	if format.Value.(string) == "" {
-		return nil, fmt.Errorf("process configuration: format was not set")
-	}
-	format, _ = c.settings[c.cfgFormatSettingName]
-	f, err := ParseFormat(format.Value.(string))
+	// get the file's format from the extension
+	f, err := ParseFormat(strings.TrimPrefix(filepath.Ext(n), "."))
 	if err != nil {
 		return nil, err
 	}
@@ -556,6 +521,9 @@ func (c *Cfg) Exists(k string) bool {
 // getFileBytes reads from the passed path and returns its contents as bytes,
 // or an error.  The entire contents of the file are read at once.
 func getFileBytes(p string) ([]byte, error) {
+	if p == "" {
+		return nil, fmt.Errorf("no configuration filename")
+	}
 	cfg, err := ioutil.ReadFile(p)
 	if err != nil {
 		return nil, err

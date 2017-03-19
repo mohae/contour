@@ -197,15 +197,14 @@ var testCfgs = map[string]Cfg{
 
 func newTestCfg() *Cfg {
 	return &Cfg{
-		flagSet:              flag.NewFlagSet(fmt.Sprintf("rancher-%d", rand.Int63()), flag.ContinueOnError),
-		useCfg:               true,
-		useEnv:               true,
-		cfgFormatSettingName: "cfg_format",
-		filterVars:           map[string]interface{}{},
-		boolFilterNames:      []string{},
-		intFilterNames:       []string{},
-		int64FilterNames:     []string{},
-		stringFilterNames:    []string{},
+		flagSet:           flag.NewFlagSet(fmt.Sprintf("rancher-%d", rand.Int63()), flag.ContinueOnError),
+		useCfg:            true,
+		useEnv:            true,
+		filterVars:        map[string]interface{}{},
+		boolFilterNames:   []string{},
+		intFilterNames:    []string{},
+		int64FilterNames:  []string{},
+		stringFilterNames: []string{},
 		settings: map[string]setting{
 			"corebool": setting{
 				Type:   "bool",
