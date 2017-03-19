@@ -259,7 +259,7 @@ func (c *Cfg) SetCfg() error {
 			}
 			return fmt.Errorf("update configuration from file failed: %s", err)
 		}
-		err = c.UpdateFromCfg(buff)
+		err = c.updateFromCfg(buff)
 		if err != nil {
 			return err
 		}
@@ -281,9 +281,9 @@ func (c *Cfg) CfgFileSettingName() string {
 	return c.cfgFileSettingName
 }
 
-// UpdateFromCfg updates the application's default values with the setting
+// updateFromCfg updates the application's default values with the setting
 // values found in the cfg. Only Cfg and Flag settings are updated.
-func (c *Cfg) UpdateFromCfg(buff []byte) error {
+func (c *Cfg) updateFromCfg(buff []byte) error {
 	cfgSettings, err := c.processCfg(buff)
 	if err != nil {
 		return fmt.Errorf("update configuration from data failed: %s", err)
