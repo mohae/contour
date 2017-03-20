@@ -5,8 +5,8 @@ import (
 )
 
 func TestGetsE(t *testing.T) {
-	appCfg = newTestCfg()
-	r, err := GetE("corebool")
+	tstSettings := newTestSettings()
+	r, err := tstSettings.GetE("corebool")
 	if err != nil {
 		t.Errorf("Expected error to be nil, got %q", err.Error())
 	} else {
@@ -21,7 +21,7 @@ func TestGetsE(t *testing.T) {
 			t.Errorf("Expected \"true\", got %t", b)
 		}
 	}
-	rb, err := BoolE("corebool")
+	rb, err := tstSettings.BoolE("corebool")
 	if err != nil {
 		t.Errorf("Expected error to be nil, got %q", err.Error())
 	} else {
@@ -29,7 +29,7 @@ func TestGetsE(t *testing.T) {
 			t.Errorf("Expected \"true\", got %t", rb)
 		}
 	}
-	ri, err := IntE("coreint")
+	ri, err := tstSettings.IntE("coreint")
 	if err != nil {
 		t.Errorf("Expected error to be nil, got %q", err.Error())
 	} else {
@@ -37,7 +37,7 @@ func TestGetsE(t *testing.T) {
 			t.Errorf("Expected 42, got %d", ri)
 		}
 	}
-	ri64, err := Int64E("coreint64")
+	ri64, err := tstSettings.Int64E("coreint64")
 	if err != nil {
 		t.Errorf("Expected error to be nil, got %q", err.Error())
 	} else {
@@ -45,7 +45,7 @@ func TestGetsE(t *testing.T) {
 			t.Errorf("Expected 42, got %d", ri)
 		}
 	}
-	rs, err := StringE("corestring")
+	rs, err := tstSettings.StringE("corestring")
 	if err != nil {
 		t.Errorf("Expected error to be nil, got %q", err.Error())
 	} else {
@@ -56,8 +56,8 @@ func TestGetsE(t *testing.T) {
 }
 
 func TestGets(t *testing.T) {
-	appCfg = newTestCfg()
-	r := Get("corebool")
+	tstSettings := newTestSettings()
+	r := tstSettings.Get("corebool")
 	var b bool
 	switch r.(type) {
 	case bool:
@@ -68,19 +68,19 @@ func TestGets(t *testing.T) {
 	if !b {
 		t.Errorf("Expected \"true\", got %t", r)
 	}
-	rb := Bool("corebool")
+	rb := tstSettings.Bool("corebool")
 	if !rb {
 		t.Errorf("Expected true, got %t", rb)
 	}
-	ri := Int("coreint")
+	ri := tstSettings.Int("coreint")
 	if ri != 42 {
 		t.Errorf("Expected 42, got %d", ri)
 	}
-	ri64 := Int64("coreint64")
+	ri64 := tstSettings.Int64("coreint64")
 	if ri64 != int64(42) {
 		t.Errorf("Expected 42, got %d", ri)
 	}
-	rs := String("corestring")
+	rs := tstSettings.String("corestring")
 	if rs != "a core string" {
 		t.Errorf("Expected \"a core string\", got %q", rs)
 	}

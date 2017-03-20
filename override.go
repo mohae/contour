@@ -11,22 +11,22 @@ import (
 // settings.
 //
 // A common use for overrides is to set values obtained by flags.
-func Override(k string, v interface{}) error { return appCfg.Override(k, v) }
-func (c *Cfg) Override(k string, v interface{}) error {
+func Override(k string, v interface{}) error { return settings.Override(k, v) }
+func (s *Settings) Override(k string, v interface{}) error {
 	if v == nil {
 		return nil
 	}
-	c.RWMutex.Lock()
-	defer c.RWMutex.Unlock()
+	s.RWMutex.Lock()
+	defer s.RWMutex.Unlock()
 	// If it can't be overriden,
-	s, ok := c.settings[k]
+	st, ok := s.settings[k]
 	if !ok {
 		return fmt.Errorf("%s not found: cannot override", k)
 	}
-	if s.IsCore || !s.IsFlag {
+	if st.IsCore || !st.IsFlag {
 		return fmt.Errorf("%s is not a flag: only flags can be overridden", k)
 	}
-	s.Value = v
-	c.settings[k] = s
+	st.Value = v
+	s.settings[k] = st
 	return nil
 }

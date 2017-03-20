@@ -189,14 +189,14 @@ var xmlExample = []byte(`<cfg>
 </cfg>
 `)
 
-var emptyCfgs map[string]Cfg
-var testCfgs = map[string]Cfg{
-	app:     Cfg{settings: map[string]setting{}},
-	"test1": Cfg{settings: map[string]setting{}},
+var emptySettings map[string]Settings
+var testSettings = map[string]Settings{
+	app:     Settings{settings: map[string]setting{}},
+	"test1": Settings{settings: map[string]setting{}},
 }
 
-func newTestCfg() *Cfg {
-	return &Cfg{
+func newTestSettings() *Settings {
+	return &Settings{
 		flagSet:           flag.NewFlagSet(fmt.Sprintf("rancher-%d", rand.Int63()), flag.ContinueOnError),
 		useCfg:            true,
 		useEnv:            true,
@@ -458,16 +458,17 @@ func TestDataTypeErr(t *testing.T) {
 	}
 
 	var err error
+	testSettings := newTestSettings()
 	for _, test := range tests {
 		switch test.typ {
 		case _bool:
-			_, err = BoolE(test.name)
+			_, err = testSettings.BoolE(test.name)
 		case _int:
-			_, err = IntE(test.name)
+			_, err = testSettings.IntE(test.name)
 		case _int64:
-			_, err = Int64E(test.name)
+			_, err = testSettings.Int64E(test.name)
 		case _string:
-			_, err = StringE(test.name)
+			_, err = testSettings.StringE(test.name)
 		}
 		if err == nil {
 			t.Errorf("%s: expected error, got none", test.name)

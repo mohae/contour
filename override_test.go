@@ -24,7 +24,7 @@ func TestOverride(t *testing.T) {
 		{"int", "int", 3, "int is not a flag: only flags can be overridden"},
 		{"string", "string", "don't panic", "string is not a flag: only flags can be overridden"},
 	}
-	testCfg := newTestCfg()
+	testCfg := newTestSettings()
 	for i, test := range tests {
 		err := testCfg.Override(test.key, test.value)
 		if err != nil {

@@ -14,84 +14,84 @@ import (
 // reflect current cfg settings.
 //
 // Any args left, after filtering, are returned to the caller.
-func FilterArgs(args []string) ([]string, error) { return appCfg.FilterArgs(args) }
-func (c *Cfg) FilterArgs(args []string) ([]string, error) {
+func FilterArgs(args []string) ([]string, error) { return settings.FilterArgs(args) }
+func (s *Settings) FilterArgs(args []string) ([]string, error) {
 	// Get the ArgFilter (flag) information and set the flagSet
-	err := c.setCfgFlags()
+	err := s.setCfgFlags()
 	if err != nil {
 		return nil, err
 	}
 	// the arg slice may be modified, any --flags get normalized to -flag
-	args, flags := c.getPassedFlags(args)
+	args, flags := s.getPassedFlags(args)
 	if flags == nil {
 		return args, nil
 	}
-	c.RWMutex.Lock()
+	s.RWMutex.Lock()
 	// Parse args for flags
-	err = c.flagSet.Parse(args)
+	err = s.flagSet.Parse(args)
 	if err != nil {
 		return nil, fmt.Errorf("parse of command-line arguments failed: %s", err)
 	}
 	// Get the remaining args
-	cmdArgs := c.flagSet.Args()
-	c.RWMutex.Unlock()
+	cmdArgs := s.flagSet.Args()
+	s.RWMutex.Unlock()
 	// Process the captured values
 	for _, n := range flags {
-		c.RWMutex.RLock()
-		ptr, ok := c.filterVars[n]
+		s.RWMutex.RLock()
+		ptr, ok := s.filterVars[n]
 		if !ok {
 			continue
 		}
-		c.RWMutex.RUnlock()
-		c.Override(n, ptr)
+		s.RWMutex.RUnlock()
+		s.Override(n, ptr)
 	}
-	c.RWMutex.Lock()
-	c.argsFiltered = true
+	s.RWMutex.Lock()
+	s.argsFiltered = true
 	// nil these out as they are no longer needed
-	c.boolFilterNames = nil
-	c.intFilterNames = nil
-	c.int64FilterNames = nil
-	c.stringFilterNames = nil
-	c.filterVars = nil
-	c.shortFlags = nil
-	c.RWMutex.Unlock()
+	s.boolFilterNames = nil
+	s.intFilterNames = nil
+	s.int64FilterNames = nil
+	s.stringFilterNames = nil
+	s.filterVars = nil
+	s.shortFlags = nil
+	s.RWMutex.Unlock()
 	return cmdArgs, nil
 }
 
 // setCfgFlags set's up the argFilter information while setting the Cfg's
 // flagset.
-func (c *Cfg) setCfgFlags() error {
+func (s *Settings) setCfgFlags() error {
 	// Get the flag filters from the config variable information.
-	c.RWMutex.Lock()
-	for _, s := range c.settings {
-		if s.IsFlag {
-			switch s.Type {
+	s.RWMutex.Lock()
+	for _, v := range s.settings {
+		if v.IsFlag {
+			switch v.Type {
 			case "bool":
-				c.filterVars[s.Name] = c.flagSet.Bool(s.Name, s.Value.(bool), s.Usage)
-				c.boolFilterNames = append(c.boolFilterNames, s.Name)
+				s.filterVars[v.Name] = s.flagSet.Bool(v.Name, v.Value.(bool), v.Usage)
+				s.boolFilterNames = append(s.boolFilterNames, v.Name)
 			case "int":
-				c.filterVars[s.Name] = c.flagSet.Int(s.Name, s.Value.(int), s.Usage)
-				c.intFilterNames = append(c.intFilterNames, s.Name)
+				s.filterVars[v.Name] = s.flagSet.Int(v.Name, v.Value.(int), v.Usage)
+				s.intFilterNames = append(s.intFilterNames, v.Name)
 			case "int64":
-				c.filterVars[s.Name] = c.flagSet.Int64(s.Name, s.Value.(int64), s.Usage)
-				c.int64FilterNames = append(c.int64FilterNames, s.Name)
+				s.filterVars[v.Name] = s.flagSet.Int64(v.Name, v.Value.(int64), v.Usage)
+				s.int64FilterNames = append(s.int64FilterNames, v.Name)
 			case "string":
-				c.filterVars[s.Name] = c.flagSet.String(s.Name, s.Value.(string), s.Usage)
-				c.stringFilterNames = append(c.stringFilterNames, s.Name)
+				s.filterVars[v.Name] = s.flagSet.String(v.Name, v.Value.(string), v.Usage)
+				s.stringFilterNames = append(s.stringFilterNames, v.Name)
 			}
 		}
 	}
-	c.RWMutex.Unlock()
+	s.RWMutex.Unlock()
 	return nil
 }
 
 // getPassedFlags returns a slice of flags that exist in the arg list. The
 // original args are not affected,
-func (c *Cfg) getPassedFlags(args []string) ([]string, []string) {
+func (s *Settings) getPassedFlags(args []string) ([]string, []string) {
 	// keeps track of what flags
 	var flags []string
-	c.RWMutex.RLock()
-	defer c.RWMutex.RUnlock()
+	s.RWMutex.RLock()
+	defer s.RWMutex.RUnlock()
 	for i, arg := range args {
 		if strings.HasPrefix(arg, "--") {
 			arg = arg[1:len(arg)]
@@ -103,7 +103,7 @@ func (c *Cfg) getPassedFlags(args []string) ([]string, []string) {
 			split := strings.Split(arg, "=")
 			arg = split[0]
 			// Check to see if this is a short flag, if so, use the full flag name.
-			n, ok := c.shortFlags[arg]
+			n, ok := s.shortFlags[arg]
 			if ok {
 				arg = n
 				// replace the short version with the arg.
@@ -115,11 +115,11 @@ func (c *Cfg) getPassedFlags(args []string) ([]string, []string) {
 				}
 			}
 			// Check to see if it already exists and is a flag before adding it
-			s, ok := c.settings[arg]
+			val, ok := s.settings[arg]
 			if !ok {
 				continue
 			}
-			if s.IsFlag {
+			if val.IsFlag {
 				flags = append(flags, arg)
 			}
 		}

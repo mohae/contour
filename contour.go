@@ -131,11 +131,11 @@ func (t SettingType) String() string {
 	}
 }
 
-// appCfg: contour's global config; contour config functinos operate on this.
-var appCfg *Cfg
+// settings: contour's global Settinngs set; contour functions operate on this.
+var settings *Settings
 
 func init() {
-	appCfg = NewCfg(app)
+	settings = NewSettings(app)
 }
 
 // NotFoundErr occurs when the value was not found.

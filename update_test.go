@@ -22,16 +22,16 @@ func TestUpdateBools(t *testing.T) {
 		{"bool", false, ""},
 		{"bool", true, ""},
 	}
-	appCfg = newTestCfg()
+	tstSettings := newTestSettings()
 	for i, test := range bTests {
-		err := UpdateBoolE(test.key, test.value)
+		err := tstSettings.UpdateBoolE(test.key, test.value)
 		if err != nil {
 			if test.err != err.Error() {
 				t.Errorf("%d: expected %q got %q", i, test.err, err.Error())
 			}
 			continue
 		}
-		b, err := BoolE(test.key)
+		b, err := tstSettings.BoolE(test.key)
 		if err != nil {
 			if test.err != err.Error() {
 				t.Errorf("%d: expected %q got %q", i, test.err, err.Error())
@@ -42,7 +42,7 @@ func TestUpdateBools(t *testing.T) {
 			t.Errorf("%d: expected %v got %v", i, test.value, b)
 		}
 		// Non-E
-		UpdateBool(test.key, false)
+		tstSettings.UpdateBool(test.key, false)
 		b = Bool(test.key)
 		if b != false {
 			t.Errorf("%d: expected false got %v", i, b)
@@ -62,16 +62,16 @@ func TestUpdateInts(t *testing.T) {
 		{"cfgint", 42, ""},
 		{"int", 42, ""},
 	}
-	appCfg = newTestCfg()
+	tstSettings := newTestSettings()
 	for i, test := range iTests {
-		err := UpdateIntE(test.key, test.value)
+		err := tstSettings.UpdateIntE(test.key, test.value)
 		if err != nil {
 			if test.err != err.Error() {
 				t.Errorf("%ds: expected %q got %q", i, test.err, err)
 			}
 			continue
 		}
-		i, err := IntE(test.key)
+		i, err := tstSettings.IntE(test.key)
 		if err != nil {
 			if test.err != err.Error() {
 				t.Errorf("%d: expected %q got %q", i, test.err, err)
@@ -82,8 +82,8 @@ func TestUpdateInts(t *testing.T) {
 			t.Errorf("%d: expected %q got %q", i, test.value, strconv.Itoa(i))
 		}
 		// Non-e
-		UpdateInt(test.key, test.value+10)
-		i = Int(test.key)
+		tstSettings.UpdateInt(test.key, test.value+10)
+		i = tstSettings.Int(test.key)
 		if i != test.value+10 {
 			t.Errorf("%d: expected %v got %v", i, test.value+10, i)
 		}
@@ -102,16 +102,16 @@ func TestUpdateInt64s(t *testing.T) {
 		{"cfgint64", int64(42), ""},
 		{"int", int64(42), ""},
 	}
-	appCfg = newTestCfg()
+	tstSettings := newTestSettings()
 	for i, test := range i64Tests {
-		err := UpdateInt64E(test.key, test.value)
+		err := tstSettings.UpdateInt64E(test.key, test.value)
 		if err != nil {
 			if test.err != err.Error() {
 				t.Errorf("%d: expected %q got %q", i, test.err, err.Error())
 			}
 			continue
 		}
-		i64, err := Int64E(test.key)
+		i64, err := tstSettings.Int64E(test.key)
 		if err != nil {
 			if test.err != err.Error() {
 				t.Errorf("%d: expected %q got %q", i, test.err, err.Error())
@@ -122,8 +122,8 @@ func TestUpdateInt64s(t *testing.T) {
 			t.Errorf("%d: expected %v got %v", i, test.value, i64)
 		}
 		// Non-e
-		UpdateInt64(test.key, test.value+int64(10))
-		i64 = Int64(test.key)
+		tstSettings.UpdateInt64(test.key, test.value+int64(10))
+		i64 = tstSettings.Int64(test.key)
 		if i64 != test.value+int64(10) {
 			t.Errorf("%d: expected %v got %v", i, test.value+int64(10), i64)
 		}
@@ -146,16 +146,16 @@ func TestUpdateStrings(t *testing.T) {
 		{"string", "false", ""},
 		{"string", "t", ""},
 	}
-	appCfg = newTestCfg()
+	tstSettings := newTestSettings()
 	for i, test := range sTests {
-		err := UpdateStringE(test.key, test.value)
+		err := tstSettings.UpdateStringE(test.key, test.value)
 		if err != nil {
 			if test.err != err.Error() {
 				t.Errorf("%d: expected %q got %q", i, test.err, err.Error())
 			}
 			continue
 		}
-		s, err := StringE(test.key)
+		s, err := tstSettings.StringE(test.key)
 		if err != nil {
 			if test.err != err.Error() {
 				t.Errorf("%d: expected %q got %q", i, test.err, err.Error())
@@ -166,8 +166,8 @@ func TestUpdateStrings(t *testing.T) {
 			t.Errorf("%d: expected %s got %s", i, test.value, s)
 		}
 		// Non-e
-		UpdateString(test.key, fmt.Sprintf("%s %s", test.value, test.value))
-		s = String(test.key)
+		tstSettings.UpdateString(test.key, fmt.Sprintf("%s %s", test.value, test.value))
+		s = tstSettings.String(test.key)
 		if s != fmt.Sprintf("%s %s", test.value, test.value) {
 			t.Errorf("%d: expected %v got %v", i, fmt.Sprintf("%s %s", test.value, test.value), s)
 		}
