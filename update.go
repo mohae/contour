@@ -8,8 +8,8 @@ func (s *Settings) updateE(k string, v interface{}) error {
 	if err != nil {
 		return err
 	}
-	s.RWMutex.Lock()
-	defer s.RWMutex.Unlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	val, _ := s.settings[k]
 	val.Value = v
 	s.settings[k] = val
@@ -73,8 +73,8 @@ func (s *Settings) UpdateString(k, v string) {
 // nothing will be done.
 func UpdateCfgFile(v string) { settings.UpdateCfgFile(v) }
 func (s *Settings) UpdateCfgFile(v string) {
-	s.RWMutex.Lock()
-	defer s.RWMutex.Unlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	val, ok := s.settings[s.confFileKey]
 	if !ok {
 		return

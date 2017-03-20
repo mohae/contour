@@ -11,8 +11,8 @@ import "reflect"
 // setting, an error is returned.
 func GetE(k string) (interface{}, error) { return settings.GetE(k) }
 func (c *Settings) GetE(k string) (interface{}, error) {
-	c.RWMutex.RLock()
-	defer c.RWMutex.RUnlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	_, ok := c.settings[k]
 	if !ok {
 		return nil, SettingNotFoundErr{name: k}

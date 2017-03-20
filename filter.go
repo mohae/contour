@@ -26,7 +26,7 @@ func (s *Settings) FilterArgs(args []string) ([]string, error) {
 	if flags == nil {
 		return args, nil
 	}
-	s.RWMutex.Lock()
+	s.mu.Lock()
 	// Parse args for flags
 	err = s.flagSet.Parse(args)
 	if err != nil {
@@ -34,18 +34,18 @@ func (s *Settings) FilterArgs(args []string) ([]string, error) {
 	}
 	// Get the remaining args
 	cmdArgs := s.flagSet.Args()
-	s.RWMutex.Unlock()
+	s.mu.Unlock()
 	// Process the captured values
 	for _, n := range flags {
-		s.RWMutex.RLock()
+		s.mu.RLock()
 		ptr, ok := s.filterVars[n]
 		if !ok {
 			continue
 		}
-		s.RWMutex.RUnlock()
+		s.mu.RUnlock()
 		s.Override(n, ptr)
 	}
-	s.RWMutex.Lock()
+	s.mu.Lock()
 	s.argsFiltered = true
 	// nil these out as they are no longer needed
 	s.boolFilterNames = nil
@@ -54,7 +54,7 @@ func (s *Settings) FilterArgs(args []string) ([]string, error) {
 	s.stringFilterNames = nil
 	s.filterVars = nil
 	s.shortFlags = nil
-	s.RWMutex.Unlock()
+	s.mu.Unlock()
 	return cmdArgs, nil
 }
 
@@ -62,7 +62,7 @@ func (s *Settings) FilterArgs(args []string) ([]string, error) {
 // flagset.
 func (s *Settings) setCfgFlags() error {
 	// Get the flag filters from the config variable information.
-	s.RWMutex.Lock()
+	s.mu.Lock()
 	for _, v := range s.settings {
 		if v.IsFlag {
 			switch v.Type {
@@ -81,7 +81,7 @@ func (s *Settings) setCfgFlags() error {
 			}
 		}
 	}
-	s.RWMutex.Unlock()
+	s.mu.Unlock()
 	return nil
 }
 
@@ -90,8 +90,8 @@ func (s *Settings) setCfgFlags() error {
 func (s *Settings) getPassedFlags(args []string) ([]string, []string) {
 	// keeps track of what flags
 	var flags []string
-	s.RWMutex.RLock()
-	defer s.RWMutex.RUnlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	for i, arg := range args {
 		if strings.HasPrefix(arg, "--") {
 			arg = arg[1:len(arg)]

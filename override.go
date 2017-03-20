@@ -16,8 +16,8 @@ func (s *Settings) Override(k string, v interface{}) error {
 	if v == nil {
 		return nil
 	}
-	s.RWMutex.Lock()
-	defer s.RWMutex.Unlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	// If it can't be overriden,
 	st, ok := s.settings[k]
 	if !ok {

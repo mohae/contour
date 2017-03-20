@@ -33,12 +33,12 @@ func (s *Settings) RegisterCfgFile(k, v string) error {
 		return fmt.Errorf("cannot register configuration file: no key provided")
 	}
 	// store the key value being used as the configuration setting name by caller
-	s.RWMutex.Lock()
+	s.mu.Lock()
 	s.confFileKey = k
 	// cache this while we have the lock; technically racy but useEnv shouldn't
 	// be modified while a config file is being registered.
 	use := s.useEnv
-	s.RWMutex.Unlock()
+	s.mu.Unlock()
 	// check to see if the env var is set
 	if use {
 		fname := os.Getenv(s.GetEnvName(k))
@@ -47,9 +47,9 @@ func (s *Settings) RegisterCfgFile(k, v string) error {
 		}
 	}
 	s.RegisterStringCore(k, v)
-	s.RWMutex.Lock()
+	s.mu.Lock()
 	s.useCfg = true
-	s.RWMutex.Unlock()
+	s.mu.Unlock()
 	return nil
 }
 
@@ -62,15 +62,15 @@ func (s *Settings) RegisterSetting(typ, name, short string, value interface{}, d
 	if name == "" {
 		return fmt.Errorf("cannot register an unnamed setting")
 	}
-	s.RWMutex.RLock()
+	s.mu.RLock()
 	_, ok := s.settings[name]
-	s.RWMutex.RUnlock()
+	s.mu.RUnlock()
 	if ok {
 		// Settings can't be re-registered.
 		return fmt.Errorf("%s is already registered, cannot re-register settings", name)
 	}
-	s.RWMutex.Lock()
-	defer s.RWMutex.Unlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	// Add the setting
 	s.settings[name] = setting{
 		Type:    typ,
