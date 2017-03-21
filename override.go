@@ -13,11 +13,15 @@ import (
 // A common use for overrides is to set values obtained by flags.
 func Override(k string, v interface{}) error { return settings.Override(k, v) }
 func (s *Settings) Override(k string, v interface{}) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.override(k, v)
+}
+
+func (s *Settings) override(k string, v interface{}) error {
 	if v == nil {
 		return nil
 	}
-	s.mu.Lock()
-	defer s.mu.Unlock()
 	// If it can't be overriden,
 	st, ok := s.settings[k]
 	if !ok {

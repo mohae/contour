@@ -16,6 +16,9 @@ import (
 // Any args left, after filtering, are returned to the caller.
 func FilterArgs(args []string) ([]string, error) { return settings.FilterArgs(args) }
 func (s *Settings) FilterArgs(args []string) ([]string, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	// Get the ArgFilter (flag) information and set the flagSet
 	err := s.setCfgFlags()
 	if err != nil {
@@ -26,7 +29,6 @@ func (s *Settings) FilterArgs(args []string) ([]string, error) {
 	if flags == nil {
 		return args, nil
 	}
-	s.mu.Lock()
 	// Parse args for flags
 	err = s.flagSet.Parse(args)
 	if err != nil {
@@ -34,18 +36,14 @@ func (s *Settings) FilterArgs(args []string) ([]string, error) {
 	}
 	// Get the remaining args
 	cmdArgs := s.flagSet.Args()
-	s.mu.Unlock()
 	// Process the captured values
 	for _, n := range flags {
-		s.mu.RLock()
 		ptr, ok := s.filterVars[n]
 		if !ok {
 			continue
 		}
-		s.mu.RUnlock()
-		s.Override(n, ptr)
+		s.override(n, ptr)
 	}
-	s.mu.Lock()
 	s.argsFiltered = true
 	// nil these out as they are no longer needed
 	s.boolFilterNames = nil
@@ -54,15 +52,13 @@ func (s *Settings) FilterArgs(args []string) ([]string, error) {
 	s.stringFilterNames = nil
 	s.filterVars = nil
 	s.shortFlags = nil
-	s.mu.Unlock()
 	return cmdArgs, nil
 }
 
 // setCfgFlags set's up the argFilter information while setting the Cfg's
-// flagset.
+// flagset. This assumes that the lock has been obtained by the caller.
 func (s *Settings) setCfgFlags() error {
 	// Get the flag filters from the config variable information.
-	s.mu.Lock()
 	for _, v := range s.settings {
 		if v.IsFlag {
 			switch v.Type {
@@ -81,17 +77,15 @@ func (s *Settings) setCfgFlags() error {
 			}
 		}
 	}
-	s.mu.Unlock()
 	return nil
 }
 
 // getPassedFlags returns a slice of flags that exist in the arg list. The
-// original args are not affected,
+// original args are not affected. This assumes that the lock has been obtained
+// by the caller.
 func (s *Settings) getPassedFlags(args []string) ([]string, []string) {
 	// keeps track of what flags
 	var flags []string
-	s.mu.RLock()
-	defer s.mu.RUnlock()
 	for i, arg := range args {
 		if strings.HasPrefix(arg, "--") {
 			arg = arg[1:len(arg)]

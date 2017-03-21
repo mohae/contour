@@ -10,14 +10,21 @@ import "reflect"
 // GetE returns the setting Value as an interface{}. If its not a valid
 // setting, an error is returned.
 func GetE(k string) (interface{}, error) { return settings.GetE(k) }
-func (c *Settings) GetE(k string) (interface{}, error) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-	_, ok := c.settings[k]
+func (s *Settings) GetE(k string) (interface{}, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.get(k)
+}
+
+// This assumes the lock has already been obtained. Since this is not exported,
+// it does not need to end with E to signify it returns an error as it can be
+// assumed it does.
+func (s *Settings) get(k string) (interface{}, error) {
+	_, ok := s.settings[k]
 	if !ok {
 		return nil, SettingNotFoundErr{name: k}
 	}
-	return c.settings[k].Value, nil
+	return s.settings[k].Value, nil
 }
 
 func Get(k string) interface{} { return settings.Get(k) }
@@ -58,7 +65,15 @@ func (s *Settings) Bool(k string) bool {
 // will be returned.
 func IntE(k string) (int, error) { return settings.IntE(k) }
 func (s *Settings) IntE(k string) (int, error) {
-	v, err := s.GetE(k)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.int(k)
+}
+
+// This assumes the lock has already been obtained. Unexported methods don't
+// need to be suffixed with E to show they return an error.
+func (s *Settings) int(k string) (int, error) {
+	v, err := s.get(k)
 	if err != nil {
 		return 0, err
 	}
@@ -86,7 +101,15 @@ func (s *Settings) Int(k string) int {
 // int, a DataTypeErr will be returned.
 func Int64E(k string) (int64, error) { return settings.Int64E(k) }
 func (s *Settings) Int64E(k string) (int64, error) {
-	v, err := s.GetE(k)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.int64(k)
+}
+
+// It is assumed that the caller has the lock. Unexported methods don't need
+// to be suffixed with an E to signify they return an error.
+func (s *Settings) int64(k string) (int64, error) {
+	v, err := s.get(k)
 	if err != nil {
 		return 0, err
 	}
@@ -108,17 +131,25 @@ func (s *Settings) Int64E(k string) (int64, error) {
 // Int64 returns the key's value as an int64. A 0 will be returned if the key
 // either doesn't exist or is neither an int64 nor an int setting.
 func Int64(k string) int64 { return settings.Int64(k) }
-func (c *Settings) Int64(k string) int64 {
-	s, _ := c.Int64E(k)
-	return s
+func (s *Settings) Int64(k string) int64 {
+	v, _ := s.Int64E(k)
+	return v
 }
 
 // StringE returns the key's value as a string. A SettingNotFoundErr is
 // returned if the key is not gvalid. If the setting's type is not a string, a
 // DataTypeErr will be returned.
 func StringE(k string) (string, error) { return settings.StringE(k) }
-func (c *Settings) StringE(k string) (string, error) {
-	v, err := c.GetE(k)
+func (s *Settings) StringE(k string) (string, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.string(k)
+}
+
+// It is assumed that the caller holds the lock. Unexported methods don't need
+// to be suffixed with E to signify they return an error.
+func (s *Settings) string(k string) (string, error) {
+	v, err := s.get(k)
 	if err != nil {
 		return "", err
 	}

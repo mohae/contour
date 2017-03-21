@@ -34,11 +34,11 @@ func (s *Settings) RegisterCfgFile(k, v string) error {
 	}
 	// store the key value being used as the configuration setting name by caller
 	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.confFileKey = k
 	// cache this while we have the lock; technically racy but useEnv shouldn't
 	// be modified while a config file is being registered.
 	use := s.useEnv
-	s.mu.Unlock()
 	// check to see if the env var is set
 	if use {
 		fname := os.Getenv(s.GetEnvName(k))
@@ -46,10 +46,8 @@ func (s *Settings) RegisterCfgFile(k, v string) error {
 			v = fname
 		}
 	}
-	s.RegisterStringCore(k, v)
-	s.mu.Lock()
+	s.registerStringCore(k, v)
 	s.useCfg = true
-	s.mu.Unlock()
 	return nil
 }
 
@@ -59,18 +57,20 @@ func RegisterSetting(typ, name, short string, value interface{}, dflt, usage str
 	return settings.RegisterSetting(typ, name, short, value, dflt, usage, IsCore, IsCfg, IsEnv, IsFlag)
 }
 func (s *Settings) RegisterSetting(typ, name, short string, value interface{}, dflt string, usage string, IsCore, IsCfg, IsEnv, IsFlag bool) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.registerSetting(typ, name, short, value, dflt, usage, IsCore, IsCfg, IsEnv, IsFlag)
+}
+
+func (s *Settings) registerSetting(typ, name, short string, value interface{}, dflt string, usage string, IsCore, IsCfg, IsEnv, IsFlag bool) error {
 	if name == "" {
 		return fmt.Errorf("cannot register an unnamed setting")
 	}
-	s.mu.RLock()
 	_, ok := s.settings[name]
-	s.mu.RUnlock()
 	if ok {
 		// Settings can't be re-registered.
 		return fmt.Errorf("%s is already registered, cannot re-register settings", name)
 	}
-	s.mu.Lock()
-	defer s.mu.Unlock()
 	// Add the setting
 	s.settings[name] = setting{
 		Type:    typ,
@@ -117,7 +117,15 @@ func (s *Settings) RegisterSetting(typ, name, short string, value interface{}, d
 // save it to its environment variable. E versions return received errors.
 func RegisterBoolCoreE(k string, v bool) error { return settings.RegisterBoolCoreE(k, v) }
 func (s *Settings) RegisterBoolCoreE(k string, v bool) error {
-	return s.RegisterSetting("bool", k, "", v, strconv.FormatBool(v), "", true, false, false, false)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.registerBoolCore(k, v)
+}
+
+// assumes the lock has been obtained. Unexported register methods always
+// return an error.
+func (s *Settings) registerBoolCore(k string, v bool) error {
+	return s.registerSetting("bool", k, "", v, strconv.FormatBool(v), "", true, false, false, false)
 }
 
 // RegisterBoolCore calls RegisterBoolCoreE and ignores any error.
@@ -130,7 +138,15 @@ func (s *Settings) RegisterBoolCore(k string, v bool) {
 // save it to its environment variable: E versions return received errors.
 func RegisterIntCoreE(k string, v int) error { return settings.RegisterIntCoreE(k, v) }
 func (s *Settings) RegisterIntCoreE(k string, v int) error {
-	return s.RegisterSetting("int", k, "", v, strconv.Itoa(v), "", true, false, false, false)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.registerIntCore(k, v)
+}
+
+// assumes the lock has been obtained. Unexported register methods always
+// return an error.
+func (s *Settings) registerIntCore(k string, v int) error {
+	return s.registerSetting("int", k, "", v, strconv.Itoa(v), "", true, false, false, false)
 }
 
 // RegisterIntCore calls RegisterIntCoreE and ignores any error.
@@ -143,7 +159,15 @@ func (s *Settings) RegisterIntCore(k string, v int) {
 // save it to its environment variable: E versions return received errors.
 func RegisterInt64CoreE(k string, v int64) error { return settings.RegisterInt64CoreE(k, v) }
 func (s *Settings) RegisterInt64CoreE(k string, v int64) error {
-	return s.RegisterSetting("int64", k, "", v, strconv.FormatInt(v, 10), "", true, false, false, false)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.registerInt64Core(k, v)
+}
+
+// assumes the lock has been obtained. Unexported register methods always
+// return an error.
+func (s *Settings) registerInt64Core(k string, v int64) error {
+	return s.registerSetting("int64", k, "", v, strconv.FormatInt(v, 10), "", true, false, false, false)
 }
 
 // RegisterInt64Core calls RegisterInt64CoreE and ignores any error.
@@ -156,7 +180,13 @@ func (s *Settings) RegisterInt64Core(k string, v int64) {
 // save it to its environment variable: E versions return received errors.
 func RegisterStringCoreE(k, v string) error { return settings.RegisterStringCoreE(k, v) }
 func (s *Settings) RegisterStringCoreE(k, v string) error {
-	return s.RegisterSetting("string", k, "", v, v, "", true, false, false, false)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.registerStringCore(k, v)
+}
+
+func (s *Settings) registerStringCore(k, v string) error {
+	return s.registerSetting("string", k, "", v, v, "", true, false, false, false)
 }
 
 // RegisterStringCore calls RegisterStringCoreE and ignores any error.

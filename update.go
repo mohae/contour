@@ -1,15 +1,14 @@
 package contour
 
 // Only non-core settings are updateable. Flags must use Override* to update
-// settings.
-func (s *Settings) updateE(k string, v interface{}) error {
+// settings. This assumes that the lock has already been obtained by the
+// caller.
+func (s *Settings) update(k string, v interface{}) error {
 	// if can't update, a false will also return an error explaining why.
 	_, err := s.canUpdate(k)
 	if err != nil {
 		return err
 	}
-	s.mu.Lock()
-	defer s.mu.Unlock()
 	val, _ := s.settings[k]
 	val.Value = v
 	s.settings[k] = val
@@ -19,7 +18,13 @@ func (s *Settings) updateE(k string, v interface{}) error {
 // UpdateBoolE updates a bool setting, returning any error that occurs.
 func UpdateBoolE(k string, v bool) error { return settings.UpdateBoolE(k, v) }
 func (s *Settings) UpdateBoolE(k string, v bool) error {
-	return s.updateE(k, v)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.updateBoolE(k, v)
+}
+
+func (s *Settings) updateBoolE(k string, v bool) error {
+	return s.update(k, v)
 }
 
 // UpdateBool calls UpdateBoolE and drops the error.
@@ -31,7 +36,13 @@ func (s *Settings) UpdateBool(k string, v bool) {
 // UpdateIntE updates a int setting, returning any error that occurs.
 func UpdateIntE(k string, v int) error { return settings.UpdateIntE(k, v) }
 func (s *Settings) UpdateIntE(k string, v int) error {
-	return s.updateE(k, v)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.updateIntE(k, v)
+}
+
+func (s *Settings) updateIntE(k string, v int) error {
+	return s.update(k, v)
 }
 
 // UpdateInt calls UpdateIntE and drops the error.
@@ -43,7 +54,13 @@ func (s *Settings) UpdateInt(k string, v int) {
 // UpdateInt64E updates a int64 setting, returning any error that occurs.
 func UpdateInt64E(k string, v int64) error { return settings.UpdateInt64E(k, v) }
 func (s *Settings) UpdateInt64E(k string, v int64) error {
-	return s.updateE(k, v)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.updateInt64E(k, v)
+}
+
+func (s *Settings) updateInt64E(k string, v int64) error {
+	return s.update(k, v)
 }
 
 // UpdateInt64 calls UpdateInt64E and drops the error.
@@ -55,7 +72,13 @@ func (s *Settings) UpdateInt64(k string, v int64) {
 // UpdateStringE updates a string setting, returning any error that occurs.
 func UpdateStringE(k string, v string) error { return settings.UpdateStringE(k, v) }
 func (s *Settings) UpdateStringE(k, v string) error {
-	return s.updateE(k, v)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.updateStringE(k, v)
+}
+
+func (s *Settings) updateStringE(k, v string) error {
+	return s.update(k, v)
 }
 
 // UpdateBool calls UpdateStringE and drops the error.
