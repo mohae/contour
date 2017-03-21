@@ -89,19 +89,6 @@ var jsonResults = map[string]interface{}{
 	},
 }
 
-// temporary one; once slice and map support has been added use the original one.
-var jsonTest = []byte(`
-{
-	"cfgbool": true,
-	"flagbool": true,
-	"cfgint": 42,
-	"flagint": 1999,
-	"cfgstring": "foo",
-	"flagstring": "bar"
-}
-`)
-
-/*
 var jsonTest = []byte(`
 {
 	"cfgbool": true,
@@ -132,7 +119,7 @@ var jsonTest = []byte(`
 	}
 }
 `)
-*/
+
 var jsonTestResults = map[string]interface{}{
 	"cfgbool":    true,
 	"flagbool":   true,
@@ -243,20 +230,20 @@ func newTestSettings() *Settings {
 				Value:  "a core string",
 				IsCore: true,
 			},
-			/*
-				"coreslice": setting{
-					Type:   "string-slice",
-					Name:   "coreslice",
-					Value:  []string{},
-					IsCore: true,
-				},
-				"coremap": setting{
-					Type:   "map",
-					Name:   "coremap",
-					Value:  map[string]interface{}{},
-					IsCore: true,
-				},
-			*/
+			"coreslice": setting{
+				// Type:   "string-slice",
+				Type:   _interface,
+				Name:   "coreslice",
+				Value:  []string{},
+				IsCore: true,
+			},
+			"coremap": setting{
+				//Type:   "map",
+				Type:   _interface,
+				Name:   "coremap",
+				Value:  map[string]interface{}{},
+				IsCore: true,
+			},
 			"cfgbool": setting{
 				Type:  _bool,
 				Name:  "cfgbool",
@@ -287,24 +274,24 @@ func newTestSettings() *Settings {
 				IsCfg: true,
 				IsEnv: true,
 			},
-			/*
-				"cfgslice": setting{
-					Type:  "string-slice",
-					Name:  "cfgslice",
-					Value: []string{},
-					Short: "",
-					IsCfg: true,
-					IsEnv: true,
-				},
-				"cfgmap": setting{
-					Type:  "map",
-					Name:  "cfgmap",
-					Value: map[string]interface{}{},
-					Short: "",
-					IsCfg: true,
-					IsEnv: true,
-				},
-			*/
+			"cfgslice": setting{
+				//Type:  "string-slice",
+				Type:  _interface,
+				Name:  "cfgslice",
+				Value: []string{},
+				Short: "",
+				IsCfg: true,
+				IsEnv: true,
+			},
+			"cfgmap": setting{
+				//Type:  "map",
+				Type:  _interface,
+				Name:  "cfgmap",
+				Value: map[string]interface{}{},
+				Short: "",
+				IsCfg: true,
+				IsEnv: true,
+			},
 			"flagbool": setting{
 				Type:   _bool,
 				Name:   "flagbool",
@@ -377,26 +364,26 @@ func newTestSettings() *Settings {
 				IsEnv:  true,
 				IsFlag: true,
 			},
-			/*
-				"flagslice": setting{
-					Type:   "string-slice",
-					Name:   "flagslice",
-					Value:  []string{},
-					Short:  "",
-					IsCfg:  true,
-					IsEnv:  true,
-					IsFlag: true,
-				},
-				"flagmap": setting{
-					Type:   "map",
-					Name:   "flagmap",
-					Value:  map[string]interface{}{},
-					Short:  "",
-					IsCfg:  true,
-					IsEnv:  true,
-					IsFlag: true,
-				},
-			*/
+			"flagslice": setting{
+				//Type:   "string-slice",
+				Type:   _interface,
+				Name:   "flagslice",
+				Value:  []string{},
+				Short:  "",
+				IsCfg:  true,
+				IsEnv:  true,
+				IsFlag: true,
+			},
+			"flagmap": setting{
+				//Type:   "map",
+				Type:   _interface,
+				Name:   "flagmap",
+				Value:  map[string]interface{}{},
+				Short:  "",
+				IsCfg:  true,
+				IsEnv:  true,
+				IsFlag: true,
+			},
 			"bool": setting{
 				Type:  _bool,
 				Name:  "bool",
@@ -421,20 +408,20 @@ func newTestSettings() *Settings {
 				Value: "a string",
 				Short: "s",
 			},
-			/*
-				"slice": setting{
-					Type:  "string-slice",
-					Name:  "slice",
-					Value: []string{},
-					Short: "s",
-				},
-				"map": setting{
-					Type:  "map",
-					Name:  "map",
-					Value: map[string]interface{}{},
-					Short: "s",
-				},
-			*/
+			"slice": setting{
+				//Type:  "string-slice",
+				Type:  _interface,
+				Name:  "slice",
+				Value: []string{},
+				Short: "s",
+			},
+			"map": setting{
+				//Type:  "map",
+				Type:  _interface,
+				Name:  "map",
+				Value: map[string]interface{}{},
+				Short: "s",
+			},
 		}}
 }
 
