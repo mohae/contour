@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -42,6 +41,7 @@ type Settings struct {
 	settings map[string]setting
 	// Whether configuration settings have been registered and set.
 	useCfg bool
+	// if the settings have been loaded from config
 	cfgSet bool
 	// tracks the vars that are exposed to cfg
 	cfgVars map[string]struct{}
@@ -93,6 +93,37 @@ func NewSettings(name string) *Settings {
 	}
 }
 
+// Set updates the registered settings according to Settings' configuration:
+// it can be updated using a configuration file and/or environment variables;
+// in that order of precedence. This is only run once; subsequent calls will
+// result in no changes.
+//
+// Only settings that are set as Environment, Cfg, or Flag types are updateable
+// from environment variables.
+//
+// Only settings that are set as Cfg or Flag types are updateable from a
+// configuration file.
+func Set() error { return settings.Set() }
+func (s *Settings) Set() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	// if this has already been set from env vars and config, don't do it again.
+	// TODO: decide if this should be handled differently to allow for reload.
+	if s.cfgSet && s.envSet {
+		return nil
+	}
+	err := s.updateFromEnv()
+	if err != nil {
+		return fmt.Errorf("setting configuration from env failed: %s", err)
+	}
+
+	err = s.setFromFile()
+	if err != nil {
+		return fmt.Errorf("setting configuration from file failed: %s", err)
+	}
+	return nil
+}
+
 // UpdateFromEnv updates the cfg settings from env vars: only when the Cfg's
 // useEnv flag is set to True.  Cfg settings whose IsEnv flag is set to true
 // will be processed. By default, any setting that is registered as a Cfg or
@@ -112,7 +143,7 @@ func (s *Settings) UpdateFromEnv() error {
 }
 
 func (s *Settings) updateFromEnv() error {
-	if !s.useEnv {
+	if !s.useEnv || s.envSet {
 		return nil
 	}
 	var err error
@@ -151,6 +182,73 @@ func (s *Settings) updateFromEnv() error {
 	}
 	// Rlock isn't sufficient for updating to close it and get a Lock() for update.
 	s.envSet = true
+	return nil
+}
+
+// SetFromFile set's the Cfg and Flag settings from the information found in
+// the configuration file if there is one. If Settings is not set to use a
+// configuration file, if the configuration filename is not set, or if it has
+// already been set, nothing is done and no error is returned.
+func SetFromFile() error {
+	return settings.SetFromFile()
+}
+
+// SetFromFile set's the Cfg and Flag settings from the information found in
+// the configuration file if there is one. If Settings is not set to use a
+// configuration file, if the configuration filename is not set, or if it has
+// already been set, nothing is done and no error is returned.
+func (s *Settings) SetFromFile() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.setFromFile()
+}
+
+// setFromFile set's Cfg and Flag settings from the information found in the
+// configuration file, if there is one. This assumes the caller already holds
+// the lock.
+func (s *Settings) setFromFile() error {
+	if !s.useCfg || s.cfgSet {
+		return nil
+	}
+	setting, ok := s.settings[s.confFileKey]
+	if !ok {
+		// Wasn't configured, nothing to do. Not an error.
+		return nil
+	}
+	n := setting.Value.(string)
+	if n == "" {
+		// This isn't an error as config file is allowed to not exist
+		// TODO:
+		//	Possible add a CfgFileRequired flag
+		return nil
+	}
+	// get the file's format from the extension
+	f, err := formatFromFilename(n)
+	if err != nil {
+		return fmt.Errorf("set from file: %s", err)
+	}
+
+	b, err := ioutil.ReadFile(n)
+	if err != nil {
+		return fmt.Errorf("set from file: %s", err)
+	}
+	cfg, err := unmarshalCfgBytes(f, b)
+	if err != nil {
+		return fmt.Errorf("set from file: %s: %s", n, err)
+	}
+
+	// if nothing was returned and no error, nothing to do
+	if cfg == nil {
+		return nil
+	}
+	// Go through settings and update setting values.
+	for k, v := range cfg.(map[string]interface{}) {
+		// otherwise update the setting
+		err = s.update(k, v)
+		if err != nil {
+			return fmt.Errorf("update setting: %s", err)
+		}
+	}
 	return nil
 }
 
@@ -223,82 +321,12 @@ func (s *Settings) SetUseEnv(b bool) {
 	s.mu.Unlock()
 }
 
-// SetCfg goes through the initialized Settings and updates the updateable
-// settings, if a new, valid value is found.  This applies to, in order: Env
-// variables and config files. For any that are not found, or that are
-// immutable, once set, the original initialization values are used.
-//
-// Updates to the application defaults will be applied as follows:
-//    * if useCfg, the values found within the cfgFile will be applied.
-//    * if useEnv, the values found in the env vars will be applied.
-//
-// Up through Flags, and with the exception of setting the cfg file, the order
-// of precedence are:
-//     command-line flags
-//     environment variables
-//     cfg file settings
-//     application defaults
-func SetCfg() error { return settings.SetCfg() }
-func (s *Settings) SetCfg() error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	fname, err := s.string(s.confFileKey)
-	if err != nil {
-		return fmt.Errorf("set configuration failed: %s", err)
-	}
-	if s.useCfg {
-		// Load the Cfg
-		buff, err := getFileBytes(fname)
-		if err != nil {
-			// only return nil if the error is 'no such file or directory'
-			if !s.errOnMissingFile && strings.HasSuffix(err.Error(), "no such file or directory") {
-				return nil
-			}
-			return fmt.Errorf("update configuration from file failed: %s", err)
-		}
-		err = s.updateFromCfgBytes(buff)
-		if err != nil {
-			return err
-		}
-	}
-	if s.useEnv {
-		err = s.updateFromEnv()
-		if err != nil {
-			return fmt.Errorf("setting configuration from env failed: %s", err)
-		}
-	}
-	return nil
-}
-
 // ConfFileKey returns the value of confFileKey.
 func ConfFileKey() string { return settings.ConfFileKey() }
 func (s *Settings) ConfFileKey() string {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.confFileKey
-}
-
-// updateFromCfgBytes updates the application's default values with the setting
-// values found in the cfg. Only Cfg and Flag settings are updated. It is
-// assumed that the lock has been obtained by the caller.
-func (s *Settings) updateFromCfgBytes(buff []byte) error {
-	cfgSettings, err := s.processCfgBytes(buff)
-	if err != nil {
-		return fmt.Errorf("update configuration from data failed: %s", err)
-	}
-	// if nothing was returned and no error, nothing to do
-	if cfgSettings == nil {
-		return nil
-	}
-	// Go through settings and update setting values.
-	for k, v := range cfgSettings.(map[string]interface{}) {
-		// otherwise update the setting
-		err = s.update(k, v)
-		if err != nil {
-			return fmt.Errorf("update configuration from data failed: %s", err)
-		}
-	}
-	return nil
 }
 
 // CfgsProcessed determines whether, or not, all of the cfg sources have been
@@ -422,37 +450,6 @@ func (s *Settings) IsFlag(name string) bool {
 	return b
 }
 
-// processCfgBytes() is the entry point for reading the configuration bytes.
-// This assumes that the lock has already been obtained by the caller.
-func (s *Settings) processCfgBytes(buff []byte) (cfg interface{}, err error) {
-	// if it's not set to use a cfg file, nothing to do
-	if !s.useCfg {
-		return nil, nil
-	}
-	setting, ok := s.settings[s.confFileKey]
-	if !ok {
-		// Wasn't configured, nothing to do. Not an error.
-		return nil, nil
-	}
-	n := setting.Value.(string)
-	if n == "" {
-		// This isn't an error as config file is allowed to not exist
-		// TODO:
-		//	Possible add a CfgFileRequired flag
-		return nil, nil
-	}
-	// get the file's format from the extension
-	f, err := ParseFormat(strings.TrimPrefix(filepath.Ext(n), "."))
-	if err != nil {
-		return nil, err
-	}
-	cfg, err = unmarshalCfgBytes(f, buff)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshal configuration: %s: %s", n, err)
-	}
-	return cfg, nil
-}
-
 // canUpdate checks to see if the passed setting key is updateable. If the key
 // is not updateable, a false is returned along with an error. This assumes
 // that the lock has already been obtained by the caller.
@@ -521,19 +518,6 @@ func (s *Settings) exists(k string) bool {
 		return true
 	}
 	return false
-}
-
-// getFileBytes reads from the passed path and returns its contents as bytes,
-// or an error.  The entire contents of the file are read at once.
-func getFileBytes(p string) ([]byte, error) {
-	if p == "" {
-		return nil, fmt.Errorf("no configuration filename")
-	}
-	cfg, err := ioutil.ReadFile(p)
-	if err != nil {
-		return nil, err
-	}
-	return cfg, nil
 }
 
 // formatFromFilename gets the format from the passed filename.  An error will
