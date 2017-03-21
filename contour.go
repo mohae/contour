@@ -87,6 +87,21 @@ func (t dataType) String() string {
 	return "unknown data type"
 }
 
+func parseDataType(s string) (dataType, error) {
+	v := strings.ToLower(s)
+	switch v {
+	case "string":
+		return _string, nil
+	case "int":
+		return _int, nil
+	case "int64":
+		return _int64, nil
+	case "bool":
+		return _bool, nil
+	}
+	return 0, fmt.Errorf("%s: not a supported data type", s)
+}
+
 // DataTypeErr occurs when the requested setting's data type is different than
 // the type requested.
 type DataTypeErr struct {
