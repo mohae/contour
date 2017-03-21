@@ -47,7 +47,7 @@ func TestRegisterCfgFile(t *testing.T) {
 func TestRegisterSettings(t *testing.T) {
 	tests := []struct {
 		name        string
-		typ         string
+		typ         dataType
 		value       interface{}
 		expected    interface{}
 		expectedErr string
@@ -57,30 +57,30 @@ func TestRegisterSettings(t *testing.T) {
 		IsEnv       bool
 		IsFlag      bool
 	}{
-		{"", "bool", true, true, "cannot register an unnamed setting", false, false, false, false, false},
-		{"bool", "bool", true, true, "", true, false, false, false, false},
-		{"bool", "bool", true, true, "bool is already registered, cannot re-register settings", true, false, false, false, false},
-		{"", "int", 42, 42, "cannot register an unnamed setting", false, false, false, false, false},
-		{"int", "int", 42, 42, "", true, false, false, false, false},
-		{"int", "int", 84, 42, "int is already registered, cannot re-register settings", true, false, false, false, false},
-		{"", "int64", int64(42), int64(42), "cannot register an unnamed setting", false, false, false, false, false},
-		{"int64", "int64", int64(42), int64(42), "", true, false, false, false, false},
-		{"int64", "int64", int64(84), int64(42), "int64 is already registered, cannot re-register settings", true, false, false, false, false},
-		{"", "string", "bar", "bar", "cannot register an unnamed setting", false, false, false, false, false},
-		{"string", "string", "bar", "bar", "", true, false, false, false, false},
-		{"string", "string", "baz", "bar", "string is already registered, cannot re-register settings", true, false, false, false, false},
+		{"", _bool, true, true, "cannot register an unnamed setting", false, false, false, false, false},
+		{"bool", _bool, true, true, "", true, false, false, false, false},
+		{"bool", _bool, true, true, "bool is already registered, cannot re-register settings", true, false, false, false, false},
+		{"", _int, 42, 42, "cannot register an unnamed setting", false, false, false, false, false},
+		{"int", _int, 42, 42, "", true, false, false, false, false},
+		{"int", _int, 84, 42, "int is already registered, cannot re-register settings", true, false, false, false, false},
+		{"", _int64, int64(42), int64(42), "cannot register an unnamed setting", false, false, false, false, false},
+		{"int64", _int64, int64(42), int64(42), "", true, false, false, false, false},
+		{"int64", _int64, int64(84), int64(42), "int64 is already registered, cannot re-register settings", true, false, false, false, false},
+		{"", _string, "bar", "bar", "cannot register an unnamed setting", false, false, false, false, false},
+		{"string", _string, "bar", "bar", "", true, false, false, false, false},
+		{"string", _string, "baz", "bar", "string is already registered, cannot re-register settings", true, false, false, false, false},
 	}
 	cfg := NewSettings("test register")
 	var err error
 	for i, test := range tests {
 		switch test.typ {
-		case "bool":
+		case _bool:
 			err = cfg.RegisterBoolE(test.name, test.value.(bool))
-		case "int":
+		case _int:
 			err = cfg.RegisterIntE(test.name, test.value.(int))
-		case "int64":
+		case _int64:
 			err = cfg.RegisterInt64E(test.name, test.value.(int64))
-		case "string":
+		case _string:
 			err = cfg.RegisterStringE(test.name, test.value.(string))
 		default:
 			t.Errorf("%d: unsupported typ: %s", i, test.typ)
@@ -115,7 +115,7 @@ func TestRegisterSettings(t *testing.T) {
 func TestRegisterCoreSettings(t *testing.T) {
 	tests := []struct {
 		name        string
-		typ         string
+		typ         dataType
 		value       interface{}
 		expected    interface{}
 		expectedErr string
@@ -125,30 +125,30 @@ func TestRegisterCoreSettings(t *testing.T) {
 		IsEnv       bool
 		IsFlag      bool
 	}{
-		{"", "bool", true, true, "cannot register an unnamed setting", false, false, false, false, false},
-		{"corebool", "bool", true, true, "", true, true, false, false, false},
-		{"corebool", "bool", true, true, "corebool is already registered, cannot re-register settings", true, true, false, false, false},
-		{"", "int", 42, 42, "cannot register an unnamed setting", false, false, false, false, false},
-		{"coreint", "int", 42, 42, "", true, true, false, false, false},
-		{"coreint", "int", 84, 42, "coreint is already registered, cannot re-register settings", true, true, false, false, false},
-		{"", "int64", int64(42), int64(42), "cannot register an unnamed setting", false, false, false, false, false},
-		{"coreint64", "int64", int64(42), int64(42), "", true, true, false, false, false},
-		{"coreint64", "int64", int64(84), int64(42), "coreint64 is already registered, cannot re-register settings", true, true, false, false, false},
-		{"", "string", "bar", "bar", "cannot register an unnamed setting", false, false, false, false, false},
-		{"corestring", "string", "bar", "bar", "", true, true, false, false, false},
-		{"corestring", "string", "baz", "bar", "corestring is already registered, cannot re-register settings", true, true, false, false, false},
+		{"", _bool, true, true, "cannot register an unnamed setting", false, false, false, false, false},
+		{"corebool", _bool, true, true, "", true, true, false, false, false},
+		{"corebool", _bool, true, true, "corebool is already registered, cannot re-register settings", true, true, false, false, false},
+		{"", _int, 42, 42, "cannot register an unnamed setting", false, false, false, false, false},
+		{"coreint", _int, 42, 42, "", true, true, false, false, false},
+		{"coreint", _int, 84, 42, "coreint is already registered, cannot re-register settings", true, true, false, false, false},
+		{"", _int64, int64(42), int64(42), "cannot register an unnamed setting", false, false, false, false, false},
+		{"coreint64", _int64, int64(42), int64(42), "", true, true, false, false, false},
+		{"coreint64", _int64, int64(84), int64(42), "coreint64 is already registered, cannot re-register settings", true, true, false, false, false},
+		{"", _string, "bar", "bar", "cannot register an unnamed setting", false, false, false, false, false},
+		{"corestring", _string, "bar", "bar", "", true, true, false, false, false},
+		{"corestring", _string, "baz", "bar", "corestring is already registered, cannot re-register settings", true, true, false, false, false},
 	}
 	tstSettings := NewSettings("test register")
 	var err error
 	for i, test := range tests {
 		switch test.typ {
-		case "bool":
+		case _bool:
 			err = tstSettings.RegisterBoolCoreE(test.name, test.value.(bool))
-		case "int":
+		case _int:
 			err = tstSettings.RegisterIntCoreE(test.name, test.value.(int))
-		case "int64":
+		case _int64:
 			err = tstSettings.RegisterInt64CoreE(test.name, test.value.(int64))
-		case "string":
+		case _string:
 			err = tstSettings.RegisterStringCoreE(test.name, test.value.(string))
 		default:
 			t.Errorf("%d: unsupported typ: %s", i, test.typ)
@@ -186,13 +186,13 @@ func TestRegisterCoreSettings(t *testing.T) {
 			continue
 		}
 		switch test.typ {
-		case "bool":
+		case _bool:
 			tstSettings.RegisterBoolCoreE(test.name, test.value.(bool))
-		case "int":
+		case _int:
 			tstSettings.RegisterIntCoreE(test.name, test.value.(int))
-		case "int64":
+		case _int64:
 			tstSettings.RegisterInt64CoreE(test.name, test.value.(int64))
-		case "string":
+		case _string:
 			tstSettings.RegisterStringCoreE(test.name, test.value.(string))
 		default:
 			t.Errorf("%d: unsupported typ: %s", i, test.typ)
@@ -222,7 +222,7 @@ func TestRegisterCoreSettings(t *testing.T) {
 func TestRegisterCfgSettings(t *testing.T) {
 	tests := []struct {
 		name        string
-		typ         string
+		typ         dataType
 		value       interface{}
 		expected    interface{}
 		expectedErr string
@@ -232,30 +232,30 @@ func TestRegisterCfgSettings(t *testing.T) {
 		IsEnv       bool
 		IsFlag      bool
 	}{
-		{"", "bool", true, true, "cannot register an unnamed setting", false, false, false, false, false},
-		{"cfgbool", "bool", true, true, "", true, false, true, true, false},
-		{"cfgbool", "bool", false, true, "cfgbool is already registered, cannot re-register settings", true, false, true, true, false},
-		{"", "int", 42, 42, "cannot register an unnamed setting", false, false, false, false, false},
-		{"cfgint", "int", 42, 42, "", true, false, true, true, false},
-		{"cfgint", "int", 84, 42, "cfgint is already registered, cannot re-register settings", true, false, true, true, false},
-		{"", "int64", int64(42), int64(42), "cannot register an unnamed setting", false, false, false, false, false},
-		{"cfgint64", "int64", int64(42), int64(42), "", true, false, true, true, false},
-		{"cfgint64", "int64", int64(84), int64(42), "cfgint64 is already registered, cannot re-register settings", true, false, true, true, false},
-		{"", "string", "bar", "bar", "cannot register an unnamed setting", false, false, false, false, false},
-		{"cfgstring", "string", "bar", "bar", "", true, false, true, true, false},
-		{"cfgstring", "string", "baz", "bar", "cfgstring is already registered, cannot re-register settings", true, false, true, true, false},
+		{"", _bool, true, true, "cannot register an unnamed setting", false, false, false, false, false},
+		{"cfgbool", _bool, true, true, "", true, false, true, true, false},
+		{"cfgbool", _bool, false, true, "cfgbool is already registered, cannot re-register settings", true, false, true, true, false},
+		{"", _int, 42, 42, "cannot register an unnamed setting", false, false, false, false, false},
+		{"cfgint", _int, 42, 42, "", true, false, true, true, false},
+		{"cfgint", _int, 84, 42, "cfgint is already registered, cannot re-register settings", true, false, true, true, false},
+		{"", _int64, int64(42), int64(42), "cannot register an unnamed setting", false, false, false, false, false},
+		{"cfgint64", _int64, int64(42), int64(42), "", true, false, true, true, false},
+		{"cfgint64", _int64, int64(84), int64(42), "cfgint64 is already registered, cannot re-register settings", true, false, true, true, false},
+		{"", _string, "bar", "bar", "cannot register an unnamed setting", false, false, false, false, false},
+		{"cfgstring", _string, "bar", "bar", "", true, false, true, true, false},
+		{"cfgstring", _string, "baz", "bar", "cfgstring is already registered, cannot re-register settings", true, false, true, true, false},
 	}
 	tstSettings := NewSettings("test register")
 	var err error
 	for i, test := range tests {
 		switch test.typ {
-		case "bool":
+		case _bool:
 			err = tstSettings.RegisterBoolCfgE(test.name, test.value.(bool))
-		case "int":
+		case _int:
 			err = tstSettings.RegisterIntCfgE(test.name, test.value.(int))
-		case "int64":
+		case _int64:
 			err = tstSettings.RegisterInt64CfgE(test.name, test.value.(int64))
-		case "string":
+		case _string:
 			err = tstSettings.RegisterStringCfgE(test.name, test.value.(string))
 		default:
 			t.Errorf("%d: unsupported typ: %s", i, test.typ)
@@ -293,13 +293,13 @@ func TestRegisterCfgSettings(t *testing.T) {
 			continue
 		}
 		switch test.typ {
-		case "bool":
+		case _bool:
 			tstSettings.RegisterBoolCfg(test.name, test.value.(bool))
-		case "int":
+		case _int:
 			tstSettings.RegisterIntCfg(test.name, test.value.(int))
-		case "int64":
+		case _int64:
 			tstSettings.RegisterInt64Cfg(test.name, test.value.(int64))
-		case "string":
+		case _string:
 			tstSettings.RegisterStringCfg(test.name, test.value.(string))
 		default:
 			t.Errorf("%d: unsupported typ: %s", i, test.typ)
@@ -331,7 +331,7 @@ func TestRegisterFlagSettings(t *testing.T) {
 	tests := []struct {
 		name        string
 		short       string
-		typ         string
+		typ         dataType
 		value       interface{}
 		expected    interface{}
 		expectedErr string
@@ -341,30 +341,30 @@ func TestRegisterFlagSettings(t *testing.T) {
 		IsEnv       bool
 		IsFlag      bool
 	}{
-		{"", "", "bool", true, true, "cannot register an unnamed setting", false, false, false, false, false},
-		{"flagbool", "b", "bool", true, true, "", true, false, true, true, true},
-		{"flagbool", "", "bool", false, true, "flagbool is already registered, cannot re-register settings", true, false, true, true, true},
-		{"", "", "int", 42, 42, "cannot register an unnamed setting", false, false, false, false, false},
-		{"flagint", "i", "int", 42, 42, "", true, false, true, true, true},
-		{"flagint", "", "int", 84, 42, "flagint is already registered, cannot re-register settings", true, false, true, true, true},
-		{"", "", "int64", int64(42), int64(42), "cannot register an unnamed setting", false, false, false, false, false},
-		{"flagint64", "6", "int64", int64(42), int64(42), "", true, false, true, true, true},
-		{"flagint64", "", "int64", int64(84), int64(42), "flagint64 is already registered, cannot re-register settings", true, false, true, true, true},
-		{"", "", "string", "bar", "bar", "cannot register an unnamed setting", false, false, false, false, false},
-		{"flagstring", "s", "string", "bar", "bar", "", true, false, true, true, true},
-		{"flagstring", "", "string", "baz", "bar", "flagstring is already registered, cannot re-register settings", true, false, true, true, true},
+		{"", "", _bool, true, true, "cannot register an unnamed setting", false, false, false, false, false},
+		{"flagbool", "b", _bool, true, true, "", true, false, true, true, true},
+		{"flagbool", "", _bool, false, true, "flagbool is already registered, cannot re-register settings", true, false, true, true, true},
+		{"", "", _int, 42, 42, "cannot register an unnamed setting", false, false, false, false, false},
+		{"flagint", "i", _int, 42, 42, "", true, false, true, true, true},
+		{"flagint", "", _int, 84, 42, "flagint is already registered, cannot re-register settings", true, false, true, true, true},
+		{"", "", _int64, int64(42), int64(42), "cannot register an unnamed setting", false, false, false, false, false},
+		{"flagint64", "6", _int64, int64(42), int64(42), "", true, false, true, true, true},
+		{"flagint64", "", _int64, int64(84), int64(42), "flagint64 is already registered, cannot re-register settings", true, false, true, true, true},
+		{"", "", _string, "bar", "bar", "cannot register an unnamed setting", false, false, false, false, false},
+		{"flagstring", "s", _string, "bar", "bar", "", true, false, true, true, true},
+		{"flagstring", "", _string, "baz", "bar", "flagstring is already registered, cannot re-register settings", true, false, true, true, true},
 	}
 	tstSettings := NewSettings("test register")
 	var err error
 	for i, test := range tests {
 		switch test.typ {
-		case "bool":
+		case _bool:
 			err = tstSettings.RegisterBoolFlagE(test.name, test.short, test.value.(bool), "", "usage")
-		case "int":
+		case _int:
 			err = tstSettings.RegisterIntFlagE(test.name, test.short, test.value.(int), "", "usage")
-		case "int64":
+		case _int64:
 			err = tstSettings.RegisterInt64FlagE(test.name, test.short, test.value.(int64), "", "usage")
-		case "string":
+		case _string:
 			err = tstSettings.RegisterStringFlagE(test.name, test.short, test.value.(string), "", "usage")
 		default:
 			t.Errorf("%d: unsupported typ: %s", i, test.typ)
@@ -399,13 +399,13 @@ func TestRegisterFlagSettings(t *testing.T) {
 	for i, test := range tests {
 		// since no error checking is being done, we skip empty names
 		switch test.typ {
-		case "bool":
+		case _bool:
 			tstSettings.RegisterBoolFlag(test.name, test.short, test.value.(bool), "", "usage")
-		case "int":
+		case _int:
 			tstSettings.RegisterIntFlag(test.name, test.short, test.value.(int), "", "usage")
-		case "int64":
+		case _int64:
 			tstSettings.RegisterInt64Flag(test.name, test.short, test.value.(int64), "", "usage")
-		case "string":
+		case _string:
 			tstSettings.RegisterStringFlag(test.name, test.short, test.value.(string), "", "usage")
 		default:
 			t.Errorf("%d: unsupported typ: %s", i, test.typ)

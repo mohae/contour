@@ -16,6 +16,15 @@ import (
 	"strconv"
 )
 
+type RegisterErr struct {
+	name string
+	err  error
+}
+
+func (e RegisterErr) Error() string {
+	return fmt.Sprintf("%s: registration failed: %s", e.name, e.err)
+}
+
 // RegisterCfgFile set's the configuration file's name.  The name is parsed
 // for a valid extension--one that is a supported format--and saves that value
 // too. If it cannot be determined, the extension info is not set.  These are
@@ -57,12 +66,16 @@ func RegisterSetting(typ, name, short string, value interface{}, dflt, usage str
 	return settings.RegisterSetting(typ, name, short, value, dflt, usage, IsCore, IsCfg, IsEnv, IsFlag)
 }
 func (s *Settings) RegisterSetting(typ, name, short string, value interface{}, dflt string, usage string, IsCore, IsCfg, IsEnv, IsFlag bool) error {
+	dType, err := parseDataType(typ)
+	if err != nil {
+		return RegisterErr{name: name, err: err}
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.registerSetting(typ, name, short, value, dflt, usage, IsCore, IsCfg, IsEnv, IsFlag)
+	return s.registerSetting(dType, name, short, value, dflt, usage, IsCore, IsCfg, IsEnv, IsFlag)
 }
 
-func (s *Settings) registerSetting(typ, name, short string, value interface{}, dflt string, usage string, IsCore, IsCfg, IsEnv, IsFlag bool) error {
+func (s *Settings) registerSetting(typ dataType, name, short string, value interface{}, dflt string, usage string, IsCore, IsCfg, IsEnv, IsFlag bool) error {
 	if name == "" {
 		return fmt.Errorf("cannot register an unnamed setting")
 	}
@@ -71,6 +84,7 @@ func (s *Settings) registerSetting(typ, name, short string, value interface{}, d
 		// Settings can't be re-registered.
 		return fmt.Errorf("%s is already registered, cannot re-register settings", name)
 	}
+
 	// Add the setting
 	s.settings[name] = setting{
 		Type:    typ,
@@ -125,7 +139,7 @@ func (s *Settings) RegisterBoolCoreE(k string, v bool) error {
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
 func (s *Settings) registerBoolCore(k string, v bool) error {
-	return s.registerSetting("bool", k, "", v, strconv.FormatBool(v), "", true, false, false, false)
+	return s.registerSetting(_bool, k, "", v, strconv.FormatBool(v), "", true, false, false, false)
 }
 
 // RegisterBoolCore calls RegisterBoolCoreE and ignores any error.
@@ -146,7 +160,7 @@ func (s *Settings) RegisterIntCoreE(k string, v int) error {
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
 func (s *Settings) registerIntCore(k string, v int) error {
-	return s.registerSetting("int", k, "", v, strconv.Itoa(v), "", true, false, false, false)
+	return s.registerSetting(_int, k, "", v, strconv.Itoa(v), "", true, false, false, false)
 }
 
 // RegisterIntCore calls RegisterIntCoreE and ignores any error.
@@ -167,7 +181,7 @@ func (s *Settings) RegisterInt64CoreE(k string, v int64) error {
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
 func (s *Settings) registerInt64Core(k string, v int64) error {
-	return s.registerSetting("int64", k, "", v, strconv.FormatInt(v, 10), "", true, false, false, false)
+	return s.registerSetting(_int64, k, "", v, strconv.FormatInt(v, 10), "", true, false, false, false)
 }
 
 // RegisterInt64Core calls RegisterInt64CoreE and ignores any error.
@@ -186,7 +200,7 @@ func (s *Settings) RegisterStringCoreE(k, v string) error {
 }
 
 func (s *Settings) registerStringCore(k, v string) error {
-	return s.registerSetting("string", k, "", v, v, "", true, false, false, false)
+	return s.registerSetting(_string, k, "", v, v, "", true, false, false, false)
 }
 
 // RegisterStringCore calls RegisterStringCoreE and ignores any error.
@@ -213,7 +227,7 @@ func (s *Settings) RegisterBoolCfgE(k string, v bool) error {
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
 func (s *Settings) registerBoolCfg(k string, v bool) error {
-	return s.registerSetting("bool", k, "", v, strconv.FormatBool(v), "", false, true, true, false)
+	return s.registerSetting(_bool, k, "", v, strconv.FormatBool(v), "", false, true, true, false)
 }
 
 // RegisterBoolCfg calls RegisterBoolCfgE and ignores any error.
@@ -234,7 +248,7 @@ func (s *Settings) RegisterIntCfgE(k string, v int) error {
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
 func (s *Settings) registerIntCfg(k string, v int) error {
-	return s.registerSetting("int", k, "", v, strconv.Itoa(v), "", false, true, true, false)
+	return s.registerSetting(_int, k, "", v, strconv.Itoa(v), "", false, true, true, false)
 }
 
 // RegisterIntCfg calls RegisterIntCfgE and ignores any error.
@@ -255,7 +269,7 @@ func (s *Settings) RegisterInt64CfgE(k string, v int64) error {
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
 func (s *Settings) registerInt64Cfg(k string, v int64) error {
-	return s.registerSetting("int64", k, "", v, strconv.FormatInt(v, 10), "", false, true, true, false)
+	return s.registerSetting(_int64, k, "", v, strconv.FormatInt(v, 10), "", false, true, true, false)
 }
 
 // RegisterInt64Cfg calls RegisterInt64Cfg and ignores any error.
@@ -276,7 +290,7 @@ func (s *Settings) RegisterStringCfgE(k, v string) error {
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
 func (s *Settings) registerStringCfg(k, v string) error {
-	return s.registerSetting("string", k, "", v, v, "", false, true, true, false)
+	return s.registerSetting(_string, k, "", v, v, "", false, true, true, false)
 }
 
 // RegisterStringCfg calls RegisterStringCfgE and ignores any error.
@@ -307,7 +321,7 @@ func (s *Settings) RegisterBoolFlagE(k, short string, v bool, dflt, usage string
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
 func (s *Settings) registerBoolFlag(k, short string, v bool, dflt, usage string) error {
-	return s.registerSetting("bool", k, short, v, dflt, usage, false, true, true, true)
+	return s.registerSetting(_bool, k, short, v, dflt, usage, false, true, true, true)
 }
 
 // RegisterBoolFlag calls RegisterBoolFlagE and ignores any error.
@@ -332,7 +346,7 @@ func (s *Settings) RegisterIntFlagE(k, short string, v int, dflt, usage string) 
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
 func (s *Settings) registerIntFlag(k, short string, v int, dflt, usage string) error {
-	return s.registerSetting("int", k, short, v, dflt, usage, false, true, true, true)
+	return s.registerSetting(_int, k, short, v, dflt, usage, false, true, true, true)
 }
 
 // RegisterIntFlag calls RegisterIntFlagE and ignores any error.
@@ -357,7 +371,7 @@ func (s *Settings) RegisterInt64FlagE(k, short string, v int64, dflt, usage stri
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
 func (s *Settings) registerInt64Flag(k, short string, v int64, dflt, usage string) error {
-	return s.registerSetting("int64", k, short, v, dflt, usage, false, true, true, true)
+	return s.registerSetting(_int64, k, short, v, dflt, usage, false, true, true, true)
 }
 
 // RegisterInt64Flag calls RegisterIntFlagE and ignores any error.
@@ -382,7 +396,7 @@ func (s *Settings) RegisterStringFlagE(k, short, v, dflt, usage string) error {
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
 func (s *Settings) registerStringFlag(k, short, v, dflt, usage string) error {
-	return s.registerSetting("string", k, short, v, dflt, usage, false, true, true, true)
+	return s.registerSetting(_string, k, short, v, dflt, usage, false, true, true, true)
 }
 
 // RegisterStringFlag calls RegisterStringFlagE and ignores any error.
@@ -405,7 +419,7 @@ func (s *Settings) RegisterBoolE(k string, v bool) error {
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
 func (s *Settings) registerBool(k string, v bool) error {
-	return s.registerSetting("bool", k, "", v, strconv.FormatBool(v), "", false, false, false, false)
+	return s.registerSetting(_bool, k, "", v, strconv.FormatBool(v), "", false, false, false, false)
 }
 
 // RegisterBool calls RegisterBoolE and ignores any error.
@@ -426,7 +440,7 @@ func (s *Settings) RegisterIntE(k string, v int) error {
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
 func (s *Settings) registerInt(k string, v int) error {
-	return s.registerSetting("int", k, "", v, strconv.Itoa(v), "", false, false, false, false)
+	return s.registerSetting(_int, k, "", v, strconv.Itoa(v), "", false, false, false, false)
 }
 
 // RegisterInt calls RegisterIntE and ignores any error.
@@ -447,7 +461,7 @@ func (s *Settings) RegisterInt64E(k string, v int64) error {
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
 func (s *Settings) registerInt64(k string, v int64) error {
-	return s.registerSetting("int64", k, "", v, strconv.FormatInt(v, 10), "", false, false, false, false)
+	return s.registerSetting(_int64, k, "", v, strconv.FormatInt(v, 10), "", false, false, false, false)
 }
 
 // RegisterInt64 calls RegisterInt64E and ignores any error.
@@ -468,7 +482,7 @@ func (s *Settings) RegisterStringE(k, v string) error {
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
 func (s *Settings) registerString(k, v string) error {
-	return s.registerSetting("string", k, "", v, v, "", false, false, false, false)
+	return s.registerSetting(_string, k, "", v, v, "", false, false, false, false)
 }
 
 // RegisterString calls RegisterStringE and ignores any error.

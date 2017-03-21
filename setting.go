@@ -3,7 +3,7 @@ package contour
 // setting holds the information for a configuration setting.
 type setting struct {
 	// Type is the setting's datatype
-	Type string
+	Type dataType
 	// Name
 	Name string
 	// The short code for the setting, if applicable

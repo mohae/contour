@@ -62,16 +62,16 @@ func (s *Settings) setCfgFlags() error {
 	for _, v := range s.settings {
 		if v.IsFlag {
 			switch v.Type {
-			case "bool":
+			case _bool:
 				s.filterVars[v.Name] = s.flagSet.Bool(v.Name, v.Value.(bool), v.Usage)
 				s.boolFilterNames = append(s.boolFilterNames, v.Name)
-			case "int":
+			case _int:
 				s.filterVars[v.Name] = s.flagSet.Int(v.Name, v.Value.(int), v.Usage)
 				s.intFilterNames = append(s.intFilterNames, v.Name)
-			case "int64":
+			case _int64:
 				s.filterVars[v.Name] = s.flagSet.Int64(v.Name, v.Value.(int64), v.Usage)
 				s.int64FilterNames = append(s.int64FilterNames, v.Name)
-			case "string":
+			case _string:
 				s.filterVars[v.Name] = s.flagSet.String(v.Name, v.Value.(string), v.Usage)
 				s.stringFilterNames = append(s.stringFilterNames, v.Name)
 			}
