@@ -25,8 +25,8 @@ func TestSettings(t *testing.T) {
 	if settings == nil {
 		t.Errorf("global Settings was nil")
 	} else {
-		if settings.name != "app" {
-			t.Errorf("Expected app got %s", settings.name)
+		if settings.name != "contour.test" {
+			t.Errorf("Expected contour.test got %s", settings.name)
 		}
 		if settings.UseEnv() != true {
 			t.Errorf("Expected true got %v", settings.UseEnv())

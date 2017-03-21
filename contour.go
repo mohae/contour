@@ -1,12 +1,18 @@
+// Package contour: a package for settings.
 //
+// The package global Settings struct uses the application's name as its name.
+// When using the package global settings and environment variables, the
+// environment variables will be APPNAME_SETTINGNAME.
 package contour
 
 import (
 	"fmt"
 	"strings"
+
+	"github.com/mohae/appname"
 )
 
-const app = "app"
+var app = appname.Get()
 
 const (
 	Unsupported Format = iota
