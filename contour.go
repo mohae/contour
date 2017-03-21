@@ -150,7 +150,7 @@ func (t SettingType) String() string {
 var settings *Settings
 
 func init() {
-	settings = NewSettings(app)
+	settings = New(app)
 }
 
 // NotFoundErr occurs when the value was not found.

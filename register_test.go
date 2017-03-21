@@ -19,7 +19,7 @@ func TestRegisterCfgFile(t *testing.T) {
 		{"undefined", "cfg.bss", "bss: unsupported configuration format"},
 	}
 	for _, test := range tests {
-		cfg := NewSettings(test.name)
+		cfg := New(test.name)
 		err := cfg.RegisterCfgFile("cfg_file", test.filename)
 		if err != nil {
 			if test.err == "" {
@@ -70,7 +70,7 @@ func TestRegisterSettings(t *testing.T) {
 		{"string", _string, "bar", "bar", "", true, false, false, false, false},
 		{"string", _string, "baz", "bar", "string is already registered, cannot re-register settings", true, false, false, false, false},
 	}
-	cfg := NewSettings("test register")
+	cfg := New("test register")
 	var err error
 	for i, test := range tests {
 		switch test.typ {
@@ -138,7 +138,7 @@ func TestRegisterCoreSettings(t *testing.T) {
 		{"corestring", _string, "bar", "bar", "", true, true, false, false, false},
 		{"corestring", _string, "baz", "bar", "corestring is already registered, cannot re-register settings", true, true, false, false, false},
 	}
-	tstSettings := NewSettings("test register")
+	tstSettings := New("test register")
 	var err error
 	for i, test := range tests {
 		switch test.typ {
@@ -179,7 +179,7 @@ func TestRegisterCoreSettings(t *testing.T) {
 		}
 	}
 	// NonE
-	tstSettings = NewSettings("test register")
+	tstSettings = New("test register")
 	for i, test := range tests {
 		// because we aren't checking errors, don't test empty names
 		if test.name == "" {
@@ -245,7 +245,7 @@ func TestRegisterCfgSettings(t *testing.T) {
 		{"cfgstring", _string, "bar", "bar", "", true, false, true, true, false},
 		{"cfgstring", _string, "baz", "bar", "cfgstring is already registered, cannot re-register settings", true, false, true, true, false},
 	}
-	tstSettings := NewSettings("test register")
+	tstSettings := New("test register")
 	var err error
 	for i, test := range tests {
 		switch test.typ {
@@ -286,7 +286,7 @@ func TestRegisterCfgSettings(t *testing.T) {
 		}
 	}
 	// Non-E
-	tstSettings = NewSettings("test")
+	tstSettings = New("test")
 	for i, test := range tests {
 		// skip empty names since we don't check errors
 		if test.name == "" {
@@ -354,7 +354,7 @@ func TestRegisterFlagSettings(t *testing.T) {
 		{"flagstring", "s", _string, "bar", "bar", "", true, false, true, true, true},
 		{"flagstring", "", _string, "baz", "bar", "flagstring is already registered, cannot re-register settings", true, false, true, true, true},
 	}
-	tstSettings := NewSettings("test register")
+	tstSettings := New("test register")
 	var err error
 	for i, test := range tests {
 		switch test.typ {
@@ -395,7 +395,7 @@ func TestRegisterFlagSettings(t *testing.T) {
 		}
 	}
 	// Non-E
-	tstSettings = NewSettings("test register")
+	tstSettings = New("test register")
 	for i, test := range tests {
 		// since no error checking is being done, we skip empty names
 		switch test.typ {

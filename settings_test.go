@@ -11,7 +11,7 @@ import (
 )
 
 func TestSettings(t *testing.T) {
-	s := NewSettings("test")
+	s := New("test")
 	if s == nil {
 		t.Errorf("New test Settings was nil")
 	} else {
@@ -50,7 +50,7 @@ func TestLoadEnv(t *testing.T) {
 		{"tflagint", "88", "flagint", 42, 88, ""},
 		{"tflagstring", "biz", "flagstring", "fiz", "biz", ""},
 	}
-	testCfg := NewSettings("contourtest")
+	testCfg := New("contourtest")
 	for _, test := range tests {
 		switch test.typ {
 		case "cfgbool":
@@ -97,7 +97,7 @@ func TestCfgBools(t *testing.T) {
 		{false, false},
 		{true, true},
 	}
-	tstSettings := NewSettings("test")
+	tstSettings := New("test")
 	for _, test := range bTests {
 		tstSettings.SetErrOnMissingFile(test.val)
 		b := tstSettings.ErrOnMissingFile()
@@ -214,7 +214,7 @@ func TestCfgProcessed(t *testing.T) {
 		{true, true, true, true, false, true, true},
 		{true, true, true, true, true, true, true},
 	}
-	appCfg := NewSettings("test")
+	appCfg := New("test")
 	for i, test := range tests {
 		appCfg.SetUseCfg(test.useCfg)
 		appCfg.cfgSet = test.cfgSet
@@ -335,7 +335,7 @@ func TestCanOverride(t *testing.T) {
 
 func TestSetUsage(t *testing.T) {
 	f := func() { fmt.Println("hello world") }
-	tstSettings := NewSettings("app")
+	tstSettings := New("app")
 	tstSettings.SetUsage(f)
 	if tstSettings.flagSet.Usage == nil {
 		t.Error("expected Cfg.flagSet.Usage to not be nil, it was nil")

@@ -73,8 +73,8 @@ func AppSettings() *Settings {
 	return settings
 }
 
-// NewSettings provides an initialized Settings.
-func NewSettings(name string) *Settings {
+// New provides an initialized Settings.
+func New(name string) *Settings {
 	return &Settings{
 		name:              name,
 		errOnMissingFile:  true,
