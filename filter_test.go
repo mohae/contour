@@ -22,7 +22,7 @@ func TestGetBoolFilter(t *testing.T) {
 	}
 	_ = tests
 	appCfg := newTestSettings()
-	appCfg.SetName("rancher-test")
+	appCfg.name = "rancher-test"
 	// check that an unfiltered boolflag's var is nil
 	if appCfg.filterVars["flagbool-tst"] != nil {
 		t.Errorf("flags that weren't present in the args should be nil, flagbool-test wasn't")
@@ -35,7 +35,7 @@ func TestGetBoolFilter(t *testing.T) {
 		}
 	}
 	appCfg = newTestSettings()
-	appCfg.SetName("rancher-test")
+	appCfg.name = "rancher-test"
 	args, err = appCfg.FilterArgs([]string{"-flagbool=false", "fake", "command"})
 	if err != nil {
 		t.Errorf("expected no error, got %q", err.Error())
