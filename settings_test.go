@@ -222,7 +222,7 @@ func TestCfgProcessed(t *testing.T) {
 		appCfg.SetUseEnv(test.useEnv)
 		appCfg.useFlags = test.useFlags
 		appCfg.argsFiltered = test.argsFiltered
-		b := appCfg.CfgProcessed()
+		b := appCfg.IsSet()
 		if b != test.expected {
 			t.Errorf("%d expected %v, got %v", i, test.expected, b)
 		}

@@ -339,10 +339,10 @@ func (s *Settings) ConfFileKey() string {
 	return s.confFileKey
 }
 
-// CfgsProcessed determines whether, or not, all of the cfg sources have been
-// processed for a given Cfg.
-func CfgProcessed() bool { return settings.CfgProcessed() }
-func (s *Settings) CfgProcessed() bool {
+// IsSet returns if the Settings has been set from all of its configured
+// inputs, as applicable: env vars, configuration file, and flags.
+func IsSet() bool { return settings.IsSet() }
+func (s *Settings) IsSet() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	if s.useCfg && !s.cfgSet {
