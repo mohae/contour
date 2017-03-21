@@ -50,27 +50,27 @@ func TestLoadEnv(t *testing.T) {
 		{"tflagint", "88", "flagint", 42, 88, ""},
 		{"tflagstring", "biz", "flagstring", "fiz", "biz", ""},
 	}
-	settings = NewSettings("test")
+	testCfg := NewSettings("contourtest")
 	for _, test := range tests {
 		switch test.typ {
 		case "cfgbool":
-			RegisterBoolCfg(test.name, test.origValue.(bool))
+			testCfg.RegisterBoolCfg(test.name, test.origValue.(bool))
 		case "cfgint":
-			RegisterIntCfg(test.name, test.origValue.(int))
+			testCfg.RegisterIntCfg(test.name, test.origValue.(int))
 		case "cfgstring":
-			RegisterStringCfg(test.name, test.origValue.(string))
+			testCfg.RegisterStringCfg(test.name, test.origValue.(string))
 		case "flagbool":
-			RegisterBoolFlag(test.name, "", test.origValue.(bool), "", "")
+			testCfg.RegisterBoolFlag(test.name, "", test.origValue.(bool), "", "")
 		case "flagint":
-			RegisterIntFlag(test.name, "", test.origValue.(int), "", "")
+			testCfg.RegisterIntFlag(test.name, "", test.origValue.(int), "", "")
 		case "flagstring":
-			RegisterStringFlag(test.name, "", test.origValue.(string), "", "")
+			testCfg.RegisterStringFlag(test.name, "", test.origValue.(string), "", "")
 		}
-		os.Setenv(strings.ToUpper(fmt.Sprintf("%s_%s", Name(), test.name)), test.envValue)
+		os.Setenv(strings.ToUpper(fmt.Sprintf("%s_%s", testCfg.Name(), test.name)), test.envValue)
 	}
-	UpdateFromEnv()
+	testCfg.SetFromEnv()
 	for _, test := range tests {
-		tmp := Get(test.name)
+		tmp := testCfg.Get(test.name)
 		switch test.typ {
 		case "cfgbool", "flagbool":
 			if test.expValue != tmp.(bool) {

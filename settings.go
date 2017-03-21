@@ -124,19 +124,29 @@ func (s *Settings) Set() error {
 	return nil
 }
 
-// UpdateFromEnv updates the cfg settings from env vars: only when the Cfg's
-// useEnv flag is set to True.  Cfg settings whose IsEnv flag is set to true
-// will be processed. By default, any setting that is registered as a Cfg or
-// Flag setting has their IsEnv value set to true. This can be changed.
+// SetFromEnv sets the settings that are of type Env from env vars if the
+// Settings is set to use env vars. If any settings are registered as env
+// settings, the use env vars flag will be set to true. This can be overridden.
+//
+// Once a Settings has been set from environment variables they will not be
+// updated again on subsequent calls.
 //
 // A setting's env name is a concatonation of the cfg's name, an underscore
-// (_), and the setting name, e.g. a Cfg with the name 'rancher' and a setting
-// whose name is 'log' will result in 'RANCHER_LOG'.
+// (_), and the setting name, e.g. a Settings with the name 'foo' and a setting
+// whose name is 'bar' will result in 'FOO_BAR'.
+func SetFromEnv() error { return settings.SetFromEnv() }
+
+// SetFromEnv sets the settings that are of type Env from env vars if the
+// Settings is set to use env vars. If any settings are registered as env
+// settings, the use env vars flag will be set to true. This can be overridden.
 //
-// Env variables are assumed to be UPPER_CASE
+// Once a Settings has been set from environment variables they will not be
+// updated again on subsequent calls.
 //
-func UpdateFromEnv() error { return settings.UpdateFromEnv() }
-func (s *Settings) UpdateFromEnv() error {
+// A setting's env name is a concatonation of the cfg's name, an underscore
+// (_), and the setting name, e.g. a Settings with the name 'foo' and a setting
+// whose name is 'bar' will result in 'FOO_BAR'.
+func (s *Settings) SetFromEnv() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.updateFromEnv()
