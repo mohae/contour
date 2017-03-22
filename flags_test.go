@@ -1,6 +1,7 @@
 package contour
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 	"testing"
@@ -76,6 +77,31 @@ func TestGetBoolFilter(t *testing.T) {
 	} else {
 		if !b {
 			t.Errorf("Expected \"flagbool-tst\" to be true, got %v", b)
+		}
+	}
+}
+
+func TestParseFlags(t *testing.T) {
+	tst := newTestSettings()
+	args := []string{"-flagbool-tst=false", "-flagint-tst=11", "-flagstring-tst=updated", "cmd"}
+	expected := map[string]string{"flagbool-tst": "false", "flagint-tst": "11", "flagstring-tst": "updated"}
+	vals, err := tst.ParseFlags(args)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+	if len(vals) != 1 {
+		t.Errorf("expected 1 arg to be returned, got %d", len(vals))
+		return
+	}
+	if vals[0] != "cmd" {
+		t.Errorf("vals: got %s; want cmd", vals[0])
+		return
+	}
+	for k, v := range expected {
+		s := tst.settings[k]
+		if fmt.Sprintf("%s", s.Value) != v {
+			t.Errorf("%s: got %v; want %v", k, s.Value, v)
 		}
 	}
 }

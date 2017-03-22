@@ -472,33 +472,6 @@ func (s *Settings) canUpdate(k string) (bool, error) {
 	return true, nil
 }
 
-// canOverride() checks to see if the setting can be overridden. Overrides only
-// come from flags. If it can't be overridden, it must be set via application,
-// environment variable, or cfg file. This assumes the lock has already been
-// obtained by the caller.
-func (s *Settings) canOverride(k string) bool {
-	// an empty key cannot Override
-	if k == "" {
-		return false
-	}
-	// See if the key exists, if it doesn't already exist, it can't be overridden
-	v, ok := s.settings[k]
-	if !ok {
-		return false
-	}
-	// See if there are any settings that prevent it from being overridden.
-	// Core can never be overridden-must be a flag to override.
-	if v.IsCore {
-		return false
-	}
-	// flags can only be set prior to arg filtering, after which you must use
-	// Override().
-	if v.IsFlag && s.flagsParsed {
-		return false
-	}
-	return true
-}
-
 // GetEnvName returns the env variable name version of the passed string.
 func GetEnvName(s string) string { return settings.GetEnvName(s) }
 func (s *Settings) GetEnvName(v string) string {

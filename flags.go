@@ -1,6 +1,9 @@
 package contour
 
-import "fmt"
+import (
+	"flag"
+	"fmt"
+)
 
 // ParseFlags parses the args for flags. Only Flag settings can be set via
 // flags. For flag settings, flags have the highest precedence.
@@ -38,6 +41,23 @@ func (s *Settings) parseFlags(args []string) ([]string, error) {
 	err = s.flagSet.Parse(args)
 	if err != nil {
 		return nil, fmt.Errorf("parse of command-line arguments failed: %s", err)
+	}
+
+	// get the visited flags
+	var visited []*flag.Flag
+	visitor := func(a *flag.Flag) {
+		visited = append(visited, a)
+	}
+
+	s.flagSet.Visit(visitor)
+	// Update settings with the updated flag values
+	for _, f := range visited {
+		v, ok := s.settings[f.Name]
+		if !ok {
+			continue
+		}
+		v.Value = f.Value
+		s.settings[f.Name] = v
 	}
 	// Get the remaining args
 	cmdArgs := s.flagSet.Args()

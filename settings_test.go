@@ -304,35 +304,6 @@ func TestCanUpdate(t *testing.T) {
 	}
 }
 
-func TestCanOverride(t *testing.T) {
-	tests := []struct {
-		name        string
-		flagsParsed bool
-		expected    bool
-	}{
-		{"", false, false},
-		{"", true, false},
-		{"xyz", false, false},
-		{"xyz", true, false},
-		{"bool", false, true},
-		{"bool", true, true},
-		{"coreint", false, false},
-		{"coreint", true, false},
-		{"cfgint64", false, true},
-		{"cfgint64", true, true},
-		{"flagstring", false, true},
-		{"flagstring", true, false},
-	}
-	appCfg := newTestSettings()
-	for i, test := range tests {
-		appCfg.flagsParsed = test.flagsParsed
-		b := appCfg.canOverride(test.name)
-		if b != test.expected {
-			t.Errorf("%d: expected %v, got %v", i, test.expected, b)
-		}
-	}
-}
-
 func TestSetUsage(t *testing.T) {
 	f := func() { fmt.Println("hello world") }
 	tstSettings := New("app")
