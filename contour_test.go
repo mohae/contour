@@ -293,7 +293,7 @@ func newTestSettings() *Settings {
 				Type:   _bool,
 				Name:   "flagbool",
 				Value:  true,
-				Short:  "",
+				Short:  "b",
 				IsCfg:  true,
 				IsEnv:  true,
 				IsFlag: true,
@@ -311,7 +311,7 @@ func newTestSettings() *Settings {
 				Type:   _int,
 				Name:   "flagint",
 				Value:  42,
-				Short:  "",
+				Short:  "i",
 				IsCfg:  true,
 				IsEnv:  true,
 				IsFlag: true,
@@ -347,7 +347,7 @@ func newTestSettings() *Settings {
 				Type:   _string,
 				Name:   "flagstring",
 				Value:  "a flag string",
-				Short:  "",
+				Short:  "s",
 				IsCfg:  true,
 				IsEnv:  true,
 				IsFlag: true,
@@ -419,7 +419,13 @@ func newTestSettings() *Settings {
 				Value: map[string]interface{}{},
 				Short: "s",
 			},
-		}}
+		},
+		shortFlags: map[string]string{
+			"b": "flagbool",
+			"i": "flagint",
+			"s": "flagstring",
+		},
+	}
 }
 
 func TestNotFoundErr(t *testing.T) {

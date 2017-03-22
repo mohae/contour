@@ -83,8 +83,14 @@ func TestGetBoolFilter(t *testing.T) {
 
 func TestParseFlags(t *testing.T) {
 	tst := newTestSettings()
-	args := []string{"-flagbool-tst=false", "-flagint-tst=11", "-flagstring-tst=updated", "cmd"}
-	expected := map[string]string{"flagbool-tst": "false", "flagint-tst": "11", "flagstring-tst": "updated"}
+	args := []string{"-b=false", "-i=1999", "-flagbool-tst=false", "-flagint-tst=11", "-flagstring-tst=updated", "cmd"}
+	expected := map[string]string{
+		"b":              "false",
+		"i":              "1999",
+		"flagbool-tst":   "false",
+		"flagint-tst":    "11",
+		"flagstring-tst": "updated",
+	}
 	vals, err := tst.ParseFlags(args)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
@@ -99,7 +105,10 @@ func TestParseFlags(t *testing.T) {
 		return
 	}
 	for k, v := range expected {
-		s := tst.settings[k]
+		s, ok := tst.settings[k]
+		if !ok {
+			s = tst.settings[tst.shortFlags[k]]
+		}
 		if fmt.Sprintf("%s", s.Value) != v {
 			t.Errorf("%s: got %v; want %v", k, s.Value, v)
 		}

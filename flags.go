@@ -54,10 +54,14 @@ func (s *Settings) parseFlags(args []string) ([]string, error) {
 	for _, f := range visited {
 		v, ok := s.settings[f.Name]
 		if !ok {
-			continue
+			// see if it's a short flag
+			v, ok = s.settings[s.shortFlags[f.Name]]
+			if !ok {
+				continue
+			}
 		}
 		v.Value = f.Value
-		s.settings[f.Name] = v
+		s.settings[v.Name] = v
 	}
 	// Get the remaining args
 	cmdArgs := s.flagSet.Args()
