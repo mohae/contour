@@ -50,15 +50,10 @@ type Settings struct {
 	useEnv bool
 	envSet bool
 	// Whether flags have been registered and set.
-	useFlags     bool
-	argsFiltered bool
+	useFlags    bool
+	flagsParsed bool
 	// interface contains pointer to a variable
-	filterVars map[string]interface{}
-	// flag filters by type
-	boolFilterNames   []string
-	intFilterNames    []string
-	int64FilterNames  []string
-	stringFilterNames []string
+	flagVars map[string]interface{}
 	// maps short flags to the long version
 	shortFlags map[string]string
 }
@@ -76,20 +71,16 @@ func AppSettings() *Settings {
 // New provides an initialized Settings.
 func New(name string) *Settings {
 	return &Settings{
-		name:              name,
-		errOnMissingFile:  true,
-		searchPath:        true,
-		flagSet:           flag.NewFlagSet(name, flag.ContinueOnError),
-		settings:          map[string]setting{},
-		cfgVars:           map[string]struct{}{},
-		useCfg:            true,
-		useEnv:            true,
-		filterVars:        map[string]interface{}{},
-		boolFilterNames:   []string{},
-		intFilterNames:    []string{},
-		int64FilterNames:  []string{},
-		stringFilterNames: []string{},
-		shortFlags:        map[string]string{},
+		name:             name,
+		errOnMissingFile: true,
+		searchPath:       true,
+		flagSet:          flag.NewFlagSet(name, flag.ContinueOnError),
+		settings:         map[string]setting{},
+		cfgVars:          map[string]struct{}{},
+		useCfg:           true,
+		useEnv:           true,
+		flagVars:         map[string]interface{}{},
+		shortFlags:       map[string]string{},
 	}
 }
 
@@ -351,7 +342,7 @@ func (s *Settings) IsSet() bool {
 	if s.useEnv && !s.envSet {
 		return false
 	}
-	if s.useFlags && !s.argsFiltered {
+	if s.useFlags && !s.flagsParsed {
 		return false
 	}
 	// Either post registration cfg isn't being used, or everything is set.
@@ -474,8 +465,8 @@ func (s *Settings) canUpdate(k string) (bool, error) {
 	if v.IsCore {
 		return false, fmt.Errorf("%s: core settings cannot be updated", k)
 	}
-	if v.IsFlag && s.argsFiltered {
-		return false, fmt.Errorf("%s: flag settings cannot be updated after arg filtering", k)
+	if v.IsFlag && s.flagsParsed {
+		return false, fmt.Errorf("%s: flag settings cannot be updated after parsing", k)
 	}
 	// Everything else is updateable.
 	return true, nil
@@ -502,7 +493,7 @@ func (s *Settings) canOverride(k string) bool {
 	}
 	// flags can only be set prior to arg filtering, after which you must use
 	// Override().
-	if v.IsFlag && s.argsFiltered {
+	if v.IsFlag && s.flagsParsed {
 		return false
 	}
 	return true

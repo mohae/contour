@@ -128,13 +128,13 @@ func TestCfgBools(t *testing.T) {
 
 func TestCfgProcessed(t *testing.T) {
 	tests := []struct {
-		useCfg       bool
-		cfgSet       bool
-		useEnv       bool
-		envSet       bool
-		useFlags     bool
-		argsFiltered bool
-		expected     bool
+		useCfg      bool
+		cfgSet      bool
+		useEnv      bool
+		envSet      bool
+		useFlags    bool
+		flagsParsed bool
+		expected    bool
 	}{
 		// 0
 		{false, false, false, false, false, false, true},
@@ -221,7 +221,7 @@ func TestCfgProcessed(t *testing.T) {
 		appCfg.envSet = test.envSet
 		appCfg.SetUseEnv(test.useEnv)
 		appCfg.useFlags = test.useFlags
-		appCfg.argsFiltered = test.argsFiltered
+		appCfg.flagsParsed = test.flagsParsed
 		b := appCfg.IsSet()
 		if b != test.expected {
 			t.Errorf("%d expected %v, got %v", i, test.expected, b)
@@ -231,10 +231,10 @@ func TestCfgProcessed(t *testing.T) {
 
 func TestCanUpdate(t *testing.T) {
 	tests := []struct {
-		name         string
-		argsFiltered bool
-		expected     bool
-		err          string
+		name        string
+		flagsParsed bool
+		expected    bool
+		err         string
 	}{
 		// 0
 		{"corebool", false, false, "corebool: core settings cannot be updated"},
@@ -265,15 +265,15 @@ func TestCanUpdate(t *testing.T) {
 		{"x-flagint64", false, false, "x-flagint64: setting not found"},
 		{"flagstring", false, true, ""},
 		{"x-flagstring", false, false, "x-flagstring: setting not found"},
-		{"flagbool", true, false, "flagbool: flag settings cannot be updated after arg filtering"},
+		{"flagbool", true, false, "flagbool: flag settings cannot be updated after parsing"},
 		// 25
 		{"x-flagbool", true, false, "x-flagbool: setting not found"},
-		{"flagint", true, false, "flagint: flag settings cannot be updated after arg filtering"},
+		{"flagint", true, false, "flagint: flag settings cannot be updated after parsing"},
 		{"x-flagint", true, false, "x-flagint: setting not found"},
-		{"flagint64", true, false, "flagint64: flag settings cannot be updated after arg filtering"},
+		{"flagint64", true, false, "flagint64: flag settings cannot be updated after parsing"},
 		{"x-flagint64", true, false, "x-flagint64: setting not found"},
 		// 30
-		{"flagstring", true, false, "flagstring: flag settings cannot be updated after arg filtering"},
+		{"flagstring", true, false, "flagstring: flag settings cannot be updated after parsing"},
 		{"x-flagstring", true, false, "x-flagstring: setting not found"},
 		{"bool", false, true, ""},
 		{"x-bool", false, false, "x-bool: setting not found"},
@@ -287,7 +287,7 @@ func TestCanUpdate(t *testing.T) {
 	}
 	appCfg := newTestSettings()
 	for i, test := range tests {
-		appCfg.argsFiltered = test.argsFiltered
+		appCfg.flagsParsed = test.flagsParsed
 		b, err := appCfg.canUpdate(test.name)
 		if err != nil {
 			if err.Error() != test.err {
@@ -306,9 +306,9 @@ func TestCanUpdate(t *testing.T) {
 
 func TestCanOverride(t *testing.T) {
 	tests := []struct {
-		name         string
-		argsFiltered bool
-		expected     bool
+		name        string
+		flagsParsed bool
+		expected    bool
 	}{
 		{"", false, false},
 		{"", true, false},
@@ -325,7 +325,7 @@ func TestCanOverride(t *testing.T) {
 	}
 	appCfg := newTestSettings()
 	for i, test := range tests {
-		appCfg.argsFiltered = test.argsFiltered
+		appCfg.flagsParsed = test.flagsParsed
 		b := appCfg.canOverride(test.name)
 		if b != test.expected {
 			t.Errorf("%d: expected %v, got %v", i, test.expected, b)

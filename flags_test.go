@@ -1,6 +1,7 @@
 package contour
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -24,11 +25,11 @@ func TestGetBoolFilter(t *testing.T) {
 	appCfg := newTestSettings()
 	appCfg.name = "rancher-test"
 	// check that an unfiltered boolflag's var is nil
-	if appCfg.filterVars["flagbool-tst"] != nil {
+	if appCfg.flagVars["flagbool-tst"] != nil {
 		t.Errorf("flags that weren't present in the args should be nil, flagbool-test wasn't")
 	}
 
-	args, err := appCfg.FilterArgs([]string{"-flagbool=false", "-fake", "command"})
+	args, err := appCfg.ParseFlags([]string{"-flagbool=false", "-fake", "command"})
 	if err != nil {
 		if !strings.HasPrefix(err.Error(), "parse of command-line arguments failed: flag provided but not defined: -fake") {
 			t.Errorf("expected \" parse of command-line arguments failed: flag provided but not defined: -fake\", got %q", err.Error())
@@ -36,7 +37,7 @@ func TestGetBoolFilter(t *testing.T) {
 	}
 	appCfg = newTestSettings()
 	appCfg.name = "rancher-test"
-	args, err = appCfg.FilterArgs([]string{"-flagbool=false", "fake", "command"})
+	args, err = appCfg.ParseFlags([]string{"-flagbool=false", "fake", "command"})
 	if err != nil {
 		t.Errorf("expected no error, got %q", err.Error())
 		return
@@ -45,20 +46,22 @@ func TestGetBoolFilter(t *testing.T) {
 		t.Errorf("Expected 2 arg to be returned, got %d", len(args))
 	}
 	for i, test := range tests {
-		for _, v := range appCfg.boolFilterNames {
-			if v == test.name {
-				if appCfg.filterVars[v] == nil {
-					t.Errorf("%d: %s was nil", i, v)
+		for _, v := range appCfg.settings {
+			if v.Name == test.name && v.IsFlag {
+				if appCfg.flagVars[v.Name] == nil {
+					t.Errorf("%d: flagVar %s was nil", i, v.Name)
 				} else {
-					switch appCfg.filterVars[v].(type) {
+					switch appCfg.flagVars[v.Name].(type) {
 					case bool:
-						if appCfg.filterVars[v].(bool) != test.expected {
-							t.Errorf("%d expected %v, got %v", i, test.expected, appCfg.filterVars[v].(bool))
+						if appCfg.flagVars[v.Name].(bool) != test.expected {
+							t.Errorf("%d:%s expected %v, got %v", i, v.Name, test.expected, appCfg.flagVars[v.Name].(bool))
 						}
 					case *bool:
-						if *appCfg.filterVars[v].(*bool) != test.expected {
-							t.Errorf("%d-%s expected %v, got %v", i, test.name, test.expected, *appCfg.filterVars[v].(*bool))
+						if *appCfg.flagVars[v.Name].(*bool) != test.expected {
+							t.Errorf("%d-%s:%s: expected %v, got %v", i, test.name, v.Name, test.expected, *appCfg.flagVars[v.Name].(*bool))
 						}
+					default:
+						t.Errorf("%d-%s:%s: is type %d wanted bool or *bool", i, test.name, v.Name, reflect.TypeOf(v.Value))
 					}
 				}
 				break

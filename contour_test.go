@@ -197,14 +197,11 @@ var testSettings = map[string]Settings{
 
 func newTestSettings() *Settings {
 	return &Settings{
-		flagSet:           flag.NewFlagSet(fmt.Sprintf("rancher-%d", rand.Int63()), flag.ContinueOnError),
-		useCfg:            true,
-		useEnv:            true,
-		filterVars:        map[string]interface{}{},
-		boolFilterNames:   []string{},
-		intFilterNames:    []string{},
-		int64FilterNames:  []string{},
-		stringFilterNames: []string{},
+		flagSet:  flag.NewFlagSet(fmt.Sprintf("rancher-%d", rand.Int63()), flag.ContinueOnError),
+		useCfg:   true,
+		useEnv:   true,
+		useFlags: true,
+		flagVars: map[string]interface{}{},
 		settings: map[string]setting{
 			"corebool": setting{
 				Type:   _bool,
