@@ -520,7 +520,7 @@ func TestSetCfg(t *testing.T) {
 	}
 	tstCfg := newTestSettings()
 	tstCfg.name = "rancher"
-	tstCfg.RegisterCfgFile("cfg_file", tests[5].fullPath)
+	tstCfg.RegisterCfgFilename("", tests[5].fullPath)
 	for i, test := range tests {
 		tstCfg.UpdateCfgFile(test.fullPath)
 		tstCfg.SetUseCfg(test.useCfg)

@@ -14,6 +14,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const CfgFilenameSettingKey = "cfg_file"
+
 // Settings is a group of settings and holds all of the application setting
 // information. Even though contour automatically uses environment variables,
 // unless its told to ignore them, it still needs to maintain state
@@ -76,6 +78,7 @@ func AppSettings() *Settings {
 func New(name string) *Settings {
 	return &Settings{
 		name:             name,
+		cfgFilenameKey:   CfgFilenameSettingKey,
 		errOnMissingFile: true,
 		searchPath:       true,
 		flagSet:          flag.NewFlagSet(name, flag.ContinueOnError),

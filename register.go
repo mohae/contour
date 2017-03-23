@@ -25,7 +25,7 @@ func (e RegisterErr) Error() string {
 	return fmt.Sprintf("%s: registration failed: %s", e.name, e.err)
 }
 
-// RegisterCfgFile set's the configuration file's name.  The name is parsed
+// RegisterCfgFilename set's the configuration file's name.  The name is parsed
 // for a valid extension--one that is a supported format--and saves that value
 // too. If it cannot be determined, the extension info is not set.  These are
 // considered core values and cannot be changed from configuration files,
@@ -33,18 +33,20 @@ func (e RegisterErr) Error() string {
 //
 // If the envName is a non-empty value, it is the environment variable name to
 // check for a configuration filename.
-func RegisterCfgFile(k, v string) error { return settings.RegisterCfgFile(k, v) }
-func (s *Settings) RegisterCfgFile(k, v string) error {
+func RegisterCfgFilename(k, v string) error { return settings.RegisterCfgFilename(k, v) }
+func (s *Settings) RegisterCfgFilename(k, v string) error {
 	if v == "" {
 		return fmt.Errorf("cannot register configuration file: no name provided")
 	}
-	if k == "" {
-		return fmt.Errorf("cannot register configuration file: no key provided")
+
+	// update the cfgFilenameKey if the value isn't empty; otherwise the default will be used
+	if k != "" {
+		s.cfgFilenameKey = k
 	}
 	// store the key value being used as the configuration setting name by caller
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.cfgFilenameKey = k
+
 	// cache this while we have the lock; technically racy but useEnv shouldn't
 	// be modified while a config file is being registered.
 	use := s.useEnv
@@ -55,7 +57,7 @@ func (s *Settings) RegisterCfgFile(k, v string) error {
 			v = fname
 		}
 	}
-	s.registerStringCore(k, v)
+	s.registerStringCore(s.cfgFilenameKey, v)
 	s.useCfg = true
 	return nil
 }
