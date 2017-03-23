@@ -64,16 +64,6 @@ type Settings struct {
 	parsedFlags []string
 }
 
-// AppCfg returns the global cfg.
-//
-// Contour has a set of functions that implicitly interact with configs[app].
-// If the application is only going to use one configuration, this is what
-// should be used as one can just interact with contour, instead of directly
-// with the app config, which is also supported.
-func AppSettings() *Settings {
-	return settings
-}
-
 // New provides an initialized Settings.
 func New(name string) *Settings {
 	return &Settings{
