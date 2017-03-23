@@ -44,7 +44,7 @@ func (s *Settings) RegisterCfgFile(k, v string) error {
 	// store the key value being used as the configuration setting name by caller
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.confFileKey = k
+	s.cfgFilenameKey = k
 	// cache this while we have the lock; technically racy but useEnv shouldn't
 	// be modified while a config file is being registered.
 	use := s.useEnv

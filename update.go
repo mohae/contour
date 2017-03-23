@@ -98,10 +98,10 @@ func UpdateCfgFile(v string) { settings.UpdateCfgFile(v) }
 func (s *Settings) UpdateCfgFile(v string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	val, ok := s.settings[s.confFileKey]
+	val, ok := s.settings[s.cfgFilenameKey]
 	if !ok {
 		return
 	}
 	val.Value = v
-	s.settings[s.confFileKey] = val
+	s.settings[s.cfgFilenameKey] = val
 }

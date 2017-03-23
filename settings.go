@@ -27,8 +27,9 @@ type Settings struct {
 	// if an attempt to load configuration from a file should error if the file
 	// does not exist.
 	errOnMissingFile bool
-	// the key for the conf file setting.
-	confFileKey string
+	// the key for the cfg filename setting. This defaults to cfg_file but can
+	// be overridden by the RegisterCfgFilename method.
+	cfgFilenameKey string
 	// search the path env var, in addition to pwd & executalbe dir, for cfc file.
 	searchPath bool
 	flagSet    *flag.FlagSet
@@ -214,7 +215,7 @@ func (s *Settings) setFromFile() error {
 	if !s.useCfg || s.cfgSet {
 		return nil
 	}
-	setting, ok := s.settings[s.confFileKey]
+	setting, ok := s.settings[s.cfgFilenameKey]
 	if !ok {
 		// Wasn't configured, nothing to do. Not an error.
 		return nil
@@ -325,12 +326,12 @@ func (s *Settings) SetUseEnv(b bool) {
 	s.mu.Unlock()
 }
 
-// ConfFileKey returns the value of confFileKey.
-func ConfFileKey() string { return settings.ConfFileKey() }
-func (s *Settings) ConfFileKey() string {
+// cfgFilenameKey returns the value of cfgFilenameKey.
+func CfgFilenameKey() string { return settings.CfgFilenameKey() }
+func (s *Settings) CfgFilenameKey() string {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return s.confFileKey
+	return s.cfgFilenameKey
 }
 
 // IsSet returns if the Settings has been set from all of its configured
