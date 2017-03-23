@@ -197,6 +197,10 @@ type UnsupportedFormatErr struct {
 	v string
 }
 
+func NewUnsupportedFormatErr(v string) UnsupportedFormatErr {
+	return UnsupportedFormatErr{v}
+}
+
 func (e UnsupportedFormatErr) Error() string {
 	return fmt.Sprintf("%s: unsupported configuration format", e.v)
 }
