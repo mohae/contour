@@ -3,6 +3,7 @@ package contour
 import (
 	"flag"
 	"fmt"
+	"sort"
 )
 
 // ParseFlags parses the args for flags. Only Flag settings can be set via
@@ -64,6 +65,10 @@ func (s *Settings) parseFlags(args []string) ([]string, error) {
 		s.settings[v.Name] = v
 		s.parsedFlags = append(s.parsedFlags, v.Name)
 	}
+
+	// sort the parsed flagsParsed
+	sort.Strings(s.parsedFlags)
+
 	// Get the remaining args
 	cmdArgs := s.flagSet.Args()
 

@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 	"testing"
@@ -711,5 +713,39 @@ func TestExists(t *testing.T) {
 		if exists != test.exists {
 			t.Errorf("%d: got %v, want %v", i, exists, test.exists)
 		}
+	}
+}
+
+func TestVisited(t *testing.T) {
+	tst := newTestSettings()
+	args := []string{"-b=false", "-i=1999", "-flagbool-tst=false", "-flagint-tst=11", "-flagstring-tst=updated", "cmd"}
+	expected := []string{"flagbool", "flagint", "flagbool-tst", "flagint-tst", "flagstring-tst"}
+	tests := []struct {
+		name    string
+		visited bool
+	}{
+		{"", false},
+		{"flagstring", false},
+		{"flagbool", true},
+		{"flagint", true},
+		{"flagbool-tst", true},
+		{"flagint-tst", true},
+		{"flagstring-tst", true},
+	}
+
+	_, err := tst.ParseFlags(args)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+	for _, test := range tests {
+		visited := tst.WasVisited(test.name)
+		if visited != test.visited {
+			t.Errorf("%s: got %t; want %t", test.name, visited, test.visited)
+		}
+	}
+	sort.Strings(expected)
+	if !reflect.DeepEqual(tst.Visited(), expected) {
+		t.Errorf("visited: got %v; want %v", tst.Visited(), expected)
 	}
 }

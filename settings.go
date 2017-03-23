@@ -497,6 +497,27 @@ func (s *Settings) exists(k string) bool {
 	return false
 }
 
+// Visited returns the names of all flags that were set during argument
+// parsing in lexical order.
+func Visited() []string { return settings.Visited() }
+
+// Visited returns the names of all flags that were set during argument
+// parsing in lexical order.
+func (s *Settings) Visited() []string { return s.parsedFlags }
+
+// WasVisited returns if a flag was parsed in the processing of args.
+func WasVisited(k string) bool { return settings.WasVisited(k) }
+
+// WasVisited returns if a flag was parsed in the processing of args.
+func (s *Settings) WasVisited(k string) bool {
+	for i := range s.parsedFlags {
+		if s.parsedFlags[i] == k {
+			return true
+		}
+	}
+	return false
+}
+
 // formatFromFilename gets the format from the passed filename.  An error will
 // be returned if either the format isn't supported or the extension doesn't
 // exist.  If the passed string has multiple dots, the last dot is assumed to
