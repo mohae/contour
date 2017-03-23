@@ -543,3 +543,42 @@ func TestParseDataType(t *testing.T) {
 		}
 	}
 }
+
+func TestParseFilename(t *testing.T) {
+	tests := []struct {
+		name   string
+		format Format
+		err    error
+	}{
+		{"", Unsupported, UnsupportedFormatErr{""}},
+		{"file", Unsupported, UnsupportedFormatErr{""}},
+		{"file.xml", Unsupported, UnsupportedFormatErr{"xml"}},
+		{"file.jpeg", Unsupported, UnsupportedFormatErr{"jpeg"}},
+		{"file.json", JSON, nil},
+		{"file.jsn", JSON, nil},
+		{"file.cjson", JSON, nil},
+		{"file.cjsn", JSON, nil},
+		{"file.toml", TOML, nil},
+		{"file.toml", TOML, nil},
+		{"file.yaml", YAML, nil},
+		{"file.yml", YAML, nil},
+		{"pat/to/file.yaml", YAML, nil},
+	}
+
+	for _, test := range tests {
+		format, err := ParseFilenameFormat(test.name)
+		if err != nil {
+			if err != test.err {
+				t.Errorf("%s: got %s; want %s", test.name, err, test.err)
+			}
+			continue
+		}
+		if test.err != nil {
+			t.Errorf("%s: got no error; want %s", test.name, test.err)
+			continue
+		}
+		if format != test.format {
+			t.Errorf("%s: got %s; want %s", test.name, format, test.format)
+		}
+	}
+}

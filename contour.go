@@ -7,6 +7,7 @@ package contour
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/mohae/appname"
@@ -64,6 +65,15 @@ func ParseFormat(s string) (Format, error) {
 		return YAML, nil
 	}
 	return Unsupported, UnsupportedFormatErr{s}
+}
+
+// ParseFilenameFormat takes a string that represents a filename and returns
+// the files format based on its extension. If either the filename doesn't have
+// an extension or the extension is not one of a supported file format an
+// UnsupportedFormatErr will be returned.
+func ParseFilenameFormat(s string) (Format, error) {
+	ext := strings.TrimPrefix(filepath.Ext(s), ".")
+	return ParseFormat(ext)
 }
 
 const (
