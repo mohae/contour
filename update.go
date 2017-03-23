@@ -87,15 +87,12 @@ func (s *Settings) UpdateString(k, v string) {
 	s.UpdateStringE(k, v)
 }
 
-// UpdateCfgFile updates the set config file information.  This only sets
-// the filename, the format is not changed.  This does the update
-// directly because the cfg filename is a core setting; it will fail the
-// canUpdate check.
+// UpdateCfgFile updates the set configuration filename.
 //
-// It is assumed that RegisterCfgFile has already been called, if it hasn't
+// It is assumed that RegisterCfgFilename has already been called, if it hasn't
 // nothing will be done.
-func UpdateCfgFile(v string) { settings.UpdateCfgFile(v) }
-func (s *Settings) UpdateCfgFile(v string) {
+func UpdateCfgFilename(v string) { settings.UpdateCfgFilename(v) }
+func (s *Settings) UpdateCfgFilename(v string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	val, ok := s.settings[s.cfgFilenameKey]

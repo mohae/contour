@@ -522,7 +522,7 @@ func TestSetCfg(t *testing.T) {
 	tstCfg.name = "rancher"
 	tstCfg.RegisterCfgFilename("", tests[5].fullPath)
 	for i, test := range tests {
-		tstCfg.UpdateCfgFile(test.fullPath)
+		tstCfg.UpdateCfgFilename(test.fullPath)
 		tstCfg.SetUseCfg(test.useCfg)
 		tstCfg.SetUseEnv(test.useEnv)
 		os.Setenv(GetEnvName(test.name), test.envValue)
