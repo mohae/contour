@@ -62,6 +62,7 @@ func (s *Settings) parseFlags(args []string) ([]string, error) {
 		}
 		v.Value = f.Value
 		s.settings[v.Name] = v
+		s.parsedFlags = append(s.parsedFlags, v.Name)
 	}
 	// Get the remaining args
 	cmdArgs := s.flagSet.Args()

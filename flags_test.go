@@ -3,6 +3,7 @@ package contour
 import (
 	"fmt"
 	"reflect"
+	"sort"
 	"strings"
 	"testing"
 )
@@ -111,6 +112,45 @@ func TestParseFlags(t *testing.T) {
 		}
 		if fmt.Sprintf("%s", s.Value) != v {
 			t.Errorf("%s: got %v; want %v", k, s.Value, v)
+		}
+	}
+}
+
+func TestParsedFlags(t *testing.T) {
+	tst := newTestSettings()
+	args := []string{"-b=false", "-i=1999", "-flagbool-tst=false", "-flagint-tst=11", "-flagstring-tst=updated", "cmd"}
+	expected := []string{"flagbool", "flagint", "flagbool-tst", "flagint-tst", "flagstring-tst"}
+
+	_, err := tst.ParseFlags(args)
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+	var checked []int
+	if len(tst.parsedFlags) != len(expected) {
+		t.Errorf("expected %d flags to be parsed, %d were", len(expected), len(tst.parsedFlags))
+		return
+	}
+	// see if the parsed flags are tracked
+	for _, v := range tst.parsedFlags {
+		var found bool
+		for i, x := range expected {
+			if v == x {
+				found = true
+				checked = append(checked, i)
+				break
+			}
+		}
+		if !found {
+			t.Errorf("%s was parsed but not expected", v)
+			return
+		}
+	}
+	sort.Ints(checked)
+	for i, v := range checked {
+		if i != v {
+			t.Errorf("expected %s to be one of the parsed flags, it wasn't", expected[v])
+			return
 		}
 	}
 }

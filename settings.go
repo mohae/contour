@@ -56,6 +56,9 @@ type Settings struct {
 	flagVars map[string]interface{}
 	// maps short flags to the long version
 	shortFlags map[string]string
+	// parsedFlags are flags that were passed and parsed. Short flags are
+	// normalized to the flag name.
+	parsedFlags []string
 }
 
 // AppCfg returns the global cfg.
