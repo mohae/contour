@@ -103,19 +103,21 @@ func (t dataType) String() string {
 	return "unknown data type"
 }
 
-func parseDataType(s string) (dataType, error) {
+func parseDataType(s string) dataType {
 	v := strings.ToLower(s)
 	switch v {
 	case "string":
-		return _string, nil
+		return _string
 	case "int":
-		return _int, nil
+		return _int
 	case "int64":
-		return _int64, nil
+		return _int64
 	case "bool":
-		return _bool, nil
+		return _bool
 	}
-	return 0, fmt.Errorf("%s: not a supported data type", s)
+	// everything else is an interface{}, the user of the setting will be
+	// expected to know what it is.
+	return _interface
 }
 
 // DataTypeErr occurs when the requested setting's data type is different than

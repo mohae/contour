@@ -514,30 +514,19 @@ func TestParseDataType(t *testing.T) {
 	tests := []struct {
 		v        string
 		expected dataType
-		err      string
 	}{
-		{"", 0, ": not a supported data type"},
-		{"strung", 0, "strung: not a supported data type"},
-		{"Int32", 0, "Int32: not a supported data type"},
-		{"string", _string, ""},
-		{"Int", _int, ""},
-		{"int", _int, ""},
-		{"int64", _int64, ""},
-		{"bool", _bool, ""},
-		{"BOOL", _bool, ""},
+		// any type that isn't matched is considered an interface{}
+		{"", _interface},
+		{"strung", _interface},
+		{"string", _string},
+		{"Int", _int},
+		{"int", _int},
+		{"int64", _int64},
+		{"bool", _bool},
+		{"BOOL", _bool},
 	}
 	for i, test := range tests {
-		v, err := parseDataType(test.v)
-		if err != nil {
-			if err.Error() != test.err {
-				t.Errorf("%d: got %s, want %s", i, err, test.err)
-			}
-			continue
-		}
-		if test.err != "" {
-			t.Errorf("%d: wanted %s, got no error", i, test.err)
-			continue
-		}
+		v := parseDataType(test.v)
 		if v != test.expected {
 			t.Errorf("%d: got %s want %s", i, v, test.v)
 		}

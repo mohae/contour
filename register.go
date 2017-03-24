@@ -57,10 +57,7 @@ func RegisterSetting(typ, name, short string, value interface{}, dflt, usage str
 //
 // For non string, bool, int, and int64 types, the type must be "interface{}".
 func (s *Settings) RegisterSetting(typ, name, short string, value interface{}, dflt, usage string, IsCore, IsConfFileVar, IsEnv, IsFlag bool) error {
-	dType, err := parseDataType(typ)
-	if err != nil {
-		return RegistrationErr{name: name, slug: err.Error()}
-	}
+	dType := parseDataType(typ)
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.registerSetting(dType, name, short, value, dflt, usage, IsCore, IsConfFileVar, IsEnv, IsFlag)
