@@ -68,18 +68,18 @@ func TestRegisterSettings(t *testing.T) {
 		IsEnv         bool
 		IsFlag        bool
 	}{
-		{"", _bool, true, true, "cannot register an unnamed setting", false, false, false, false, false},
+		{"", _bool, true, true, "registration failed: setting name was empty", false, false, false, false, false},
 		{"bool", _bool, true, true, "", true, false, false, false, false},
-		{"bool", _bool, true, true, "bool is already registered, cannot re-register settings", true, false, false, false, false},
-		{"", _int, 42, 42, "cannot register an unnamed setting", false, false, false, false, false},
+		{"bool", _bool, true, true, "bool: registration failed: setting exists", true, false, false, false, false},
+		{"", _int, 42, 42, "registration failed: setting name was empty", false, false, false, false, false},
 		{"int", _int, 42, 42, "", true, false, false, false, false},
-		{"int", _int, 84, 42, "int is already registered, cannot re-register settings", true, false, false, false, false},
-		{"", _int64, int64(42), int64(42), "cannot register an unnamed setting", false, false, false, false, false},
+		{"int", _int, 84, 42, "int: registration failed: setting exists", true, false, false, false, false},
+		{"", _int64, int64(42), int64(42), "registration failed: setting name was empty", false, false, false, false, false},
 		{"int64", _int64, int64(42), int64(42), "", true, false, false, false, false},
-		{"int64", _int64, int64(84), int64(42), "int64 is already registered, cannot re-register settings", true, false, false, false, false},
-		{"", _string, "bar", "bar", "cannot register an unnamed setting", false, false, false, false, false},
+		{"int64", _int64, int64(84), int64(42), "int64: registration failed: setting exists", true, false, false, false, false},
+		{"", _string, "bar", "bar", "registration failed: setting name was empty", false, false, false, false, false},
 		{"string", _string, "bar", "bar", "", true, false, false, false, false},
-		{"string", _string, "baz", "bar", "string is already registered, cannot re-register settings", true, false, false, false, false},
+		{"string", _string, "baz", "bar", "string: registration failed: setting exists", true, false, false, false, false},
 	}
 	cfg := New("test register")
 	var err error
@@ -136,18 +136,18 @@ func TestRegisterCoreSettings(t *testing.T) {
 		IsEnv         bool
 		IsFlag        bool
 	}{
-		{"", _bool, true, true, "cannot register an unnamed setting", false, false, false, false, false},
+		{"", _bool, true, true, "registration failed: setting name was empty", false, false, false, false, false},
 		{"corebool", _bool, true, true, "", true, true, false, false, false},
-		{"corebool", _bool, true, true, "corebool is already registered, cannot re-register settings", true, true, false, false, false},
-		{"", _int, 42, 42, "cannot register an unnamed setting", false, false, false, false, false},
+		{"corebool", _bool, true, true, "corebool: registration failed: setting exists", true, true, false, false, false},
+		{"", _int, 42, 42, "registration failed: setting name was empty", false, false, false, false, false},
 		{"coreint", _int, 42, 42, "", true, true, false, false, false},
-		{"coreint", _int, 84, 42, "coreint is already registered, cannot re-register settings", true, true, false, false, false},
-		{"", _int64, int64(42), int64(42), "cannot register an unnamed setting", false, false, false, false, false},
+		{"coreint", _int, 84, 42, "coreint: registration failed: setting exists", true, true, false, false, false},
+		{"", _int64, int64(42), int64(42), "registration failed: setting name was empty", false, false, false, false, false},
 		{"coreint64", _int64, int64(42), int64(42), "", true, true, false, false, false},
-		{"coreint64", _int64, int64(84), int64(42), "coreint64 is already registered, cannot re-register settings", true, true, false, false, false},
-		{"", _string, "bar", "bar", "cannot register an unnamed setting", false, false, false, false, false},
+		{"coreint64", _int64, int64(84), int64(42), "coreint64: registration failed: setting exists", true, true, false, false, false},
+		{"", _string, "bar", "bar", "registration failed: setting name was empty", false, false, false, false, false},
 		{"corestring", _string, "bar", "bar", "", true, true, false, false, false},
-		{"corestring", _string, "baz", "bar", "corestring is already registered, cannot re-register settings", true, true, false, false, false},
+		{"corestring", _string, "baz", "bar", "corestring: registration failed: setting exists", true, true, false, false, false},
 	}
 	tstSettings := New("test register")
 	var err error
@@ -243,18 +243,18 @@ func TestRegisterCfgSettings(t *testing.T) {
 		IsEnv         bool
 		IsFlag        bool
 	}{
-		{"", _bool, true, true, "cannot register an unnamed setting", false, false, false, false, false},
+		{"", _bool, true, true, "registration failed: setting name was empty", false, false, false, false, false},
 		{"cfgbool", _bool, true, true, "", true, false, true, true, false},
-		{"cfgbool", _bool, false, true, "cfgbool is already registered, cannot re-register settings", true, false, true, true, false},
-		{"", _int, 42, 42, "cannot register an unnamed setting", false, false, false, false, false},
+		{"cfgbool", _bool, false, true, "cfgbool: registration failed: setting exists", true, false, true, true, false},
+		{"", _int, 42, 42, "registration failed: setting name was empty", false, false, false, false, false},
 		{"cfgint", _int, 42, 42, "", true, false, true, true, false},
-		{"cfgint", _int, 84, 42, "cfgint is already registered, cannot re-register settings", true, false, true, true, false},
-		{"", _int64, int64(42), int64(42), "cannot register an unnamed setting", false, false, false, false, false},
+		{"cfgint", _int, 84, 42, "cfgint: registration failed: setting exists", true, false, true, true, false},
+		{"", _int64, int64(42), int64(42), "registration failed: setting name was empty", false, false, false, false, false},
 		{"cfgint64", _int64, int64(42), int64(42), "", true, false, true, true, false},
-		{"cfgint64", _int64, int64(84), int64(42), "cfgint64 is already registered, cannot re-register settings", true, false, true, true, false},
-		{"", _string, "bar", "bar", "cannot register an unnamed setting", false, false, false, false, false},
+		{"cfgint64", _int64, int64(84), int64(42), "cfgint64: registration failed: setting exists", true, false, true, true, false},
+		{"", _string, "bar", "bar", "registration failed: setting name was empty", false, false, false, false, false},
 		{"cfgstring", _string, "bar", "bar", "", true, false, true, true, false},
-		{"cfgstring", _string, "baz", "bar", "cfgstring is already registered, cannot re-register settings", true, false, true, true, false},
+		{"cfgstring", _string, "baz", "bar", "cfgstring: registration failed: setting exists", true, false, true, true, false},
 	}
 	tstSettings := New("test register")
 	var err error
@@ -312,18 +312,18 @@ func TestRegisterFlagSettings(t *testing.T) {
 		IsEnv         bool
 		IsFlag        bool
 	}{
-		{"", "", _bool, true, true, "cannot register an unnamed setting", false, false, false, false, false},
+		{"", "", _bool, true, true, "registration failed: setting name was empty", false, false, false, false, false},
 		{"flagbool", "b", _bool, true, true, "", true, false, true, true, true},
-		{"flagbool", "", _bool, false, true, "flagbool is already registered, cannot re-register settings", true, false, true, true, true},
-		{"", "", _int, 42, 42, "cannot register an unnamed setting", false, false, false, false, false},
+		{"flagbool", "", _bool, false, true, "flagbool: registration failed: setting exists", true, false, true, true, true},
+		{"", "", _int, 42, 42, "registration failed: setting name was empty", false, false, false, false, false},
 		{"flagint", "i", _int, 42, 42, "", true, false, true, true, true},
-		{"flagint", "", _int, 84, 42, "flagint is already registered, cannot re-register settings", true, false, true, true, true},
-		{"", "", _int64, int64(42), int64(42), "cannot register an unnamed setting", false, false, false, false, false},
+		{"flagint", "", _int, 84, 42, "flagint: registration failed: setting exists", true, false, true, true, true},
+		{"", "", _int64, int64(42), int64(42), "registration failed: setting name was empty", false, false, false, false, false},
 		{"flagint64", "6", _int64, int64(42), int64(42), "", true, false, true, true, true},
-		{"flagint64", "", _int64, int64(84), int64(42), "flagint64 is already registered, cannot re-register settings", true, false, true, true, true},
-		{"", "", _string, "bar", "bar", "cannot register an unnamed setting", false, false, false, false, false},
+		{"flagint64", "", _int64, int64(84), int64(42), "flagint64: registration failed: setting exists", true, false, true, true, true},
+		{"", "", _string, "bar", "bar", "registration failed: setting name was empty", false, false, false, false, false},
 		{"flagstring", "s", _string, "bar", "bar", "", true, false, true, true, true},
-		{"flagstring", "", _string, "baz", "bar", "flagstring is already registered, cannot re-register settings", true, false, true, true, true},
+		{"flagstring", "", _string, "baz", "bar", "flagstring: registration failed: setting exists", true, false, true, true, true},
 	}
 	tstSettings := New("test register")
 	var err error

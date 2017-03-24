@@ -16,13 +16,19 @@ import (
 	"strconv"
 )
 
-type RegisterErr struct {
+type RegistrationErr struct {
 	name string
-	err  error
+	slug string
 }
 
-func (e RegisterErr) Error() string {
-	return fmt.Sprintf("%s: registration failed: %s", e.name, e.err)
+func (e RegistrationErr) Error() string {
+	if e.slug == "" {
+		return fmt.Sprintf("%s: registration failed", e.name)
+	}
+	if e.name == "" {
+		return fmt.Sprintf("registration failed: %s", e.slug)
+	}
+	return fmt.Sprintf("%s: registration failed: %s", e.name, e.slug)
 }
 
 // RegisterConfFilename set's the configuration file's name.  The name is parsed
@@ -63,14 +69,14 @@ func (s *Settings) RegisterConfFilename(k, v string) error {
 }
 
 // RegisterSetting checks to see if the entry already exists and adds the new
-// setting if it does not.
+// setting if it does not. If an error occurs, a RegistrationErr returns.
 func RegisterSetting(typ, name, short string, value interface{}, dflt, usage string, IsCore, IsConfFileVar, IsEnv, IsFlag bool) error {
 	return settings.RegisterSetting(typ, name, short, value, dflt, usage, IsCore, IsConfFileVar, IsEnv, IsFlag)
 }
 func (s *Settings) RegisterSetting(typ, name, short string, value interface{}, dflt string, usage string, IsCore, IsConfFileVar, IsEnv, IsFlag bool) error {
 	dType, err := parseDataType(typ)
 	if err != nil {
-		return RegisterErr{name: name, err: err}
+		return RegistrationErr{name: name, slug: err.Error()}
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -79,12 +85,12 @@ func (s *Settings) RegisterSetting(typ, name, short string, value interface{}, d
 
 func (s *Settings) registerSetting(typ dataType, name, short string, value interface{}, dflt string, usage string, IsCore, IsConfFileVar, IsEnv, IsFlag bool) error {
 	if name == "" {
-		return fmt.Errorf("cannot register an unnamed setting")
+		return RegistrationErr{slug: "setting name was empty"}
 	}
 	_, ok := s.settings[name]
 	if ok {
 		// Settings can't be re-registered.
-		return fmt.Errorf("%s is already registered, cannot re-register settings", name)
+		return RegistrationErr{name: name, slug: "setting exists"}
 	}
 
 	// Add the setting
@@ -108,7 +114,7 @@ func (s *Settings) registerSetting(typ dataType, name, short string, value inter
 	if short != "" && IsFlag {
 		_, ok := s.shortFlags[short]
 		if ok {
-			return fmt.Errorf("short flag %q is already in use; short flags must be unique", short)
+			return RegistrationErr{name: name, slug: fmt.Sprintf("a setting using short flag %s exists; they must be unique", short)}
 		}
 		s.shortFlags[short] = name
 	}
