@@ -20,7 +20,7 @@ func TestSettings(t *testing.T) {
 		if s.name != "test" {
 			t.Errorf("Expected test got %s", s.name)
 		}
-		if s.UseEnv() != true {
+		if s.UseEnv() != false {
 			t.Errorf("Expected true got %v", s.UseEnv())
 		}
 	}
@@ -30,7 +30,7 @@ func TestSettings(t *testing.T) {
 		if settings.name != "contour.test" {
 			t.Errorf("Expected contour.test got %s", settings.name)
 		}
-		if settings.UseEnv() != true {
+		if settings.UseEnv() != false {
 			t.Errorf("Expected true got %v", settings.UseEnv())
 		}
 	}
@@ -56,11 +56,11 @@ func TestLoadEnv(t *testing.T) {
 	for _, test := range tests {
 		switch test.typ {
 		case "cfgbool":
-			testCfg.RegisterBoolCfg(test.name, test.origValue.(bool))
+			testCfg.RegisterBoolConfFileVar(test.name, test.origValue.(bool))
 		case "cfgint":
-			testCfg.RegisterIntCfg(test.name, test.origValue.(int))
+			testCfg.RegisterIntConfFileVar(test.name, test.origValue.(int))
 		case "cfgstring":
-			testCfg.RegisterStringCfg(test.name, test.origValue.(string))
+			testCfg.RegisterStringConfFileVar(test.name, test.origValue.(string))
 		case "flagbool":
 			testCfg.RegisterBoolFlag(test.name, "", test.origValue.(bool), "", "")
 		case "flagint":
@@ -101,8 +101,8 @@ func TestCfgBools(t *testing.T) {
 	}
 	tstSettings := New("test")
 	for _, test := range bTests {
-		tstSettings.SetErrOnMissingFile(test.val)
-		b := tstSettings.ErrOnMissingFile()
+		tstSettings.SetErrOnMissingConfFile(test.val)
+		b := tstSettings.ErrOnMissingConfFile()
 		if b != test.expected {
 			t.Errorf("ErrOnMissingCfg:  expected %v, got %v", test.expected, b)
 		}
@@ -111,8 +111,8 @@ func TestCfgBools(t *testing.T) {
 		if b != test.expected {
 			t.Errorf("SearchPath:  expected %v, got %v", test.expected, b)
 		}
-		tstSettings.SetUseCfg(test.val)
-		b = tstSettings.UseCfg()
+		tstSettings.SetUseConfFile(test.val)
+		b = tstSettings.UseConfFile()
 		if b != test.expected {
 			t.Errorf("SetUseCfgFile:  expected %v, got %v", test.expected, b)
 		}
@@ -130,13 +130,13 @@ func TestCfgBools(t *testing.T) {
 
 func TestCfgProcessed(t *testing.T) {
 	tests := []struct {
-		useCfg      bool
-		cfgSet      bool
-		useEnv      bool
-		envSet      bool
-		useFlags    bool
-		flagsParsed bool
-		expected    bool
+		useConfFile     bool
+		confFileVarsSet bool
+		useEnv          bool
+		envSet          bool
+		useFlags        bool
+		flagsParsed     bool
+		expected        bool
 	}{
 		// 0
 		{false, false, false, false, false, false, true},
@@ -218,8 +218,8 @@ func TestCfgProcessed(t *testing.T) {
 	}
 	appCfg := New("test")
 	for i, test := range tests {
-		appCfg.SetUseCfg(test.useCfg)
-		appCfg.cfgSet = test.cfgSet
+		appCfg.SetUseConfFile(test.useConfFile)
+		appCfg.confFileVarsSet = test.confFileVarsSet
 		appCfg.envSet = test.envSet
 		appCfg.SetUseEnv(test.useEnv)
 		appCfg.useFlags = test.useFlags
@@ -317,12 +317,12 @@ func TestSetUsage(t *testing.T) {
 
 func TestIsFuncs(t *testing.T) {
 	tests := []struct {
-		name   string
-		IsCore bool
-		IsCfg  bool
-		IsEnv  bool
-		IsFlag bool
-		err    string
+		name          string
+		IsCore        bool
+		IsConfFileVar bool
+		IsEnv         bool
+		IsFlag        bool
+		err           string
 	}{
 		{"", false, false, false, false, " setting not found"},
 		{"string", false, false, false, false, ""},
@@ -347,19 +347,19 @@ func TestIsFuncs(t *testing.T) {
 				t.Errorf("%d: expected %v, got %v", i, test.IsCore, b)
 			}
 		}
-		// Cfg
-		b, err = tstSettings.IsCfgE(test.name)
+		// ConfFileVars
+		b, err = tstSettings.IsConfFileVarE(test.name)
 		if err != nil {
 			if err.Error() != fmt.Sprintf(": file%s", test.err) {
 				t.Errorf("%d: expected %q got %q", i, fmt.Sprintf(": file%s", test.err), err.Error())
 			}
 		} else {
-			if b != test.IsCfg {
-				t.Errorf("%d: expected %v, got %v", i, test.IsCfg, b)
+			if b != test.IsConfFileVar {
+				t.Errorf("%d: expected %v, got %v", i, test.IsConfFileVar, b)
 			}
-			b = tstSettings.IsCfg(test.name)
-			if b != test.IsCfg {
-				t.Errorf("%d: expected %v, got %v", i, test.IsCfg, b)
+			b = tstSettings.IsConfFileVar(test.name)
+			if b != test.IsConfFileVar {
+				t.Errorf("%d: expected %v, got %v", i, test.IsConfFileVar, b)
 			}
 		}
 		// Env
@@ -520,13 +520,12 @@ func TestSetCfg(t *testing.T) {
 	}
 	tstCfg := newTestSettings()
 	tstCfg.name = "rancher"
-	tstCfg.RegisterCfgFilename("", tests[5].fullPath)
+	tstCfg.RegisterConfFilename("", tests[5].fullPath)
 	for i, test := range tests {
-		tstCfg.UpdateCfgFilename(test.fullPath)
-		tstCfg.SetUseCfg(test.useCfg)
+		tstCfg.SetUseConfFile(test.useCfg)
 		tstCfg.SetUseEnv(test.useEnv)
 		os.Setenv(GetEnvName(test.name), test.envValue)
-		err := tstCfg.SetFromFile()
+		err := tstCfg.SetFromConfFile()
 		if err != nil {
 			if test.err != err.Error() {
 				t.Errorf("%d: expected %s, got %s", i, test.err, err.Error())
@@ -604,9 +603,10 @@ func TestUnmarshalCfgBytes(t *testing.T) {
 		{"yaml cfg", YAML, yamlExample, yamlResults, ""},
 		{"unsupported cfg", Unsupported, []byte(""), []byte(""), "unsupported: unsupported configuration format"},
 	}
+
 	for _, test := range tests {
 		bites := []byte(test.value)
-		ires, err := unmarshalCfgBytes(test.format, bites)
+		ires, err := unmarshalConfBytes(test.format, bites)
 		if err != nil {
 			if test.expectedErr == "" {
 				t.Errorf("%s: expected nil for error; got %q", test.name, err)

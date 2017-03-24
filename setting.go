@@ -14,14 +14,13 @@ type setting struct {
 	Usage string
 	// Default is the string version of the default, for usage
 	Default string
-	// IsCore: whether or not this is considered a core setting. Core settings if for
-	// settings whose values you don't want overridden or changed, once registered.
-	//
-	// When IsCore is true, IsConfig and IsFlag are always false. These cannot be changed either.
+	// IsCore: a core settings is for settings whose values that cannot be
+	// be changed after they are registered.  When this is true, IsConfFileVar,
+	// IsEnv, and IsFlag are always false.
 	IsCore bool
-	// IsConfig: whether or not this if a Cfg setting. When true, and a cfg file exists,
-	// it will check for this setting in the config file.
-	IsCfg bool
+	// IsConfFileVar: a configuration file setting can only be updated from a
+	// configuration file. When this is true, IsEnv and IsFlag aare always false.
+	IsConfFileVar bool
 	// IsEnv: whether or not this is an env variable.  When true, and the cfg is set to
 	// useEnvs, the setting will be settable via env variables. All Cfg and Flag settings
 	// result in IsEnv being true.

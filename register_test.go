@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestRegisterCfgFile(t *testing.T) {
+func TestRegisterConfFile(t *testing.T) {
 	tests := []struct {
 		name     string
 		keyName  string
@@ -19,14 +19,14 @@ func TestRegisterCfgFile(t *testing.T) {
 		{"xml", "", "cfg.xml", ""},
 		{"undefined", "", "cfg.bss", ""},
 	}
-	var cfgSettingKey string
+	var confFilenameVarName string
 	for _, test := range tests {
 		cfg := New(test.name)
 		cfg.useEnv = false
-		err := cfg.RegisterCfgFilename(test.keyName, test.filename)
+		err := cfg.RegisterConfFilename(test.keyName, test.filename)
 		if err != nil {
 			if test.err != err.Error() {
-				t.Errorf("RegisterCfgFilename %s: expected error %q got %q", test.name, test.err, err.Error())
+				t.Errorf("RegisterConfFilename %s: expected error %q got %q", test.name, test.err, err.Error())
 			}
 			continue
 		}
@@ -35,15 +35,15 @@ func TestRegisterCfgFile(t *testing.T) {
 			continue
 		}
 		if test.keyName == "" {
-			cfgSettingKey = CfgFilenameSettingKey
+			confFilenameVarName = ConfFilenameVarName
 		} else {
-			cfgSettingKey = test.keyName
+			confFilenameVarName = test.keyName
 		}
-		if cfg.CfgFilenameKey() != cfgSettingKey {
-			t.Errorf("%s: expected cfgFilenameKey to be %s, got %s", test.name, cfgSettingKey, cfg.CfgFilenameKey())
+		if cfg.confFilenameVarName != confFilenameVarName {
+			t.Errorf("%s: expected confFilenameVarName to be %s, got %s", test.name, confFilenameVarName, cfg.confFilenameVarName)
 			continue
 		}
-		fname, err := cfg.StringE(cfgSettingKey)
+		fname, err := cfg.StringE(confFilenameVarName)
 		if err != nil {
 			t.Errorf("RegisterCfgFilename %s: unexpected error retrieving filename, %q", test.name, err)
 			continue
@@ -57,16 +57,16 @@ func TestRegisterCfgFile(t *testing.T) {
 
 func TestRegisterSettings(t *testing.T) {
 	tests := []struct {
-		name        string
-		typ         dataType
-		value       interface{}
-		expected    interface{}
-		expectedErr string
-		checkValues bool
-		IsCore      bool
-		IsCfg       bool
-		IsEnv       bool
-		IsFlag      bool
+		name          string
+		typ           dataType
+		value         interface{}
+		expected      interface{}
+		expectedErr   string
+		checkValues   bool
+		IsCore        bool
+		IsConfFileVar bool
+		IsEnv         bool
+		IsFlag        bool
 	}{
 		{"", _bool, true, true, "cannot register an unnamed setting", false, false, false, false, false},
 		{"bool", _bool, true, true, "", true, false, false, false, false},
@@ -111,8 +111,8 @@ func TestRegisterSettings(t *testing.T) {
 		if cfg.IsCore(test.name) != test.IsCore {
 			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, cfg.IsCore(test.name))
 		}
-		if cfg.IsCfg(test.name) != test.IsCfg {
-			t.Errorf("%d expected IsCfg to be %v, got %v", i, test.IsCfg, cfg.IsCfg(test.name))
+		if cfg.IsConfFileVar(test.name) != test.IsConfFileVar {
+			t.Errorf("%d expected IsConfFileVar to be %v, got %v", i, test.IsConfFileVar, cfg.IsConfFileVar(test.name))
 		}
 		if cfg.IsEnv(test.name) != test.IsEnv {
 			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, cfg.IsEnv(test.name))
@@ -125,16 +125,16 @@ func TestRegisterSettings(t *testing.T) {
 
 func TestRegisterCoreSettings(t *testing.T) {
 	tests := []struct {
-		name        string
-		typ         dataType
-		value       interface{}
-		expected    interface{}
-		expectedErr string
-		checkValues bool
-		IsCore      bool
-		IsCfg       bool
-		IsEnv       bool
-		IsFlag      bool
+		name          string
+		typ           dataType
+		value         interface{}
+		expected      interface{}
+		expectedErr   string
+		checkValues   bool
+		IsCore        bool
+		IsConfFileVar bool
+		IsEnv         bool
+		IsFlag        bool
 	}{
 		{"", _bool, true, true, "cannot register an unnamed setting", false, false, false, false, false},
 		{"corebool", _bool, true, true, "", true, true, false, false, false},
@@ -174,19 +174,19 @@ func TestRegisterCoreSettings(t *testing.T) {
 			continue
 		}
 		if tstSettings.Get(test.name) != test.expected {
-			t.Errorf("%d: expected %v got %v", i, test.expected, Get(test.name))
+			t.Errorf("%d: expected %v got %v", i, test.expected, tstSettings.Get(test.name))
 		}
 		if tstSettings.IsCore(test.name) != test.IsCore {
-			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, IsCore(test.name))
+			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, tstSettings.IsCore(test.name))
 		}
-		if tstSettings.IsCfg(test.name) != test.IsCfg {
-			t.Errorf("%d expected IsCfg to be %v, got %v", i, test.IsCfg, IsCfg(test.name))
+		if tstSettings.IsConfFileVar(test.name) != test.IsConfFileVar {
+			t.Errorf("%d expected IsConfFileVar to be %v, got %v", i, test.IsConfFileVar, tstSettings.IsConfFileVar(test.name))
 		}
 		if tstSettings.IsEnv(test.name) != test.IsEnv {
-			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, IsEnv(test.name))
+			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, tstSettings.IsEnv(test.name))
 		}
 		if tstSettings.IsFlag(test.name) != test.IsFlag {
-			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, IsFlag(test.name))
+			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, tstSettings.IsFlag(test.name))
 		}
 	}
 	// NonE
@@ -213,35 +213,35 @@ func TestRegisterCoreSettings(t *testing.T) {
 			continue
 		}
 		if tstSettings.Get(test.name) != test.expected {
-			t.Errorf("%d: expected %v got %v", i, test.expected, Get(test.name))
+			t.Errorf("%d: expected %v got %v", i, test.expected, tstSettings.Get(test.name))
 		}
 		if tstSettings.IsCore(test.name) != test.IsCore {
-			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, IsCore(test.name))
+			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, tstSettings.IsCore(test.name))
 		}
-		if tstSettings.IsCfg(test.name) != test.IsCfg {
-			t.Errorf("%d expected IsCfg to be %v, got %v", i, test.IsCfg, IsCfg(test.name))
+		if tstSettings.IsConfFileVar(test.name) != test.IsConfFileVar {
+			t.Errorf("%d expected IsConfFileVar to be %v, got %v", i, test.IsConfFileVar, tstSettings.IsConfFileVar(test.name))
 		}
 		if tstSettings.IsEnv(test.name) != test.IsEnv {
-			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, IsEnv(test.name))
+			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, tstSettings.IsEnv(test.name))
 		}
 		if tstSettings.IsFlag(test.name) != test.IsFlag {
-			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, IsFlag(test.name))
+			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, tstSettings.IsFlag(test.name))
 		}
 	}
 }
 
 func TestRegisterCfgSettings(t *testing.T) {
 	tests := []struct {
-		name        string
-		typ         dataType
-		value       interface{}
-		expected    interface{}
-		expectedErr string
-		checkValues bool
-		IsCore      bool
-		IsCfg       bool
-		IsEnv       bool
-		IsFlag      bool
+		name          string
+		typ           dataType
+		value         interface{}
+		expected      interface{}
+		expectedErr   string
+		checkValues   bool
+		IsCore        bool
+		IsConfFileVar bool
+		IsEnv         bool
+		IsFlag        bool
 	}{
 		{"", _bool, true, true, "cannot register an unnamed setting", false, false, false, false, false},
 		{"cfgbool", _bool, true, true, "", true, false, true, true, false},
@@ -261,13 +261,13 @@ func TestRegisterCfgSettings(t *testing.T) {
 	for i, test := range tests {
 		switch test.typ {
 		case _bool:
-			err = tstSettings.RegisterBoolCfgE(test.name, test.value.(bool))
+			err = tstSettings.RegisterBoolConfFileVar(test.name, test.value.(bool))
 		case _int:
-			err = tstSettings.RegisterIntCfgE(test.name, test.value.(int))
+			err = tstSettings.RegisterIntConfFileVar(test.name, test.value.(int))
 		case _int64:
-			err = tstSettings.RegisterInt64CfgE(test.name, test.value.(int64))
+			err = tstSettings.RegisterInt64ConfFileVar(test.name, test.value.(int64))
 		case _string:
-			err = tstSettings.RegisterStringCfgE(test.name, test.value.(string))
+			err = tstSettings.RegisterStringConfFileVar(test.name, test.value.(string))
 		default:
 			t.Errorf("%d: unsupported typ: %s", i, test.typ)
 			continue
@@ -281,76 +281,36 @@ func TestRegisterCfgSettings(t *testing.T) {
 			continue
 		}
 		if tstSettings.Get(test.name) != test.expected {
-			t.Errorf("%d: expected %v got %v", i, test.expected, Get(test.name))
+			t.Errorf("%d: expected %v got %v", i, test.expected, tstSettings.Get(test.name))
 		}
 		if tstSettings.IsCore(test.name) != test.IsCore {
-			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, IsCore(test.name))
+			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, tstSettings.IsCore(test.name))
 		}
-		if tstSettings.IsCfg(test.name) != test.IsCfg {
-			t.Errorf("%d expected IsCfg to be %v, got %v", i, test.IsCfg, IsCfg(test.name))
-		}
-		if tstSettings.IsEnv(test.name) != test.IsEnv {
-			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, IsEnv(test.name))
-		}
-		if tstSettings.IsFlag(test.name) != test.IsFlag {
-			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, IsFlag(test.name))
-		}
-	}
-	// Non-E
-	tstSettings = New("test")
-	for i, test := range tests {
-		// skip empty names since we don't check errors
-		if test.name == "" {
-			continue
-		}
-		switch test.typ {
-		case _bool:
-			tstSettings.RegisterBoolCfg(test.name, test.value.(bool))
-		case _int:
-			tstSettings.RegisterIntCfg(test.name, test.value.(int))
-		case _int64:
-			tstSettings.RegisterInt64Cfg(test.name, test.value.(int64))
-		case _string:
-			tstSettings.RegisterStringCfg(test.name, test.value.(string))
-		default:
-			t.Errorf("%d: unsupported typ: %s", i, test.typ)
-			continue
-		}
-		if !test.checkValues {
-			continue
-		}
-		if tstSettings.Get(test.name) != test.expected {
-			t.Errorf("%d: expected %v got %v", i, test.expected, Get(test.name))
-		}
-		if tstSettings.IsCore(test.name) != test.IsCore {
-			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, IsCore(test.name))
-		}
-		if tstSettings.IsCfg(test.name) != test.IsCfg {
-			t.Errorf("%d expected IsCfg to be %v, got %v", i, test.IsCfg, IsCfg(test.name))
+		if tstSettings.IsConfFileVar(test.name) != test.IsConfFileVar {
+			t.Errorf("%d expected IsConfFileVar to be %v, got %v", i, test.IsConfFileVar, tstSettings.IsConfFileVar(test.name))
 		}
 		if tstSettings.IsEnv(test.name) != test.IsEnv {
-			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, IsEnv(test.name))
+			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, tstSettings.IsEnv(test.name))
 		}
 		if tstSettings.IsFlag(test.name) != test.IsFlag {
-			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, IsFlag(test.name))
+			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, tstSettings.IsFlag(test.name))
 		}
 	}
-
 }
 
 func TestRegisterFlagSettings(t *testing.T) {
 	tests := []struct {
-		name        string
-		short       string
-		typ         dataType
-		value       interface{}
-		expected    interface{}
-		expectedErr string
-		checkValues bool
-		IsCore      bool
-		IsCfg       bool
-		IsEnv       bool
-		IsFlag      bool
+		name          string
+		short         string
+		typ           dataType
+		value         interface{}
+		expected      interface{}
+		expectedErr   string
+		checkValues   bool
+		IsCore        bool
+		IsConfFileVar bool
+		IsEnv         bool
+		IsFlag        bool
 	}{
 		{"", "", _bool, true, true, "cannot register an unnamed setting", false, false, false, false, false},
 		{"flagbool", "b", _bool, true, true, "", true, false, true, true, true},
@@ -390,19 +350,19 @@ func TestRegisterFlagSettings(t *testing.T) {
 			continue
 		}
 		if tstSettings.Get(test.name) != test.expected {
-			t.Errorf("%d: expected %v got %v", i, test.expected, Get(test.name))
+			t.Errorf("%d: expected %v got %v", i, test.expected, tstSettings.Get(test.name))
 		}
 		if tstSettings.IsCore(test.name) != test.IsCore {
-			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, IsCore(test.name))
+			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, tstSettings.IsCore(test.name))
 		}
-		if tstSettings.IsCfg(test.name) != test.IsCfg {
-			t.Errorf("%d expected IsCfg to be %v, got %v", i, test.IsCfg, IsCfg(test.name))
+		if tstSettings.IsConfFileVar(test.name) != test.IsConfFileVar {
+			t.Errorf("%d expected IsConfFileVar to be %v, got %v", i, test.IsConfFileVar, tstSettings.IsConfFileVar(test.name))
 		}
 		if tstSettings.IsEnv(test.name) != test.IsEnv {
-			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, IsEnv(test.name))
+			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, tstSettings.IsEnv(test.name))
 		}
 		if tstSettings.IsFlag(test.name) != test.IsFlag {
-			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, IsFlag(test.name))
+			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, tstSettings.IsFlag(test.name))
 		}
 	}
 	// Non-E
@@ -426,19 +386,19 @@ func TestRegisterFlagSettings(t *testing.T) {
 			continue
 		}
 		if tstSettings.Get(test.name) != test.expected {
-			t.Errorf("%d: expected %v got %v", i, test.expected, Get(test.name))
+			t.Errorf("%d: expected %v got %v", i, test.expected, tstSettings.Get(test.name))
 		}
 		if tstSettings.IsCore(test.name) != test.IsCore {
-			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, IsCore(test.name))
+			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, tstSettings.IsCore(test.name))
 		}
-		if tstSettings.IsCfg(test.name) != test.IsCfg {
-			t.Errorf("%d expected IsCfg to be %v, got %v", i, test.IsCfg, IsCfg(test.name))
+		if tstSettings.IsConfFileVar(test.name) != test.IsConfFileVar {
+			t.Errorf("%d expected IsConfFileVar to be %v, got %v", i, test.IsConfFileVar, tstSettings.IsConfFileVar(test.name))
 		}
 		if tstSettings.IsEnv(test.name) != test.IsEnv {
-			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, IsEnv(test.name))
+			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, tstSettings.IsEnv(test.name))
 		}
 		if tstSettings.IsFlag(test.name) != test.IsFlag {
-			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, IsFlag(test.name))
+			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, tstSettings.IsFlag(test.name))
 		}
 	}
 }

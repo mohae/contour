@@ -172,16 +172,16 @@ func (s *Settings) String(k string) string {
 	return v
 }
 
-// CfgFilename returns the configuration filename and its format. If the key
+// ConfFilename returns the configuration filename and its format. If the key
 // is not registered, or if the format isn't a supported format, an error is
 // returned and the format will be Unsupported.
-func CfgFilename() (name string, format Format, err error) { return settings.CfgFilename() }
-func (s *Settings) CfgFilename() (name string, format Format, err error) {
+func ConfFilename() (name string, format Format, err error) { return settings.ConfFilename() }
+func (s *Settings) ConfFilename() (name string, format Format, err error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	v, ok := s.settings[s.cfgFilenameKey]
+	v, ok := s.settings[s.confFilenameVarName]
 	if !ok {
-		return "", Unsupported, SettingNotFoundErr{Core, s.cfgFilenameKey}
+		return "", Unsupported, SettingNotFoundErr{Core, s.confFilenameVarName}
 	}
 	format, _ = ParseFilenameFormat(v.Name)
 	return v.Name, format, nil

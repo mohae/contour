@@ -86,19 +86,3 @@ func UpdateString(k string, v string) { settings.UpdateString(k, v) }
 func (s *Settings) UpdateString(k, v string) {
 	s.UpdateStringE(k, v)
 }
-
-// UpdateCfgFile updates the set configuration filename.
-//
-// It is assumed that RegisterCfgFilename has already been called, if it hasn't
-// nothing will be done.
-func UpdateCfgFilename(v string) { settings.UpdateCfgFilename(v) }
-func (s *Settings) UpdateCfgFilename(v string) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	val, ok := s.settings[s.cfgFilenameKey]
-	if !ok {
-		return
-	}
-	val.Value = v
-	s.settings[s.cfgFilenameKey] = val
-}

@@ -14,7 +14,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const CfgFilenameSettingKey = "cfg_file"
+const ConfFilenameVarName = "conf_filename"
 
 // Settings is a group of settings and holds all of the application setting
 // information. Even though contour automatically uses environment variables,
@@ -28,56 +28,61 @@ type Settings struct {
 	mu   sync.RWMutex
 	// if an attempt to load configuration from a file should error if the file
 	// does not exist.
-	errOnMissingFile bool
-	// the key for the cfg filename setting. This defaults to cfg_file but can
-	// be overridden by the RegisterCfgFilename method.
-	cfgFilenameKey string
-	// search the path env var, in addition to pwd & executalbe dir, for cfc file.
+	errOnMissingConfFile bool
+	// the name of the configuration filename variable: defaults to the
+	// ConfFilenameSettingVarName constant.
+	confFilenameVarName string
+	// search the path env var, in addition to wd & executalbe dir, for the conf
+	// file. The path env var is assumed to be NAMEPATH where name is
+	// Settings.name
 	searchPath bool
-	flagSet    *flag.FlagSet
-	// file is the name of the config file
-	file string
-	// encoding is what encoding scheme is used for this config.
+	// file is the name of the configuration file
+	confFilename string
+	// Encoding is what encoding scheme is used for this config.
 	encoding string
-	// Settings contains a map of the configuration Settings for this
-	// config.
-	settings map[string]setting
-	// Whether configuration settings have been registered and set.
-	useCfg bool
-	// if the settings have been loaded from config
-	cfgSet bool
-	// tracks the vars that are exposed to cfg
-	cfgVars map[string]struct{}
-	// useEnv: whether this config writes to and reads from environment
-	// variables. If false, Settings are stored only in Config.
+	// Tracks the vars that are exposed to the configuration file. Only vars in
+	// this map can be set from a configuration file.
+	confFileVars map[string]struct{}
+	// If settings should be updated from a configuration file.
+	useConfFile bool
+	// If the settings have been updated from configuration file.
+	confFileVarsSet bool
+	// If settings should be loaded from environment variables. Environment
+	// variable names will be in the form of NAME_VARNAME where NAME is this
+	// Setting's name.
 	useEnv bool
+	// If the settings have been updated from environment variables.
 	envSet bool
-	// Whether flags have been registered and set.
-	useFlags    bool
+	// flagset is the set of flags for arg parsing.
+	flagSet *flag.FlagSet
+	// If the settings should be updated from passed args.
+	useFlags bool
+	// If the settings have been updated from the passed args.
 	flagsParsed bool
-	// interface contains pointer to a variable
+	// The map of variables that capture flag information.
 	flagVars map[string]interface{}
-	// maps short flags to the long version
+	// Maps short flags to the long version
 	shortFlags map[string]string
 	// parsedFlags are flags that were passed and parsed. Short flags are
 	// normalized to the flag name.
 	parsedFlags []string
+	// Settings contains a map of all the configuration settings for this
+	// Setting and each setting's information, including current Value.
+	settings map[string]setting
 }
 
 // New provides an initialized Settings.
 func New(name string) *Settings {
 	return &Settings{
-		name:             name,
-		cfgFilenameKey:   CfgFilenameSettingKey,
-		errOnMissingFile: true,
-		searchPath:       true,
-		flagSet:          flag.NewFlagSet(name, flag.ContinueOnError),
-		settings:         map[string]setting{},
-		cfgVars:          map[string]struct{}{},
-		useCfg:           true,
-		useEnv:           true,
-		flagVars:         map[string]interface{}{},
-		shortFlags:       map[string]string{},
+		name:                 name,
+		confFilenameVarName:  ConfFilenameVarName,
+		errOnMissingConfFile: true,
+		searchPath:           true,
+		flagSet:              flag.NewFlagSet(name, flag.ContinueOnError),
+		confFileVars:         map[string]struct{}{},
+		flagVars:             map[string]interface{}{},
+		shortFlags:           map[string]string{},
+		settings:             map[string]setting{},
 	}
 }
 
@@ -86,10 +91,10 @@ func New(name string) *Settings {
 // in that order of precedence. This is only run once; subsequent calls will
 // result in no changes.
 //
-// Only settings that are set as Environment, Cfg, or Flag types are updateable
-// from environment variables.
+// Only settings that are set as Environment, Conf, or Flag types are
+// updateable from environment variables.
 //
-// Only settings that are set as Cfg or Flag types are updateable from a
+// Only settings that are set as Conf or Flag types are updateable from a
 // configuration file.
 func Set() error { return settings.Set() }
 func (s *Settings) Set() error {
@@ -97,7 +102,7 @@ func (s *Settings) Set() error {
 	defer s.mu.Unlock()
 	// if this has already been set from env vars and config, don't do it again.
 	// TODO: decide if this should be handled differently to allow for reload.
-	if s.cfgSet && s.envSet {
+	if s.confFileVarsSet && s.envSet {
 		return nil
 	}
 	err := s.updateFromEnv()
@@ -105,7 +110,7 @@ func (s *Settings) Set() error {
 		return fmt.Errorf("setting configuration from env failed: %s", err)
 	}
 
-	err = s.setFromFile()
+	err = s.setFromConfFile()
 	if err != nil {
 		return fmt.Errorf("setting configuration from file failed: %s", err)
 	}
@@ -119,9 +124,9 @@ func (s *Settings) Set() error {
 // Once a Settings has been set from environment variables they will not be
 // updated again on subsequent calls.
 //
-// A setting's env name is a concatonation of the cfg's name, an underscore
-// (_), and the setting name, e.g. a Settings with the name 'foo' and a setting
-// whose name is 'bar' will result in 'FOO_BAR'.
+// A setting's env name is a concatonation of the setting's name, an underscore
+// (_), and the Settings' name, e.g. a Settings with the name 'foo' and a
+// setting whose name is 'bar' will result in 'FOO_BAR'.
 func SetFromEnv() error { return settings.SetFromEnv() }
 
 // SetFromEnv sets the settings that are of type Env from env vars if the
@@ -131,9 +136,9 @@ func SetFromEnv() error { return settings.SetFromEnv() }
 // Once a Settings has been set from environment variables they will not be
 // updated again on subsequent calls.
 //
-// A setting's env name is a concatonation of the cfg's name, an underscore
-// (_), and the setting name, e.g. a Settings with the name 'foo' and a setting
-// whose name is 'bar' will result in 'FOO_BAR'.
+// A setting's env name is a concatonation of the setting's name, an underscore
+// (_), and the Settings' name, e.g. a Settings with the name 'foo' and a
+// setting whose name is 'bar' will result in 'FOO_BAR'.
 func (s *Settings) SetFromEnv() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -183,32 +188,32 @@ func (s *Settings) updateFromEnv() error {
 	return nil
 }
 
-// SetFromFile set's the Cfg and Flag settings from the information found in
-// the configuration file if there is one. If Settings is not set to use a
-// configuration file, if the configuration filename is not set, or if it has
-// already been set, nothing is done and no error is returned.
-func SetFromFile() error {
-	return settings.SetFromFile()
+// SetFromConfFile set's the Conf, Env, and Flag settings from the information
+// found in the configuration file if there is one. If Settings is not set to
+// use a configuration file, if the configuration filename is not set, or if it
+// has already been set, nothing is done and no error is returned.
+func SetFromConfFile() error {
+	return settings.SetFromConfFile()
 }
 
-// SetFromFile set's the Cfg and Flag settings from the information found in
-// the configuration file if there is one. If Settings is not set to use a
-// configuration file, if the configuration filename is not set, or if it has
-// already been set, nothing is done and no error is returned.
-func (s *Settings) SetFromFile() error {
+// SetFromConfFile set's the Conf, Env, and Flag settings from the information
+// found in the configuration file if there is one. If Settings is not set to
+// use a configuration file, if the configuration filename is not set, or if it
+// has already been set, nothing is done and no error is returned.
+func (s *Settings) SetFromConfFile() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.setFromFile()
+	return s.setFromConfFile()
 }
 
-// setFromFile set's Cfg and Flag settings from the information found in the
-// configuration file, if there is one. This assumes the caller already holds
-// the lock.
-func (s *Settings) setFromFile() error {
-	if !s.useCfg || s.cfgSet {
+// setFromFile set's Conf, Env, and Flag settings from the information found in
+// the configuration file, if there is one. This assumes the caller already
+// holds the lock.
+func (s *Settings) setFromConfFile() error {
+	if !s.useConfFile || s.confFileVarsSet {
 		return nil
 	}
-	setting, ok := s.settings[s.cfgFilenameKey]
+	setting, ok := s.settings[s.confFilenameVarName]
 	if !ok {
 		// Wasn't configured, nothing to do. Not an error.
 		return nil
@@ -217,7 +222,7 @@ func (s *Settings) setFromFile() error {
 	if n == "" {
 		// This isn't an error as config file is allowed to not exist
 		// TODO:
-		//	Possible add a CfgFileRequired flag
+		//	Possible add a confFileRequired flag
 		return nil
 	}
 	// get the file's format from the extension
@@ -230,17 +235,17 @@ func (s *Settings) setFromFile() error {
 	if err != nil {
 		return fmt.Errorf("set from file: %s", err)
 	}
-	cfg, err := unmarshalCfgBytes(f, b)
+	cnf, err := unmarshalConfBytes(f, b)
 	if err != nil {
 		return fmt.Errorf("set from file: %s: %s", n, err)
 	}
 
 	// if nothing was returned and no error, nothing to do
-	if cfg == nil {
+	if cnf == nil {
 		return nil
 	}
 	// Go through settings and update setting values.
-	for k, v := range cfg.(map[string]interface{}) {
+	for k, v := range cnf.(map[string]interface{}) {
 		// otherwise update the setting
 		err = s.update(k, v)
 		if err != nil {
@@ -250,21 +255,21 @@ func (s *Settings) setFromFile() error {
 	return nil
 }
 
-// ErrOnMissingFile returns whether a missing config file should result in an
-// error. This only applies when useCfg == true
-func ErrOnMissingFile() bool { return settings.ErrOnMissingFile() }
-func (s *Settings) ErrOnMissingFile() bool {
+// ErrOnMissingConfFile returns whether a missing config file should result in
+// an error. This only applies when useConf == true
+func ErrOnMissingConfFile() bool { return settings.ErrOnMissingConfFile() }
+func (s *Settings) ErrOnMissingConfFile() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return s.errOnMissingFile
+	return s.errOnMissingConfFile
 }
 
-// SetErrOnMissingFile returns whether a missing config file should result in an
-// error. This only applies when useFile == true
-func SetErrOnMissingFile(b bool) { settings.SetErrOnMissingFile(b) }
-func (s *Settings) SetErrOnMissingFile(b bool) {
+// SetErrOnMissingConfFile returns whether a missing config file should result
+// in an error. This only applies when useFile == true
+func SetErrOnMissingConfFile(b bool) { settings.SetErrOnMissingConfFile(b) }
+func (s *Settings) SetErrOnMissingConfFile(b bool) {
 	s.mu.Lock()
-	s.errOnMissingFile = b
+	s.errOnMissingConfFile = b
 	s.mu.Unlock()
 }
 
@@ -278,7 +283,7 @@ func (s *Settings) SearchPath() bool {
 }
 
 // SetSearchPath set's whether or not the user's PATH env variable should be
-// searched for the cfg file.
+// searched for the configuratiom file.
 func SetSearchPath(b bool) { settings.SetSearchPath(b) }
 func (s *Settings) SetSearchPath(b bool) {
 	s.mu.Lock()
@@ -286,20 +291,22 @@ func (s *Settings) SetSearchPath(b bool) {
 	s.mu.Unlock()
 }
 
-// UseCfg returns whether this cfg uses an external, non env, cfg.
-func UseCfg() bool { return settings.UseCfg() }
-func (s *Settings) UseCfg() bool {
+// UseConfFile returns if Conf settings are to be updated from a configuration
+// file.
+func UseConfFile() bool { return settings.UseConfFile() }
+func (s *Settings) UseConfFile() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return s.useCfg
+	return s.useConfFile
 }
 
-// SetUseCfg set's whether an external, non-env, cfg should be used with this Cfg.
-func SetUseCfg(b bool) { settings.SetUseCfg(b) }
-func (s *Settings) SetUseCfg(b bool) {
+// SetUseConfFile sets if Conf settings should be updated from a configuration
+// file.
+func SetUseConfFile(b bool) { settings.SetUseConfFile(b) }
+func (s *Settings) SetUseConfFile(b bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.useCfg = b
+	s.useConfFile = b
 }
 
 // UseEnv is whether or not environment variables are used.
@@ -319,21 +326,13 @@ func (s *Settings) SetUseEnv(b bool) {
 	s.mu.Unlock()
 }
 
-// cfgFilenameKey returns the value of cfgFilenameKey.
-func CfgFilenameKey() string { return settings.CfgFilenameKey() }
-func (s *Settings) CfgFilenameKey() string {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return s.cfgFilenameKey
-}
-
 // IsSet returns if the Settings has been set from all of its configured
 // inputs, as applicable: env vars, configuration file, and flags.
 func IsSet() bool { return settings.IsSet() }
 func (s *Settings) IsSet() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	if s.useCfg && !s.cfgSet {
+	if s.useConfFile && !s.confFileVarsSet {
 		return false
 	}
 	if s.useEnv && !s.envSet {
@@ -342,7 +341,7 @@ func (s *Settings) IsSet() bool {
 	if s.useFlags && !s.flagsParsed {
 		return false
 	}
-	// Either post registration cfg isn't being used, or everything is set.
+	// Everything has been updated (is set) according to Settings' configuration.
 	return true
 }
 
@@ -354,13 +353,13 @@ func (s *Settings) SetUsage(f func()) {
 	s.mu.Unlock()
 }
 
-// Name returns the cfg's name.
+// Name returns the Settings' name.
 func Name() string { return settings.Name() }
 func (s *Settings) Name() string {
 	return s.name
 }
 
-// IsCore returns whether the passed setting is a core setting.
+// IsCore returns whether the passed setting  is a core setting.
 func IsCoreE(name string) (bool, error) { return settings.IsCoreE(name) }
 func (s *Settings) IsCoreE(name string) (bool, error) {
 	s.mu.RLock()
@@ -382,25 +381,28 @@ func (s *Settings) IsCore(name string) bool {
 	return b
 }
 
-// IsCfg returns whether the passed setting is a cfg setting.
-func IsCfgE(name string) (bool, error) { return settings.IsCfgE(name) }
-func (s *Settings) IsCfgE(name string) (bool, error) {
+// IsConfE returns if the setting is a Conf setting. If a setting with the
+// requested name does not exist, a SettingNotFoundErr will be returned.
+func IsConfFileVarE(name string) (bool, error) { return settings.IsConfFileVarE(name) }
+func (s *Settings) IsConfFileVarE(name string) (bool, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return s.isCfg(name)
+	return s.isConfFileVar(name)
 }
 
-func (s *Settings) isCfg(name string) (bool, error) {
+func (s *Settings) isConfFileVar(name string) (bool, error) {
 	val, ok := s.settings[name]
 	if !ok {
 		return false, SettingNotFoundErr{settingType: File, name: name}
 	}
-	return val.IsCfg, nil
+	return val.IsConfFileVar, nil
 }
 
-func IsCfg(name string) bool { return settings.IsCfg(name) }
-func (s *Settings) IsCfg(name string) bool {
-	b, _ := s.IsCfgE(name)
+// IsConfFileVar returns if the setting is a Conf setting. If a setting with
+// the requested name does not exist, a false will also be returned.
+func IsConfFileVar(name string) bool { return settings.IsConfFileVar(name) }
+func (s *Settings) IsConfFileVar(name string) bool {
+	b, _ := s.IsConfFileVarE(name)
 	return b
 }
 
@@ -543,7 +545,7 @@ func formatFromFilename(s string) (Format, error) {
 //   json
 //   toml
 //   yaml
-func unmarshalCfgBytes(f Format, buff []byte) (interface{}, error) {
+func unmarshalConfBytes(f Format, buff []byte) (interface{}, error) {
 	var ret interface{}
 	switch f {
 	case JSON:

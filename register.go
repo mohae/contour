@@ -25,7 +25,7 @@ func (e RegisterErr) Error() string {
 	return fmt.Sprintf("%s: registration failed: %s", e.name, e.err)
 }
 
-// RegisterCfgFilename set's the configuration file's name.  The name is parsed
+// RegisterConfFilename set's the configuration file's name.  The name is parsed
 // for a valid extension--one that is a supported format--and saves that value
 // too. If it cannot be determined, the extension info is not set.  These are
 // considered core values and cannot be changed from configuration files,
@@ -33,15 +33,15 @@ func (e RegisterErr) Error() string {
 //
 // If the envName is a non-empty value, it is the environment variable name to
 // check for a configuration filename.
-func RegisterCfgFilename(k, v string) error { return settings.RegisterCfgFilename(k, v) }
-func (s *Settings) RegisterCfgFilename(k, v string) error {
+func RegisterConfFilename(k, v string) error { return settings.RegisterConfFilename(k, v) }
+func (s *Settings) RegisterConfFilename(k, v string) error {
 	if v == "" {
 		return fmt.Errorf("cannot register configuration file: no name provided")
 	}
 
-	// update the cfgFilenameKey if the value isn't empty; otherwise the default will be used
+	// update the confFilenameVarName if the value isn't empty; otherwise the default will be used
 	if k != "" {
-		s.cfgFilenameKey = k
+		s.confFilenameVarName = k
 	}
 	// store the key value being used as the configuration setting name by caller
 	s.mu.Lock()
@@ -57,27 +57,27 @@ func (s *Settings) RegisterCfgFilename(k, v string) error {
 			v = fname
 		}
 	}
-	s.registerStringCore(s.cfgFilenameKey, v)
-	s.useCfg = true
+	s.registerStringCore(s.confFilenameVarName, v)
+	s.useConfFile = true
 	return nil
 }
 
 // RegisterSetting checks to see if the entry already exists and adds the new
 // setting if it does not.
-func RegisterSetting(typ, name, short string, value interface{}, dflt, usage string, IsCore, IsCfg, IsEnv, IsFlag bool) error {
-	return settings.RegisterSetting(typ, name, short, value, dflt, usage, IsCore, IsCfg, IsEnv, IsFlag)
+func RegisterSetting(typ, name, short string, value interface{}, dflt, usage string, IsCore, IsConfFileVar, IsEnv, IsFlag bool) error {
+	return settings.RegisterSetting(typ, name, short, value, dflt, usage, IsCore, IsConfFileVar, IsEnv, IsFlag)
 }
-func (s *Settings) RegisterSetting(typ, name, short string, value interface{}, dflt string, usage string, IsCore, IsCfg, IsEnv, IsFlag bool) error {
+func (s *Settings) RegisterSetting(typ, name, short string, value interface{}, dflt string, usage string, IsCore, IsConfFileVar, IsEnv, IsFlag bool) error {
 	dType, err := parseDataType(typ)
 	if err != nil {
 		return RegisterErr{name: name, err: err}
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.registerSetting(dType, name, short, value, dflt, usage, IsCore, IsCfg, IsEnv, IsFlag)
+	return s.registerSetting(dType, name, short, value, dflt, usage, IsCore, IsConfFileVar, IsEnv, IsFlag)
 }
 
-func (s *Settings) registerSetting(typ dataType, name, short string, value interface{}, dflt string, usage string, IsCore, IsCfg, IsEnv, IsFlag bool) error {
+func (s *Settings) registerSetting(typ dataType, name, short string, value interface{}, dflt string, usage string, IsCore, IsConfFileVar, IsEnv, IsFlag bool) error {
 	if name == "" {
 		return fmt.Errorf("cannot register an unnamed setting")
 	}
@@ -89,20 +89,20 @@ func (s *Settings) registerSetting(typ dataType, name, short string, value inter
 
 	// Add the setting
 	s.settings[name] = setting{
-		Type:    typ,
-		Name:    name,
-		Short:   short,
-		Value:   value,
-		Default: dflt,
-		Usage:   usage,
-		IsCore:  IsCore,
-		IsCfg:   IsCfg,
-		IsEnv:   IsEnv,
-		IsFlag:  IsFlag,
+		Type:          typ,
+		Name:          name,
+		Short:         short,
+		Value:         value,
+		Default:       dflt,
+		Usage:         usage,
+		IsCore:        IsCore,
+		IsConfFileVar: IsConfFileVar,
+		IsEnv:         IsEnv,
+		IsFlag:        IsFlag,
 	}
-	// if it's a cfg file setting, add it to the cfgNames map
-	if IsCfg {
-		s.cfgVars[name] = struct{}{}
+	// if it's a conf file setting, add it to the confFileVars map
+	if IsConfFileVar {
+		s.confFileVars[name] = struct{}{}
 	}
 	// mapping shortcodes make lookup easier
 	if short != "" && IsFlag {
@@ -112,13 +112,12 @@ func (s *Settings) registerSetting(typ dataType, name, short string, value inter
 		}
 		s.shortFlags[short] = name
 	}
-	// Keep track of whether or not a cfg is being used. If a setting is registered
-	// as a cfg setting, it is assumed a cfg source is being used.
 	if IsEnv {
 		s.useEnv = IsEnv
 	}
-	if IsCfg {
-		s.useCfg = IsCfg
+	// If a setting is a confFile setting, enable using a conf file.
+	if IsConfFileVar {
+		s.useConfFile = true
 	}
 	if IsFlag {
 		s.useFlags = IsFlag
@@ -126,10 +125,10 @@ func (s *Settings) registerSetting(typ dataType, name, short string, value inter
 	return nil
 }
 
-// Core settings are not overridable via cfg file, env vars, or command-line
-// flags.  They can only be set via their respective Update() method or func.
+// Core settings are not overridable via a configuration file, env vars, or
+// command-line flags.
 
-// RegisterBoolCoreE adds the information to the appCfg global, but does not
+// RegisterBoolCoreE adds the information to the package global, but does not
 // save it to its environment variable. E versions return received errors.
 func RegisterBoolCoreE(k string, v bool) error { return settings.RegisterBoolCoreE(k, v) }
 func (s *Settings) RegisterBoolCoreE(k string, v bool) error {
@@ -211,94 +210,79 @@ func (s *Settings) RegisterStringCore(k, v string) {
 	s.RegisterStringCoreE(k, v)
 }
 
-// Cfg settings are settable via a configuration file.  Only settings that are
-// Cfg and Flags can be set via a cfg file. If the setting can be set from
-// an environment variable, that variables name is passed via the "envName'
-// parameter. If the envName == "" it will not be settable via an environment
-// variable.
+// ConfFileVar settings are settable via a configuration file.  Only settings that
+// are ConfFileVar, Env, and Flags can be set via a configuration file.
 
-// RegisterBoolCfgE adds the information to the appCfg global, but does not
-// save it to its environment variable: E versions return received errors.
-func RegisterBoolCfgE(k string, v bool) error { return settings.RegisterBoolCfgE(k, v) }
-func (s *Settings) RegisterBoolCfgE(k string, v bool) error {
+// RegisterBoolConfFileVar registers a bool setting using name and its value
+// set to v. If an error occurs, a RegistrationErr will be returned.
+func RegisterBoolConfFileVar(k string, v bool) error { return settings.RegisterBoolConfFileVar(k, v) }
+
+// RegisterBoolConfFileVar registers a bool setting using and its value set to
+// v. If an error occurs, a RegistrationErr will be returned.
+func (s *Settings) RegisterBoolConfFileVar(k string, v bool) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.registerBoolCfg(k, v)
+	return s.registerBoolConfFileVar(k, v)
 }
 
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
-func (s *Settings) registerBoolCfg(k string, v bool) error {
+func (s *Settings) registerBoolConfFileVar(k string, v bool) error {
 	return s.registerSetting(_bool, k, "", v, strconv.FormatBool(v), "", false, true, true, false)
 }
 
-// RegisterBoolCfg calls RegisterBoolCfgE and ignores any error.
-func RegisterBoolCfg(k string, v bool) { settings.RegisterBoolCfg(k, v) }
-func (s *Settings) RegisterBoolCfg(k string, v bool) {
-	s.RegisterBoolCfgE(k, v)
-}
+// RegisterIntConfFileVar registers an int setting using name and its value set
+// to v. If an error occurs, a RegistrationErr will be returned.
+func RegisterIntConfFileVar(k string, v int) error { return settings.RegisterIntConfFileVar(k, v) }
 
-// RegisterIntCfgE adds the information to the appCfg global, but does not
-// save it to its environment variable: E versions return received errors.
-func RegisterIntCfgE(k string, v int) error { return settings.RegisterIntCfgE(k, v) }
-func (s *Settings) RegisterIntCfgE(k string, v int) error {
+// RegisterIntConfFileVar registers an int setting using name and its value set
+// to v. If an error occurs, a RegistrationErr will be returned.
+func (s *Settings) RegisterIntConfFileVar(k string, v int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.registerIntCfg(k, v)
+	return s.registerIntConfFileVar(k, v)
 }
 
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
-func (s *Settings) registerIntCfg(k string, v int) error {
+func (s *Settings) registerIntConfFileVar(k string, v int) error {
 	return s.registerSetting(_int, k, "", v, strconv.Itoa(v), "", false, true, true, false)
 }
 
-// RegisterIntCfg calls RegisterIntCfgE and ignores any error.
-func RegisterIntCfg(k string, v int) { settings.RegisterIntCfg(k, v) }
-func (s *Settings) RegisterIntCfg(k string, v int) {
-	s.RegisterIntCfgE(k, v)
-}
+// RegisterInt64ConfFileVar registers an int64 settings using name and its
+// value set to v. If an error occurs, a RegistrationErr will be returned.
+func RegisterInt64ConfFileVar(k string, v int64) error { return settings.RegisterInt64ConfFileVar(k, v) }
 
-// RegisterInt64Cfg adds the informatio to the appCfg global, but does not
-// save it to its environment variable: E versions return received errors.
-func RegisterInt64CfgE(k string, v int64) error { return settings.RegisterInt64CfgE(k, v) }
-func (s *Settings) RegisterInt64CfgE(k string, v int64) error {
+// RegisterInt64ConfFileVar registers an int64 settings using name and its
+// value set to v. If an error occurs, a RegistrationErr will be returned.
+func (s *Settings) RegisterInt64ConfFileVar(k string, v int64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.registerInt64Cfg(k, v)
+	return s.registerInt64ConfFileVar(k, v)
 }
 
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
-func (s *Settings) registerInt64Cfg(k string, v int64) error {
+func (s *Settings) registerInt64ConfFileVar(k string, v int64) error {
 	return s.registerSetting(_int64, k, "", v, strconv.FormatInt(v, 10), "", false, true, true, false)
 }
 
-// RegisterInt64Cfg calls RegisterInt64Cfg and ignores any error.
-func RegisterInt64Cfg(k string, v int64) { settings.RegisterInt64Cfg(k, v) }
-func (s *Settings) RegisterInt64Cfg(k string, v int64) {
-	s.RegisterInt64CfgE(k, v)
-}
+// RegisterStringConfFileVar registers a string setting using name and its
+// value set to v. If an error occurs, a RegistrationErr will be returned.
+func RegisterStringConfFileVar(k, v string) error { return settings.RegisterStringConfFileVar(k, v) }
 
-// RegisterStringCfgE adds the information to the appCfg global, but does not
-// save it to its environment variable: E versions return received errors.
-func RegisterStringCfgE(k, v string) error { return settings.RegisterStringCfgE(k, v) }
-func (s *Settings) RegisterStringCfgE(k, v string) error {
+// RegisterStringConfFileVar registers a string setting using name and its
+// value set to v. If an error occurs, a RegistrationErr will be returned.
+func (s *Settings) RegisterStringConfFileVar(k, v string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.registerStringCfg(k, v)
+	return s.registerStringConfFileVar(k, v)
 }
 
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
-func (s *Settings) registerStringCfg(k, v string) error {
+func (s *Settings) registerStringConfFileVar(k, v string) error {
 	return s.registerSetting(_string, k, "", v, v, "", false, true, true, false)
-}
-
-// RegisterStringCfg calls RegisterStringCfgE and ignores any error.
-func RegisterStringCfg(k, v string) { settings.RegisterStringCfg(k, v) }
-func (s *Settings) RegisterStringCfg(k, v string) {
-	s.RegisterStringCfgE(k, v)
 }
 
 // Flag settings are settable from the config file and as command-line flags.

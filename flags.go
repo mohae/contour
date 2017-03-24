@@ -77,7 +77,7 @@ func (s *Settings) parseFlags(args []string) ([]string, error) {
 	return cmdArgs, nil
 }
 
-// setFlags set's up the flagFilter information while setting the Cfg's
+// setFlags set's up the flagFilter information while setting the Setting's
 // flagset. This assumes that the lock has been obtained by the caller.
 func (s *Settings) setFlags() error {
 	// Get the flag filters from the config variable information.
