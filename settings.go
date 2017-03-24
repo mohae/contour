@@ -14,8 +14,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const ConfFilenameVarName = "conf_filename"
-
 // Settings is a group of settings and holds all of the application setting
 // information. Even though contour automatically uses environment variables,
 // unless its told to ignore them, it still needs to maintain state
@@ -75,7 +73,6 @@ type Settings struct {
 func New(name string) *Settings {
 	return &Settings{
 		name:                 name,
-		confFilenameVarName:  ConfFilenameVarName,
 		errOnMissingConfFile: true,
 		searchPath:           true,
 		flagSet:              flag.NewFlagSet(name, flag.ContinueOnError),
@@ -84,6 +81,23 @@ func New(name string) *Settings {
 		shortFlags:           map[string]string{},
 		settings:             map[string]setting{},
 	}
+}
+
+// SetConfFilename sets the Setting's configuration filename and configures
+// settings to use a configuration file. If the filename is empty, an error is
+// returned.
+func SetConfFilename(v string) error { return settings.SetConfFilename(v) }
+func (s *Settings) SetConfFilename(v string) error {
+	if v == "" {
+		return fmt.Errorf("set configuration filename failed: no name provided")
+	}
+
+	// store the key value being used as the configuration setting name by caller
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.confFilename = v
+	s.useConfFile = true
+	return nil
 }
 
 // Set updates the registered settings according to Settings' configuration:

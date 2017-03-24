@@ -12,7 +12,6 @@ package contour
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 )
 
@@ -29,43 +28,6 @@ func (e RegistrationErr) Error() string {
 		return fmt.Sprintf("registration failed: %s", e.slug)
 	}
 	return fmt.Sprintf("%s: registration failed: %s", e.name, e.slug)
-}
-
-// RegisterConfFilename set's the configuration file's name.  The name is parsed
-// for a valid extension--one that is a supported format--and saves that value
-// too. If it cannot be determined, the extension info is not set.  These are
-// considered core values and cannot be changed from configuration files,
-// environment variables, and configuration files.
-//
-// If the envName is a non-empty value, it is the environment variable name to
-// check for a configuration filename.
-func RegisterConfFilename(k, v string) error { return settings.RegisterConfFilename(k, v) }
-func (s *Settings) RegisterConfFilename(k, v string) error {
-	if v == "" {
-		return fmt.Errorf("cannot register configuration file: no name provided")
-	}
-
-	// update the confFilenameVarName if the value isn't empty; otherwise the default will be used
-	if k != "" {
-		s.confFilenameVarName = k
-	}
-	// store the key value being used as the configuration setting name by caller
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	// cache this while we have the lock; technically racy but useEnv shouldn't
-	// be modified while a config file is being registered.
-	use := s.useEnv
-	// check to see if the env var is set
-	if use {
-		fname := os.Getenv(s.GetEnvName(k))
-		if fname != "" {
-			v = fname
-		}
-	}
-	s.registerStringCore(s.confFilenameVarName, v)
-	s.useConfFile = true
-	return nil
 }
 
 // RegisterSetting registers a setting. For most settings, the data and setting

@@ -4,57 +4,6 @@ import (
 	"testing"
 )
 
-func TestRegisterConfFile(t *testing.T) {
-	tests := []struct {
-		name     string
-		keyName  string
-		filename string
-		err      string
-	}{
-		{"empty", "", "", "cannot register configuration file: no name provided"},
-		{"no extension", "", "cfg", ""},
-		{"toml", "conf", "cfg.toml", ""},
-		{"yaml", "conffile", "cfg.yaml", ""},
-		{"json", "cfg", "cfg.json", ""},
-		{"xml", "", "cfg.xml", ""},
-		{"undefined", "", "cfg.bss", ""},
-	}
-	var confFilenameVarName string
-	for _, test := range tests {
-		cfg := New(test.name)
-		cfg.useEnv = false
-		err := cfg.RegisterConfFilename(test.keyName, test.filename)
-		if err != nil {
-			if test.err != err.Error() {
-				t.Errorf("RegisterConfFilename %s: expected error %q got %q", test.name, test.err, err.Error())
-			}
-			continue
-		}
-		if test.err != "" {
-			t.Errorf("%s: expected a %s error, got none", test.name, test.err)
-			continue
-		}
-		if test.keyName == "" {
-			confFilenameVarName = ConfFilenameVarName
-		} else {
-			confFilenameVarName = test.keyName
-		}
-		if cfg.confFilenameVarName != confFilenameVarName {
-			t.Errorf("%s: expected confFilenameVarName to be %s, got %s", test.name, confFilenameVarName, cfg.confFilenameVarName)
-			continue
-		}
-		fname, err := cfg.StringE(confFilenameVarName)
-		if err != nil {
-			t.Errorf("RegisterCfgFilename %s: unexpected error retrieving filename, %q", test.name, err)
-			continue
-		}
-		if fname != test.filename {
-			t.Errorf("RegisterCfgFilename %s: expected %q got %q", test.name, test.filename, fname)
-			continue
-		}
-	}
-}
-
 func TestRegisterSettings(t *testing.T) {
 	tests := []struct {
 		name          string
