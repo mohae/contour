@@ -68,12 +68,33 @@ func (s *Settings) RegisterConfFilename(k, v string) error {
 	return nil
 }
 
-// RegisterSetting checks to see if the entry already exists and adds the new
-// setting if it does not. If an error occurs, a RegistrationErr returns.
+// RegisterSetting registers a setting. For most settings, the data and setting
+// type specific registration should be used. If an error occurs, a
+// RegistrationErr will be returned. The exception would be when you want to
+// customize what can override a setting: e.g. allow updates from env vars and
+// flags only. If updating this setting, in some manner, is to be allowed,
+// IsCore must be false as that will take precedence over any other type.
+//
+// The short, dflt, and usage parms only apply to settings with IsFlag set to
+// true.
+//
+// For non string, bool, int, and int64 types, the type must be "interface{}".
 func RegisterSetting(typ, name, short string, value interface{}, dflt, usage string, IsCore, IsConfFileVar, IsEnv, IsFlag bool) error {
 	return settings.RegisterSetting(typ, name, short, value, dflt, usage, IsCore, IsConfFileVar, IsEnv, IsFlag)
 }
-func (s *Settings) RegisterSetting(typ, name, short string, value interface{}, dflt string, usage string, IsCore, IsConfFileVar, IsEnv, IsFlag bool) error {
+
+// RegisterSetting registers a setting. For most settings, the data and setting
+// type specific registration should be used. If an error occurs, a
+// RegistrationErr will be returned. The exception would be when you want to
+// customize what can override a setting: e.g. allow updates from env vars and
+// flags only. If updating this setting, in some manner, is to be allowed,
+// IsCore must be false as that will take precedence over any other type.
+//
+// The short, dflt, and usage parms only apply to settings with IsFlag set to
+// true.
+//
+// For non string, bool, int, and int64 types, the type must be "interface{}".
+func (s *Settings) RegisterSetting(typ, name, short string, value interface{}, dflt, usage string, IsCore, IsConfFileVar, IsEnv, IsFlag bool) error {
 	dType, err := parseDataType(typ)
 	if err != nil {
 		return RegistrationErr{name: name, slug: err.Error()}
@@ -83,7 +104,7 @@ func (s *Settings) RegisterSetting(typ, name, short string, value interface{}, d
 	return s.registerSetting(dType, name, short, value, dflt, usage, IsCore, IsConfFileVar, IsEnv, IsFlag)
 }
 
-func (s *Settings) registerSetting(typ dataType, name, short string, value interface{}, dflt string, usage string, IsCore, IsConfFileVar, IsEnv, IsFlag bool) error {
+func (s *Settings) registerSetting(typ dataType, name, short string, value interface{}, dflt, usage string, IsCore, IsConfFileVar, IsEnv, IsFlag bool) error {
 	if name == "" {
 		return RegistrationErr{slug: "setting name was empty"}
 	}
@@ -132,12 +153,18 @@ func (s *Settings) registerSetting(typ dataType, name, short string, value inter
 }
 
 // Core settings are not overridable via a configuration file, env vars, or
-// command-line flags.
+// command-line flags. They cannot be modified in any way once they have been
+// registered.
 
-// RegisterBoolCoreE adds the information to the package global, but does not
-// save it to its environment variable. E versions return received errors.
-func RegisterBoolCoreE(k string, v bool) error { return settings.RegisterBoolCoreE(k, v) }
-func (s *Settings) RegisterBoolCoreE(k string, v bool) error {
+// RegisterBoolCore registers a bool setting with the key k and value v. The
+// value of this setting cannot be changed once it is registered. If an error
+// occurs, a RegistrationErr will be returned.
+func RegisterBoolCore(k string, v bool) error { return settings.RegisterBoolCore(k, v) }
+
+// RegisterBoolCore registers a bool setting with the key k and value v. The
+// value of this setting cannot be changed once it is registered. If an error
+// occurs, a RegistrationErr will be returned.
+func (s *Settings) RegisterBoolCore(k string, v bool) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.registerBoolCore(k, v)
@@ -149,16 +176,15 @@ func (s *Settings) registerBoolCore(k string, v bool) error {
 	return s.registerSetting(_bool, k, "", v, strconv.FormatBool(v), "", true, false, false, false)
 }
 
-// RegisterBoolCore calls RegisterBoolCoreE and ignores any error.
-func RegisterBoolCore(k string, v bool) { settings.RegisterBoolCore(k, v) }
-func (s *Settings) RegisterBoolCore(k string, v bool) {
-	s.RegisterBoolCoreE(k, v)
-}
+// RegisterIntCore registers an int settings with the key k and value v. The
+// value of this setting cannot be changed once it is registered. If an error
+// occurs, a RegistrationErr will be returned.
+func RegisterIntCore(k string, v int) error { return settings.RegisterIntCore(k, v) }
 
-// RegisterIntCoreE adds the information to the appCfg global, but does not
-// save it to its environment variable: E versions return received errors.
-func RegisterIntCoreE(k string, v int) error { return settings.RegisterIntCoreE(k, v) }
-func (s *Settings) RegisterIntCoreE(k string, v int) error {
+// RegisterIntCore registers an int settings with the key k and value v. The
+// value of this setting cannot be changed once it is registered. If an error
+// occurs, a RegistrationErr will be returned.
+func (s *Settings) RegisterIntCore(k string, v int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.registerIntCore(k, v)
@@ -170,16 +196,15 @@ func (s *Settings) registerIntCore(k string, v int) error {
 	return s.registerSetting(_int, k, "", v, strconv.Itoa(v), "", true, false, false, false)
 }
 
-// RegisterIntCore calls RegisterIntCoreE and ignores any error.
-func RegisterIntCore(k string, v int) { settings.RegisterIntCore(k, v) }
-func (s *Settings) RegisterIntCore(k string, v int) {
-	s.RegisterIntCoreE(k, v)
-}
+// RegisterInt64Core registers an int64 settings with the key k and value v.
+// The value of this setting cannot be changed once it is registered. If an
+// error occurs, a RegistrationErr will be returned.
+func RegisterInt64Core(k string, v int64) error { return settings.RegisterInt64Core(k, v) }
 
-// RegisterInt64CoreE adds the information to the appCfg global, but does not
-// save it to its environment variable: E versions return received errors.
-func RegisterInt64CoreE(k string, v int64) error { return settings.RegisterInt64CoreE(k, v) }
-func (s *Settings) RegisterInt64CoreE(k string, v int64) error {
+// RegisterInt64Core registers an int64 settings with the key k and value v.
+// The value of this setting cannot be changed once it is registered. If an
+// error occurs, a RegistrationErr will be returned.
+func (s *Settings) RegisterInt64Core(k string, v int64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.registerInt64Core(k, v)
@@ -191,16 +216,15 @@ func (s *Settings) registerInt64Core(k string, v int64) error {
 	return s.registerSetting(_int64, k, "", v, strconv.FormatInt(v, 10), "", true, false, false, false)
 }
 
-// RegisterInt64Core calls RegisterInt64CoreE and ignores any error.
-func RegisterInt64Core(k string, v int64) { settings.RegisterInt64Core(k, v) }
-func (s *Settings) RegisterInt64Core(k string, v int64) {
-	s.RegisterInt64CoreE(k, v)
-}
+// RegisterStringCore registers an string settings with the key k and value v.
+// The value of this setting cannot be changed once it is registered. If an
+// error occurs, a RegistrationErr will be returned.
+func RegisterStringCore(k, v string) error { return settings.RegisterStringCore(k, v) }
 
-// RegisterStringCoreE adds the information to the appCfg global, but does not
-// save it to its environment variable: E versions return received errors.
-func RegisterStringCoreE(k, v string) error { return settings.RegisterStringCoreE(k, v) }
-func (s *Settings) RegisterStringCoreE(k, v string) error {
+// RegisterStringCore registers an string settings with the key k and value v.
+// The value of this setting cannot be changed once it is registered. If an
+// error occurs, a RegistrationErr will be returned.
+func (s *Settings) RegisterStringCore(k, v string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.registerStringCore(k, v)
@@ -210,21 +234,18 @@ func (s *Settings) registerStringCore(k, v string) error {
 	return s.registerSetting(_string, k, "", v, v, "", true, false, false, false)
 }
 
-// RegisterStringCore calls RegisterStringCoreE and ignores any error.
-func RegisterStringCore(k, v string) { settings.RegisterStringCore(k, v) }
-func (s *Settings) RegisterStringCore(k, v string) {
-	s.RegisterStringCoreE(k, v)
-}
+// ConfFileVar settings are settable via a configuration file.  Only settings
+// that are of type ConfFileVar, Env, and Flags can be set via a configuration
+// file. ConfFileVar's cannot be set from environment variables or flags.
 
-// ConfFileVar settings are settable via a configuration file.  Only settings that
-// are ConfFileVar, Env, and Flags can be set via a configuration file.
-
-// RegisterBoolConfFileVar registers a bool setting using name and its value
-// set to v. If an error occurs, a RegistrationErr will be returned.
+// RegisterBoolConfFileVar registers a bool setting with the key k and value v.
+// The value of this setting can only be changed by a configuration once it is
+// registered. If an error occurs, a RegistrationErr will be returned.
 func RegisterBoolConfFileVar(k string, v bool) error { return settings.RegisterBoolConfFileVar(k, v) }
 
-// RegisterBoolConfFileVar registers a bool setting using and its value set to
-// v. If an error occurs, a RegistrationErr will be returned.
+// RegisterBoolConfFileVar registers a bool setting with the key k and value v.
+// The value of this setting can only be changed by a configuration once it is
+// registered. If an error occurs, a RegistrationErr will be returned.
 func (s *Settings) RegisterBoolConfFileVar(k string, v bool) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -237,12 +258,14 @@ func (s *Settings) registerBoolConfFileVar(k string, v bool) error {
 	return s.registerSetting(_bool, k, "", v, strconv.FormatBool(v), "", false, true, true, false)
 }
 
-// RegisterIntConfFileVar registers an int setting using name and its value set
-// to v. If an error occurs, a RegistrationErr will be returned.
+// RegisterIntConfFileVar registers an int setting with the key k and value v.
+// The value of this setting can only be changed by a configuration once it is
+// registered. If an error occurs, a RegistrationErr will be returned.
 func RegisterIntConfFileVar(k string, v int) error { return settings.RegisterIntConfFileVar(k, v) }
 
-// RegisterIntConfFileVar registers an int setting using name and its value set
-// to v. If an error occurs, a RegistrationErr will be returned.
+// RegisterIntConfFileVar registers an int setting with the key k and value v.
+// The value of this setting can only be changed by a configuration once it is
+// registered. If an error occurs, a RegistrationErr will be returned.
 func (s *Settings) RegisterIntConfFileVar(k string, v int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -255,12 +278,14 @@ func (s *Settings) registerIntConfFileVar(k string, v int) error {
 	return s.registerSetting(_int, k, "", v, strconv.Itoa(v), "", false, true, true, false)
 }
 
-// RegisterInt64ConfFileVar registers an int64 settings using name and its
-// value set to v. If an error occurs, a RegistrationErr will be returned.
+// RegisterInt64ConfFileVar registers an int64 setting with the key k and value
+// The value of this setting can only be changed by a configuration once it is
+// registered. If an error occurs, a RegistrationErr will be returned.
 func RegisterInt64ConfFileVar(k string, v int64) error { return settings.RegisterInt64ConfFileVar(k, v) }
 
-// RegisterInt64ConfFileVar registers an int64 settings using name and its
-// value set to v. If an error occurs, a RegistrationErr will be returned.
+// RegisterInt64ConfFileVar registers an int64 setting with the key k and value
+// The value of this setting can only be changed by a configuration once it is
+// registered. If an error occurs, a RegistrationErr will be returned.
 func (s *Settings) RegisterInt64ConfFileVar(k string, v int64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -273,12 +298,16 @@ func (s *Settings) registerInt64ConfFileVar(k string, v int64) error {
 	return s.registerSetting(_int64, k, "", v, strconv.FormatInt(v, 10), "", false, true, true, false)
 }
 
-// RegisterStringConfFileVar registers a string setting using name and its
-// value set to v. If an error occurs, a RegistrationErr will be returned.
+// RegisterStringConfFileVar registers a string setting with the key k and
+// value v. The value of this setting can only be changed by a configuration
+// once it is registered. If an error occurs, a RegistrationErr will be
+// returned.
 func RegisterStringConfFileVar(k, v string) error { return settings.RegisterStringConfFileVar(k, v) }
 
-// RegisterStringConfFileVar registers a string setting using name and its
-// value set to v. If an error occurs, a RegistrationErr will be returned.
+// RegisterStringConfFileVar registers a string setting with the key k and
+// value v. The value of this setting can only be changed by a configuration
+// once it is registered. If an error occurs, a RegistrationErr will be
+// returned.
 func (s *Settings) RegisterStringConfFileVar(k, v string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -292,19 +321,22 @@ func (s *Settings) registerStringConfFileVar(k, v string) error {
 }
 
 // Flag settings are settable from the config file and as command-line flags.
-// Only settings that are Cfg and Flags can be set via a cfg file.  If the
-// setting can be set from an environment variable, that variables name is
-// passed via the "envName' parameter.  If there is a value for the "short
-// code(s)" parameter, that value will be used as that flag's command-line
-// short code.  If the envName == "" it will not be settable via an
-// environment variable.
+// If there is a short value, that will be the short flag alias for the
+// setting. Only settings that are of type ConfFileVar, EnvVar, and Flag can be
+// set by a flag. A flag can be set by configuration variable, environment
+// variable, and command-line argument.
 
-// RegisterBoolFlagE adds the information to the AppsConfig struct, but does not
-// save it to its environment variable: E versions return received errors.
-func RegisterBoolFlagE(k, short string, v bool, dflt, usage string) error {
-	return settings.RegisterBoolFlagE(k, short, v, dflt, usage)
+// RegisterBoolFlag registers a bool setting with the key k and value v. The
+// value of this setting can be changed by a configuration file, environment
+// variable, or a flag. If an error occurs, a RegistrationErr will be returned.
+func RegisterBoolFlag(k, short string, v bool, dflt, usage string) error {
+	return settings.RegisterBoolFlag(k, short, v, dflt, usage)
 }
-func (s *Settings) RegisterBoolFlagE(k, short string, v bool, dflt, usage string) error {
+
+// RegisterBoolFlag registers a bool setting with the key k and value v. The
+// value of this setting can be changed by a configuration file, environment
+// variable, or a flag. If an error occurs, a RegistrationErr will be returned.
+func (s *Settings) RegisterBoolFlag(k, short string, v bool, dflt, usage string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.registerBoolFlag(k, short, v, dflt, usage)
@@ -316,20 +348,17 @@ func (s *Settings) registerBoolFlag(k, short string, v bool, dflt, usage string)
 	return s.registerSetting(_bool, k, short, v, dflt, usage, false, true, true, true)
 }
 
-// RegisterBoolFlag calls RegisterBoolFlagE and ignores any error.
-func RegisterBoolFlag(k, short string, v bool, dflt, usage string) {
-	settings.RegisterBoolFlag(k, short, v, dflt, usage)
-}
-func (s *Settings) RegisterBoolFlag(k, short string, v bool, dflt, usage string) {
-	s.RegisterBoolFlagE(k, short, v, dflt, usage)
+// RegisterIntFlag registers an int setting with the key k and value v. The
+// value of this setting can be changed by a configuration file, environment
+// variable, or a flag. If an error occurs, a RegistrationErr will be returned.
+func RegisterIntFlag(k, short string, v int, dflt, usage string) error {
+	return settings.RegisterIntFlag(k, short, v, dflt, usage)
 }
 
-// RegisterIntFlagE adds the information to the appCfg global, but does not
-// save it to its environment variable: E versions return received errors.
-func RegisterIntFlagE(k, short string, v int, dflt, usage string) error {
-	return settings.RegisterIntFlagE(k, short, v, dflt, usage)
-}
-func (s *Settings) RegisterIntFlagE(k, short string, v int, dflt, usage string) error {
+// RegisterIntFlag registers an int setting with the key k and value v. The
+// value of this setting can be changed by a configuration file, environment
+// variable, or a flag. If an error occurs, a RegistrationErr will be returned.
+func (s *Settings) RegisterIntFlag(k, short string, v int, dflt, usage string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.registerIntFlag(k, short, v, dflt, usage)
@@ -341,20 +370,17 @@ func (s *Settings) registerIntFlag(k, short string, v int, dflt, usage string) e
 	return s.registerSetting(_int, k, short, v, dflt, usage, false, true, true, true)
 }
 
-// RegisterIntFlag calls RegisterIntFlagE and ignores any error.
-func RegisterIntFlag(k, short string, v int, dflt, usage string) {
-	settings.RegisterIntFlag(k, short, v, dflt, usage)
-}
-func (s *Settings) RegisterIntFlag(k, short string, v int, dflt, usage string) {
-	s.RegisterIntFlagE(k, short, v, dflt, usage)
+// RegisterInt64Flag registers an int64 setting with the key k and value v. The
+// value of this setting can be changed by a configuration file, environment
+// variable, or a flag. If an error occurs, a RegistrationErr will be returned.
+func RegisterInt64Flag(k, short string, v int64, dflt, usage string) error {
+	return settings.RegisterInt64Flag(k, short, v, dflt, usage)
 }
 
-// RegisterInt64FlagE adds the information to the appCfg global, but does not
-// save it to its environment variable: E versions return received errors.
-func RegisterInt64FlagE(k, short string, v int64, dflt, usage string) error {
-	return settings.RegisterInt64FlagE(k, short, v, dflt, usage)
-}
-func (s *Settings) RegisterInt64FlagE(k, short string, v int64, dflt, usage string) error {
+// RegisterInt64Flag registers an int64 setting with the key k and value v. The
+// value of this setting can be changed by a configuration file, environment
+// variable, or a flag. If an error occurs, a RegistrationErr will be returned.
+func (s *Settings) RegisterInt64Flag(k, short string, v int64, dflt, usage string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.registerInt64Flag(k, short, v, dflt, usage)
@@ -366,20 +392,19 @@ func (s *Settings) registerInt64Flag(k, short string, v int64, dflt, usage strin
 	return s.registerSetting(_int64, k, short, v, dflt, usage, false, true, true, true)
 }
 
-// RegisterInt64Flag calls RegisterIntFlagE and ignores any error.
-func RegisterInt64Flag(k, short string, v int64, dflt, usage string) {
-	settings.RegisterInt64Flag(k, short, v, dflt, usage)
-}
-func (s *Settings) RegisterInt64Flag(k, short string, v int64, dflt, usage string) {
-	s.RegisterInt64FlagE(k, short, v, dflt, usage)
+// RegisterStringFlag registers a string setting with the key k and value v.
+// The value of this setting can be changed by a configuration file,
+// environment variable, or a flag. If an error occurs, a RegistrationErr will
+// be returned.
+func RegisterStringFlag(k, short, v, dflt, usage string) error {
+	return settings.RegisterStringFlag(k, short, v, dflt, usage)
 }
 
-// RegisterStringFlagE adds the information to the appCfg global, but does not
-// save it to its environment variable: E versions return received errors.
-func RegisterStringFlagE(k, short, v, dflt, usage string) error {
-	return settings.RegisterStringFlagE(k, short, v, dflt, usage)
-}
-func (s *Settings) RegisterStringFlagE(k, short, v, dflt, usage string) error {
+// RegisterStringFlag registers a string setting with the key k and value v.
+// The value of this setting can be changed by a configuration file,
+// environment variable, or a flag. If an error occurs, a RegistrationErr will
+// be returned.
+func (s *Settings) RegisterStringFlag(k, short, v, dflt, usage string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.registerStringFlag(k, short, v, dflt, usage)
@@ -391,18 +416,17 @@ func (s *Settings) registerStringFlag(k, short, v, dflt, usage string) error {
 	return s.registerSetting(_string, k, short, v, dflt, usage, false, true, true, true)
 }
 
-// RegisterStringFlag calls RegisterStringFlagE and ignores any error.
-func RegisterStringFlag(k, short, v, dflt, usage string) {
-	settings.RegisterStringFlag(k, short, v, dflt, usage)
-}
-func (s *Settings) RegisterStringFlag(k, short, v, dflt, usage string) {
-	s.RegisterStringFlagE(k, short, v, dflt, usage)
-}
+// RegisterBool registers a bool setting with they key k and value f. This
+// can be updated within the application but is not updated by configuration
+// files, environment variables, or flags. If an error occurs, a
+// RegistrationErr will be returned.
+func RegisterBool(k string, v bool) error { return settings.RegisterBool(k, v) }
 
-// RegisterBoolE adds the information to the appCfg global, but does not
-// save it to its environment variable: E versions return received errors.
-func RegisterBoolE(k string, v bool) error { return settings.RegisterBoolE(k, v) }
-func (s *Settings) RegisterBoolE(k string, v bool) error {
+// RegisterBool registers a bool setting with they key k and value f. This
+// can be updated within the application but is not updated by configuration
+// files, environment variables, or flags. If an error occurs, a
+// RegistrationErr will be returned.
+func (s *Settings) RegisterBool(k string, v bool) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.registerBool(k, v)
@@ -414,16 +438,17 @@ func (s *Settings) registerBool(k string, v bool) error {
 	return s.registerSetting(_bool, k, "", v, strconv.FormatBool(v), "", false, false, false, false)
 }
 
-// RegisterBool calls RegisterBoolE and ignores any error.
-func RegisterBool(k string, v bool) { settings.RegisterBool(k, v) }
-func (s *Settings) RegisterBool(k string, v bool) {
-	s.RegisterBoolE(k, v)
-}
+// RegisterInt registers an int setting with they key k and value f. This can
+// be updated within the application but is not updated by configuration files,
+// environment variables, or flags. If an error occurs, a RegistrationErr will
+// be returned.
+func RegisterInt(k string, v int) error { return settings.RegisterInt(k, v) }
 
-// RegisterIntE adds the information to the appCfg global, but does not
-// save it to its environment variable: E versions return received errors.
-func RegisterIntE(k string, v int) error { return settings.RegisterIntE(k, v) }
-func (s *Settings) RegisterIntE(k string, v int) error {
+// RegisterInt registers an int setting with they key k and value f. This can
+// be updated within the application but is not updated by configuration files,
+// environment variables, or flags. If an error occurs, a RegistrationErr will
+// be returned.
+func (s *Settings) RegisterInt(k string, v int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.registerInt(k, v)
@@ -435,16 +460,17 @@ func (s *Settings) registerInt(k string, v int) error {
 	return s.registerSetting(_int, k, "", v, strconv.Itoa(v), "", false, false, false, false)
 }
 
-// RegisterInt calls RegisterIntE and ignores any error.
-func RegisterInt(k string, v int) { settings.RegisterInt(k, v) }
-func (s *Settings) RegisterInt(k string, v int) {
-	s.RegisterIntE(k, v)
-}
+// RegisterInt64 registers an int64 setting with they key k and value f. This
+// can be updated within the application but is not updated by configuration
+// files, environment variables, or flags. If an error occurs, a
+// RegistrationErr will be returned.
+func RegisterInt64(k string, v int64) error { return settings.RegisterInt64(k, v) }
 
-// RegisterInt64E adds the information to the appCfg global, but does not
-// save it to its environment variable: E versions return received errors.
-func RegisterInt64E(k string, v int64) error { return settings.RegisterInt64E(k, v) }
-func (s *Settings) RegisterInt64E(k string, v int64) error {
+// RegisterInt64 registers an int64 setting with they key k and value f. This
+// can be updated within the application but is not updated by configuration
+// files, environment variables, or flags. If an error occurs, a
+// RegistrationErr will be returned.
+func (s *Settings) RegisterInt64(k string, v int64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.registerInt64(k, v)
@@ -456,16 +482,12 @@ func (s *Settings) registerInt64(k string, v int64) error {
 	return s.registerSetting(_int64, k, "", v, strconv.FormatInt(v, 10), "", false, false, false, false)
 }
 
-// RegisterInt64 calls RegisterInt64E and ignores any error.
-func RegisterInt64(k string, v int64) { settings.RegisterInt64(k, v) }
-func (s *Settings) RegisterInt64(k string, v int64) {
-	s.RegisterInt64E(k, v)
-}
-
-// RegisterStringE adds the information to the appCfg global, but does not
-// save it to its environment variable: E versions return received errors.
-func RegisterStringE(k, v string) error { return settings.RegisterStringE(k, v) }
-func (s *Settings) RegisterStringE(k, v string) error {
+// RegisterString registers a string setting with they key k and value f. This
+// can be updated within the application but is not updated by configuration
+// files, environment variables, or flags. If an error occurs, a
+// RegistrationErr will be returned.
+func RegisterString(k, v string) error { return settings.RegisterString(k, v) }
+func (s *Settings) RegisterString(k, v string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.registerString(k, v)
@@ -475,10 +497,4 @@ func (s *Settings) RegisterStringE(k, v string) error {
 // return an error.
 func (s *Settings) registerString(k, v string) error {
 	return s.registerSetting(_string, k, "", v, v, "", false, false, false, false)
-}
-
-// RegisterString calls RegisterStringE and ignores any error.
-func RegisterString(k, v string) { settings.RegisterString(k, v) }
-func (s *Settings) RegisterString(k, v string) {
-	s.RegisterStringE(k, v)
 }

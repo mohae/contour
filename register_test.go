@@ -86,13 +86,13 @@ func TestRegisterSettings(t *testing.T) {
 	for i, test := range tests {
 		switch test.typ {
 		case _bool:
-			err = cfg.RegisterBoolE(test.name, test.value.(bool))
+			err = cfg.RegisterBool(test.name, test.value.(bool))
 		case _int:
-			err = cfg.RegisterIntE(test.name, test.value.(int))
+			err = cfg.RegisterInt(test.name, test.value.(int))
 		case _int64:
-			err = cfg.RegisterInt64E(test.name, test.value.(int64))
+			err = cfg.RegisterInt64(test.name, test.value.(int64))
 		case _string:
-			err = cfg.RegisterStringE(test.name, test.value.(string))
+			err = cfg.RegisterString(test.name, test.value.(string))
 		default:
 			t.Errorf("%d: unsupported typ: %s", i, test.typ)
 			continue
@@ -154,13 +154,13 @@ func TestRegisterCoreSettings(t *testing.T) {
 	for i, test := range tests {
 		switch test.typ {
 		case _bool:
-			err = tstSettings.RegisterBoolCoreE(test.name, test.value.(bool))
+			err = tstSettings.RegisterBoolCore(test.name, test.value.(bool))
 		case _int:
-			err = tstSettings.RegisterIntCoreE(test.name, test.value.(int))
+			err = tstSettings.RegisterIntCore(test.name, test.value.(int))
 		case _int64:
-			err = tstSettings.RegisterInt64CoreE(test.name, test.value.(int64))
+			err = tstSettings.RegisterInt64Core(test.name, test.value.(int64))
 		case _string:
-			err = tstSettings.RegisterStringCoreE(test.name, test.value.(string))
+			err = tstSettings.RegisterStringCore(test.name, test.value.(string))
 		default:
 			t.Errorf("%d: unsupported typ: %s", i, test.typ)
 			continue
@@ -169,45 +169,6 @@ func TestRegisterCoreSettings(t *testing.T) {
 			if err.Error() != test.expectedErr {
 				t.Errorf("%d error: expected %s got %s", i, test.expectedErr, err.Error())
 			}
-		}
-		if !test.checkValues {
-			continue
-		}
-		if tstSettings.Get(test.name) != test.expected {
-			t.Errorf("%d: expected %v got %v", i, test.expected, tstSettings.Get(test.name))
-		}
-		if tstSettings.IsCore(test.name) != test.IsCore {
-			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, tstSettings.IsCore(test.name))
-		}
-		if tstSettings.IsConfFileVar(test.name) != test.IsConfFileVar {
-			t.Errorf("%d expected IsConfFileVar to be %v, got %v", i, test.IsConfFileVar, tstSettings.IsConfFileVar(test.name))
-		}
-		if tstSettings.IsEnv(test.name) != test.IsEnv {
-			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, tstSettings.IsEnv(test.name))
-		}
-		if tstSettings.IsFlag(test.name) != test.IsFlag {
-			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, tstSettings.IsFlag(test.name))
-		}
-	}
-	// NonE
-	tstSettings = New("test register")
-	for i, test := range tests {
-		// because we aren't checking errors, don't test empty names
-		if test.name == "" {
-			continue
-		}
-		switch test.typ {
-		case _bool:
-			tstSettings.RegisterBoolCoreE(test.name, test.value.(bool))
-		case _int:
-			tstSettings.RegisterIntCoreE(test.name, test.value.(int))
-		case _int64:
-			tstSettings.RegisterInt64CoreE(test.name, test.value.(int64))
-		case _string:
-			tstSettings.RegisterStringCoreE(test.name, test.value.(string))
-		default:
-			t.Errorf("%d: unsupported typ: %s", i, test.typ)
-			continue
 		}
 		if !test.checkValues {
 			continue
@@ -330,13 +291,13 @@ func TestRegisterFlagSettings(t *testing.T) {
 	for i, test := range tests {
 		switch test.typ {
 		case _bool:
-			err = tstSettings.RegisterBoolFlagE(test.name, test.short, test.value.(bool), "", "usage")
+			err = tstSettings.RegisterBoolFlag(test.name, test.short, test.value.(bool), "", "usage")
 		case _int:
-			err = tstSettings.RegisterIntFlagE(test.name, test.short, test.value.(int), "", "usage")
+			err = tstSettings.RegisterIntFlag(test.name, test.short, test.value.(int), "", "usage")
 		case _int64:
-			err = tstSettings.RegisterInt64FlagE(test.name, test.short, test.value.(int64), "", "usage")
+			err = tstSettings.RegisterInt64Flag(test.name, test.short, test.value.(int64), "", "usage")
 		case _string:
-			err = tstSettings.RegisterStringFlagE(test.name, test.short, test.value.(string), "", "usage")
+			err = tstSettings.RegisterStringFlag(test.name, test.short, test.value.(string), "", "usage")
 		default:
 			t.Errorf("%d: unsupported typ: %s", i, test.typ)
 			continue
@@ -345,42 +306,6 @@ func TestRegisterFlagSettings(t *testing.T) {
 			if err.Error() != test.expectedErr {
 				t.Errorf("%d error: expected %s got %s", i, test.expectedErr, err.Error())
 			}
-		}
-		if !test.checkValues {
-			continue
-		}
-		if tstSettings.Get(test.name) != test.expected {
-			t.Errorf("%d: expected %v got %v", i, test.expected, tstSettings.Get(test.name))
-		}
-		if tstSettings.IsCore(test.name) != test.IsCore {
-			t.Errorf("%d expected IsCore to be %v, got %v", i, test.IsCore, tstSettings.IsCore(test.name))
-		}
-		if tstSettings.IsConfFileVar(test.name) != test.IsConfFileVar {
-			t.Errorf("%d expected IsConfFileVar to be %v, got %v", i, test.IsConfFileVar, tstSettings.IsConfFileVar(test.name))
-		}
-		if tstSettings.IsEnv(test.name) != test.IsEnv {
-			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, tstSettings.IsEnv(test.name))
-		}
-		if tstSettings.IsFlag(test.name) != test.IsFlag {
-			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, tstSettings.IsFlag(test.name))
-		}
-	}
-	// Non-E
-	tstSettings = New("test register")
-	for i, test := range tests {
-		// since no error checking is being done, we skip empty names
-		switch test.typ {
-		case _bool:
-			tstSettings.RegisterBoolFlag(test.name, test.short, test.value.(bool), "", "usage")
-		case _int:
-			tstSettings.RegisterIntFlag(test.name, test.short, test.value.(int), "", "usage")
-		case _int64:
-			tstSettings.RegisterInt64Flag(test.name, test.short, test.value.(int64), "", "usage")
-		case _string:
-			tstSettings.RegisterStringFlag(test.name, test.short, test.value.(string), "", "usage")
-		default:
-			t.Errorf("%d: unsupported typ: %s", i, test.typ)
-			continue
 		}
 		if !test.checkValues {
 			continue
