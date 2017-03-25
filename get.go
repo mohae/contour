@@ -208,17 +208,10 @@ func (s *Settings) String(k string) string {
 	return v
 }
 
-// ConfFilename returns the configuration filename. and its format. If the key
-// is not registered, or if the format isn't a supported format, an error is
-// returned and the format will be Unsupported.
-func ConfFilename() (name string, format Format, err error) { return settings.ConfFilename() }
-func (s *Settings) ConfFilename() (name string, format Format, err error) {
+// ConfFilename returns the configuration filename.
+func ConfFilename() string { return settings.ConfFilename() }
+func (s *Settings) ConfFilename() string {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	v, ok := s.settings[s.confFilenameVarName]
-	if !ok {
-		return "", Unsupported, SettingNotFoundErr{Core, s.confFilenameVarName}
-	}
-	format, _ = ParseFilenameFormat(v.Name)
-	return v.Name, format, nil
+	return s.confFilename
 }
