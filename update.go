@@ -1,8 +1,7 @@
 package contour
 
-// Only non-core settings are updateable. Flags must use Override* to update
-// settings. This assumes that the lock has already been obtained by the
-// caller.
+// Only non-core settings are updateable. This assumes that the lock has
+// already been obtained by the caller.
 func (s *Settings) update(k string, v interface{}) error {
 	// if can't update, a false will also return an error explaining why.
 	_, err := s.canUpdate(k)

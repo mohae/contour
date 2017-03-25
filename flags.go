@@ -6,19 +6,15 @@ import (
 	"sort"
 )
 
-// ParseFlags parses the args for flags. Only Flag settings can be set via
-// flags. For flag settings, flags have the highest precedence.
+// ParseFlags parses the args for flags. Only settings of type Flag can be set
+// via flags. Flags have the highest precedence. After parsing, any non-flag
+// args are returned to the caller and a list of flags in the args is cached.
 //
 // If the flags have already been parsed or Settings is set to not use flags,
 // nothing will be done and nothing will be returned.
 //
 // If this is called, the Settings should already have all of its settings
-// registered, the config file loaded (if applicable), and the envorinment
-// variables loaded (if applicable). In most cases, Settings.Set() should be
-// used instead; after registering all of the settings and configuring
-// Settings' behavior.
-//
-// Any args left, after filtering, are returned to the caller.
+// registered.
 func ParseFlags(args []string) ([]string, error) { return settings.ParseFlags(args) }
 func (s *Settings) ParseFlags(args []string) ([]string, error) {
 	s.mu.Lock()
@@ -77,8 +73,10 @@ func (s *Settings) parseFlags(args []string) ([]string, error) {
 	return cmdArgs, nil
 }
 
-// setFlags set's up the flagFilter information while setting the Setting's
-// flagset. This assumes that the lock has been obtained by the caller.
+// setFlags goes through all the settings and sets the flagset vars for any
+// that have IsFlag set to true. It a setting IsFlag but its type is
+// interface{} it will not be added to the flagset as parsing interface{} is
+// not supported.
 func (s *Settings) setFlags() error {
 	// Get the flag filters from the config variable information.
 	for _, v := range s.settings {
