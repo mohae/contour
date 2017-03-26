@@ -136,13 +136,19 @@ func (e DataTypeErr) Error() string {
 // any of the types with higher precedence if contour is configured to use that
 // type.
 const (
+	// Basic settings are settings that are none of the below.
+	Basic SettingType = iota + 1
 	// Core settings are immutable once set.
-	Core SettingType = iota + 1
-	// Env settings can be set from environment variables
-	Env
+	Core
 	// File settings can be set from a configuration file.
-	File
-	// Flag settings can be set from flags.
+	ConfFileVar
+	// Env settings can be set from a configuration file and an environment
+	// variable; unless it has been explicitly set not to be updateable from a
+	// configuration file.
+	Env
+	// Flag settings can be set from a configuration file, an environment
+	// variable, and a flag; unless it has been explicitly set not to be
+	// updateable from either a configuration file or an environment variable.
 	Flag
 )
 
@@ -151,10 +157,12 @@ type SettingType int
 
 func (t SettingType) String() string {
 	switch t {
+	case Basic:
+		return "basic"
 	case Core:
 		return "core"
-	case File:
-		return "file"
+	case ConfFileVar:
+		return "configuration file var"
 	case Env:
 		return "env"
 	case Flag:

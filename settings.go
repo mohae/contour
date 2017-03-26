@@ -407,7 +407,7 @@ func (s *Settings) IsConfFileVarE(name string) (bool, error) {
 func (s *Settings) isConfFileVar(name string) (bool, error) {
 	val, ok := s.settings[name]
 	if !ok {
-		return false, SettingNotFoundErr{settingType: File, name: name}
+		return false, SettingNotFoundErr{settingType: ConfFileVar, name: name}
 	}
 	return val.IsConfFileVar, nil
 }
@@ -479,7 +479,7 @@ func (s *Settings) canUpdate(k string) (bool, error) {
 		return false, fmt.Errorf("%s: core settings cannot be updated", k)
 	}
 	if v.IsFlag && s.flagsParsed {
-		return false, fmt.Errorf("%s: flag settings cannot be updated after parsing", k)
+		return false, fmt.Errorf("%s: flag settings cannot be updated after arg parsing", k)
 	}
 	// Everything else is updateable.
 	return true, nil

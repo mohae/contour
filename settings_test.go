@@ -267,15 +267,15 @@ func TestCanUpdate(t *testing.T) {
 		{"x-flagint64", false, false, "x-flagint64: setting not found"},
 		{"flagstring", false, true, ""},
 		{"x-flagstring", false, false, "x-flagstring: setting not found"},
-		{"flagbool", true, false, "flagbool: flag settings cannot be updated after parsing"},
+		{"flagbool", true, false, "flagbool: flag settings cannot be updated after arg parsing"},
 		// 25
 		{"x-flagbool", true, false, "x-flagbool: setting not found"},
-		{"flagint", true, false, "flagint: flag settings cannot be updated after parsing"},
+		{"flagint", true, false, "flagint: flag settings cannot be updated after arg parsing"},
 		{"x-flagint", true, false, "x-flagint: setting not found"},
-		{"flagint64", true, false, "flagint64: flag settings cannot be updated after parsing"},
+		{"flagint64", true, false, "flagint64: flag settings cannot be updated after arg parsing"},
 		{"x-flagint64", true, false, "x-flagint64: setting not found"},
 		// 30
-		{"flagstring", true, false, "flagstring: flag settings cannot be updated after parsing"},
+		{"flagstring", true, false, "flagstring: flag settings cannot be updated after arg parsing"},
 		{"x-flagstring", true, false, "x-flagstring: setting not found"},
 		{"bool", false, true, ""},
 		{"x-bool", false, false, "x-bool: setting not found"},
@@ -350,7 +350,7 @@ func TestIsFuncs(t *testing.T) {
 		// ConfFileVars
 		b, err = tstSettings.IsConfFileVarE(test.name)
 		if err != nil {
-			if err.Error() != fmt.Sprintf(": file%s", test.err) {
+			if err.Error() != fmt.Sprintf(": configuration file var%s", test.err) {
 				t.Errorf("%d: expected %q got %q", i, fmt.Sprintf(": file%s", test.err), err.Error())
 			}
 		} else {
