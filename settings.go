@@ -464,27 +464,6 @@ func (s *Settings) IsFlag(name string) bool {
 	return b
 }
 
-// canUpdate checks to see if the passed setting key is updateable. If the key
-// is not updateable, a false is returned along with an error. This assumes
-// that the lock has already been obtained by the caller.
-func (s *Settings) canUpdate(k string) (bool, error) {
-	// See if the key exists, if it doesn't already exist, it can't be updated.
-	v, ok := s.settings[k]
-	if !ok {
-		return false, SettingNotFoundErr{name: k}
-	}
-	// See if there are any settings that prevent it from being overridden.  Core and
-	// environment variables are never settable. Core must be set during registration.
-	if v.IsCore {
-		return false, fmt.Errorf("%s: core settings cannot be updated", k)
-	}
-	if v.IsFlag && s.flagsParsed {
-		return false, fmt.Errorf("%s: flag settings cannot be updated after arg parsing", k)
-	}
-	// Everything else is updateable.
-	return true, nil
-}
-
 // GetEnvName returns the env variable name version of the passed string.
 func GetEnvName(s string) string { return settings.GetEnvName(s) }
 func (s *Settings) GetEnvName(v string) string {

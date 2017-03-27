@@ -4,10 +4,10 @@ package contour
 // already been obtained by the caller.
 func (s *Settings) update(k string, v interface{}) error {
 	// if can't update, a false will also return an error explaining why.
-	_, err := s.canUpdate(k)
-	if err != nil {
-		return err
-	}
+	//can := s.canUpdate(typ, k)
+	//if !can {
+	//	return fmt.Errorf("%se: cannot update using %s", typ)
+	//}
 	val, _ := s.settings[k]
 	val.Value = v
 	s.settings[k] = val
@@ -84,4 +84,72 @@ func (s *Settings) updateStringE(k, v string) error {
 func UpdateString(k string, v string) { settings.UpdateString(k, v) }
 func (s *Settings) UpdateString(k, v string) {
 	s.UpdateStringE(k, v)
+}
+
+// canUpdate checks to see if the passed setting key is updateable. If the key
+// doesn't exist, a false will be returned. This assumes that the lock has
+// already been obtained by the caller.
+//
+// core settings can never be set.
+// settings that are not a ConfFileVar, EnvVar, and Flag, i.e. a Basic setting,
+//   cannot be set by a configuration file, environment variable, or a flag as
+//   it has not explicitly been exposed to them. They can only be set by the
+//   application code, i.e. non-contour code.
+//
+// all other settings, for whatever reason, may be any combination of types,
+// e.g. it could be a conf var and a flag. Settings of type conf var, env var
+// or flag can be set if a higher precedence type has not already been set.
+//
+// examples:
+//    a setting that IsConfFileVar && IsFlag can be set by a ConfFile if both
+//    flagsParsed and confFileVarsSet are False.
+//
+//    a setting that IsConfFileVar && IsFlag can be set by flags if both
+//    flagsParsed is False.
+//
+// k is the key of the setting and typ is the type of update that is being
+// checked.
+func (s *Settings) canUpdate(typ SettingType, k string) bool {
+	// See if the key exists, if it doesn't already exist, it can't be updated.
+	v, ok := s.settings[k]
+	if !ok {
+		return false
+	}
+	// See if there are any settings that prevent it from being overridden.  Core and
+	// environment variables are never settable. Core must be set during registration.
+	if v.IsCore {
+		return false
+	}
+	// regular, Basic, settings are always updateable as long as this is a Basic
+	// update.
+	if !v.IsCore && !v.IsEnv && !v.IsFlag && typ == Basic {
+		return true
+	}
+
+	// check by update type
+	switch typ {
+	case ConfFileVar:
+		if v.IsConfFileVar {
+			if !s.confFileVarsSet && !s.envSet && !s.flagsParsed {
+				return true
+			}
+		}
+		return false
+	case Env:
+		if v.IsEnv {
+			if !s.envSet && !s.flagsParsed {
+				return true
+			}
+		}
+		return false
+	case Flag:
+		if v.IsFlag && !s.flagsParsed {
+			return true
+		}
+		return false
+	}
+	// If it was not one of the above, we return a false. It's better to not allow
+	// an update if the case isn't handled than be too permissive. Getting here is
+	// a sign that something within this func should be updated and/or fixed.
+	return false
 }
