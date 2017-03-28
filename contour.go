@@ -144,13 +144,13 @@ func parseDataType(s string) dataType {
 // DataTypeErr occurs when the requested setting's data type is different than
 // the type requested.
 type DataTypeErr struct {
-	name string
-	is   string
-	not  dataType
+	k   string
+	is  string
+	not dataType
 }
 
 func (e DataTypeErr) Error() string {
-	return fmt.Sprintf("%s is %s, not %s", e.name, e.is, e.not)
+	return fmt.Sprintf("%s is %s, not %s", e.k, e.is, e.not)
 }
 
 // These settings are in order of precedence. Each setting type can be set by
@@ -205,24 +205,24 @@ func init() {
 
 // NotFoundErr occurs when the setting k cannot be found.
 type NotFoundErr struct {
-	v string
+	k string
 }
 
 func (e NotFoundErr) Error() string {
-	return fmt.Sprintf("%s: not found", e.v)
+	return fmt.Sprintf("%s: not found", e.k)
 }
 
 // SettingNotFoundErr occurs when a setting isn't found.
 type SettingNotFoundErr struct {
 	settingType SettingType
-	name        string
+	k           string
 }
 
 func (e SettingNotFoundErr) Error() string {
 	if e.settingType <= 0 {
-		return fmt.Sprintf("%s: setting not found", e.name)
+		return fmt.Sprintf("%s: setting not found", e.k)
 	}
-	return fmt.Sprintf("%s: %s setting not found", e.name, e.settingType)
+	return fmt.Sprintf("%s: %s setting not found", e.k, e.settingType)
 }
 
 // UnsupportedFormatErr occurs when the string cannot be matched to a

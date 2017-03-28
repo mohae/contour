@@ -150,7 +150,7 @@ func TestUpdateStrings(t *testing.T) {
 
 func TestCanUpdate(t *testing.T) {
 	tests := []struct {
-		name            string
+		k               string
 		typ             SettingType
 		confFileVarsSet bool
 		envVarsSet      bool
@@ -168,7 +168,7 @@ func TestCanUpdate(t *testing.T) {
 		{"corebool", Basic, false, true, true, false, CoreUpdateErr{k: "corebool"}},
 		{"corebool", Basic, true, false, true, false, CoreUpdateErr{k: "corebool"}},
 		{"corebool", Basic, true, true, true, false, CoreUpdateErr{k: "corebool"}},
-		{"x-corebool", Basic, false, false, false, false, SettingNotFoundErr{name: "x-corebool"}},
+		{"x-corebool", Basic, false, false, false, false, SettingNotFoundErr{k: "x-corebool"}},
 		{"corebool", Core, false, false, false, false, CoreUpdateErr{k: "corebool"}},
 		// 10
 		{"corebool", Core, true, false, false, false, CoreUpdateErr{k: "corebool"}},
@@ -179,7 +179,7 @@ func TestCanUpdate(t *testing.T) {
 		// 15
 		{"corebool", Core, true, false, true, false, CoreUpdateErr{k: "corebool"}},
 		{"corebool", Core, true, true, true, false, CoreUpdateErr{k: "corebool"}},
-		{"x-corebool", Core, false, false, false, false, SettingNotFoundErr{name: "x-corebool"}},
+		{"x-corebool", Core, false, false, false, false, SettingNotFoundErr{k: "x-corebool"}},
 		{"corebool", ConfFileVar, false, false, false, false, CoreUpdateErr{k: "corebool"}},
 		{"corebool", ConfFileVar, true, false, false, false, CoreUpdateErr{k: "corebool"}},
 		// 20
@@ -190,7 +190,7 @@ func TestCanUpdate(t *testing.T) {
 		{"corebool", ConfFileVar, true, false, true, false, CoreUpdateErr{k: "corebool"}},
 		// 25
 		{"corebool", ConfFileVar, true, true, true, false, CoreUpdateErr{k: "corebool"}},
-		{"x-corebool", ConfFileVar, false, false, false, false, SettingNotFoundErr{name: "x-corebool"}},
+		{"x-corebool", ConfFileVar, false, false, false, false, SettingNotFoundErr{k: "x-corebool"}},
 		{"corebool", EnvVar, false, false, false, false, CoreUpdateErr{k: "corebool"}},
 		{"corebool", EnvVar, true, false, false, false, CoreUpdateErr{k: "corebool"}},
 		{"corebool", EnvVar, false, true, false, false, CoreUpdateErr{k: "corebool"}},
@@ -201,7 +201,7 @@ func TestCanUpdate(t *testing.T) {
 		{"corebool", EnvVar, true, false, true, false, CoreUpdateErr{k: "corebool"}},
 		{"corebool", EnvVar, true, true, true, false, CoreUpdateErr{k: "corebool"}},
 		// 35
-		{"x-corebool", EnvVar, false, false, false, false, SettingNotFoundErr{name: "x-corebool"}},
+		{"x-corebool", EnvVar, false, false, false, false, SettingNotFoundErr{k: "x-corebool"}},
 		{"corebool", Flag, false, false, false, false, CoreUpdateErr{k: "corebool"}},
 		{"corebool", Flag, true, false, false, false, CoreUpdateErr{k: "corebool"}},
 		{"corebool", Flag, false, true, false, false, CoreUpdateErr{k: "corebool"}},
@@ -211,7 +211,7 @@ func TestCanUpdate(t *testing.T) {
 		{"corebool", Flag, false, true, true, false, CoreUpdateErr{k: "corebool"}},
 		{"corebool", Flag, true, false, true, false, CoreUpdateErr{k: "corebool"}},
 		{"corebool", Flag, true, true, true, false, CoreUpdateErr{k: "corebool"}},
-		{"x-corebool", Flag, false, false, false, false, SettingNotFoundErr{name: "x-corebool"}},
+		{"x-corebool", Flag, false, false, false, false, SettingNotFoundErr{k: "x-corebool"}},
 		// 45
 		{"coreint", Basic, false, false, false, false, CoreUpdateErr{k: "coreint"}},
 		{"coreint", Basic, true, false, false, false, CoreUpdateErr{k: "coreint"}},
@@ -222,7 +222,7 @@ func TestCanUpdate(t *testing.T) {
 		{"coreint", Basic, false, true, true, false, CoreUpdateErr{k: "coreint"}},
 		{"coreint", Basic, true, false, true, false, CoreUpdateErr{k: "coreint"}},
 		{"coreint", Basic, true, true, true, false, CoreUpdateErr{k: "coreint"}},
-		{"x-coreint", Basic, false, false, false, false, SettingNotFoundErr{name: "x-coreint"}},
+		{"x-coreint", Basic, false, false, false, false, SettingNotFoundErr{k: "x-coreint"}},
 		{"coreint", Core, false, false, false, false, CoreUpdateErr{k: "coreint"}},
 		// 55
 		{"coreint", Core, true, false, false, false, CoreUpdateErr{k: "coreint"}},
@@ -233,7 +233,7 @@ func TestCanUpdate(t *testing.T) {
 		// 60
 		{"coreint", Core, true, false, true, false, CoreUpdateErr{k: "coreint"}},
 		{"coreint", Core, true, true, true, false, CoreUpdateErr{k: "coreint"}},
-		{"x-coreint", Core, false, false, false, false, SettingNotFoundErr{name: "x-coreint"}},
+		{"x-coreint", Core, false, false, false, false, SettingNotFoundErr{k: "x-coreint"}},
 		{"coreint", ConfFileVar, false, false, false, false, CoreUpdateErr{k: "coreint"}},
 		{"coreint", ConfFileVar, true, false, false, false, CoreUpdateErr{k: "coreint"}},
 		// 65
@@ -244,7 +244,7 @@ func TestCanUpdate(t *testing.T) {
 		{"coreint", ConfFileVar, true, false, true, false, CoreUpdateErr{k: "coreint"}},
 		// 70
 		{"coreint", ConfFileVar, true, true, true, false, CoreUpdateErr{k: "coreint"}},
-		{"x-coreint", ConfFileVar, false, false, false, false, SettingNotFoundErr{name: "x-coreint"}},
+		{"x-coreint", ConfFileVar, false, false, false, false, SettingNotFoundErr{k: "x-coreint"}},
 		{"coreint", EnvVar, false, false, false, false, CoreUpdateErr{k: "coreint"}},
 		{"coreint", EnvVar, true, false, false, false, CoreUpdateErr{k: "coreint"}},
 		{"coreint", EnvVar, false, true, false, false, CoreUpdateErr{k: "coreint"}},
@@ -255,7 +255,7 @@ func TestCanUpdate(t *testing.T) {
 		{"coreint", EnvVar, true, false, true, false, CoreUpdateErr{k: "coreint"}},
 		{"coreint", EnvVar, true, true, true, false, CoreUpdateErr{k: "coreint"}},
 		// 80
-		{"x-coreint", EnvVar, false, false, false, false, SettingNotFoundErr{name: "x-coreint"}},
+		{"x-coreint", EnvVar, false, false, false, false, SettingNotFoundErr{k: "x-coreint"}},
 		{"coreint", Flag, false, false, false, false, CoreUpdateErr{k: "coreint"}},
 		{"coreint", Flag, true, false, false, false, CoreUpdateErr{k: "coreint"}},
 		{"coreint", Flag, false, true, false, false, CoreUpdateErr{k: "coreint"}},
@@ -265,7 +265,7 @@ func TestCanUpdate(t *testing.T) {
 		{"coreint", Flag, false, true, true, false, CoreUpdateErr{k: "coreint"}},
 		{"coreint", Flag, true, false, true, false, CoreUpdateErr{k: "coreint"}},
 		{"coreint", Flag, true, true, true, false, CoreUpdateErr{k: "coreint"}},
-		{"x-coreint", Flag, false, false, false, false, SettingNotFoundErr{name: "x-coreint"}},
+		{"x-coreint", Flag, false, false, false, false, SettingNotFoundErr{k: "x-coreint"}},
 		// 90
 		{"coreint64", Basic, false, false, false, false, CoreUpdateErr{k: "coreint64"}},
 		{"coreint64", Basic, true, false, false, false, CoreUpdateErr{k: "coreint64"}},
@@ -276,7 +276,7 @@ func TestCanUpdate(t *testing.T) {
 		{"coreint64", Basic, false, true, true, false, CoreUpdateErr{k: "coreint64"}},
 		{"coreint64", Basic, true, false, true, false, CoreUpdateErr{k: "coreint64"}},
 		{"coreint64", Basic, true, true, true, false, CoreUpdateErr{k: "coreint64"}},
-		{"x-coreint64", Basic, false, false, false, false, SettingNotFoundErr{name: "x-coreint64"}},
+		{"x-coreint64", Basic, false, false, false, false, SettingNotFoundErr{k: "x-coreint64"}},
 		{"coreint64", Core, false, false, false, false, CoreUpdateErr{k: "coreint64"}},
 		// 100
 		{"coreint64", Core, true, false, false, false, CoreUpdateErr{k: "coreint64"}},
@@ -287,7 +287,7 @@ func TestCanUpdate(t *testing.T) {
 		// 105
 		{"coreint64", Core, true, false, true, false, CoreUpdateErr{k: "coreint64"}},
 		{"coreint64", Core, true, true, true, false, CoreUpdateErr{k: "coreint64"}},
-		{"x-coreint64", Core, false, false, false, false, SettingNotFoundErr{name: "x-coreint64"}},
+		{"x-coreint64", Core, false, false, false, false, SettingNotFoundErr{k: "x-coreint64"}},
 		{"coreint64", ConfFileVar, false, false, false, false, CoreUpdateErr{k: "coreint64"}},
 		{"coreint64", ConfFileVar, true, false, false, false, CoreUpdateErr{k: "coreint64"}},
 		// 110
@@ -298,7 +298,7 @@ func TestCanUpdate(t *testing.T) {
 		{"coreint64", ConfFileVar, true, false, true, false, CoreUpdateErr{k: "coreint64"}},
 		// 115
 		{"coreint64", ConfFileVar, true, true, true, false, CoreUpdateErr{k: "coreint64"}},
-		{"x-coreint64", ConfFileVar, false, false, false, false, SettingNotFoundErr{name: "x-coreint64"}},
+		{"x-coreint64", ConfFileVar, false, false, false, false, SettingNotFoundErr{k: "x-coreint64"}},
 		{"coreint64", EnvVar, false, false, false, false, CoreUpdateErr{k: "coreint64"}},
 		{"coreint64", EnvVar, true, false, false, false, CoreUpdateErr{k: "coreint64"}},
 		{"coreint64", EnvVar, false, true, false, false, CoreUpdateErr{k: "coreint64"}},
@@ -309,7 +309,7 @@ func TestCanUpdate(t *testing.T) {
 		{"coreint64", EnvVar, true, false, true, false, CoreUpdateErr{k: "coreint64"}},
 		{"coreint64", EnvVar, true, true, true, false, CoreUpdateErr{k: "coreint64"}},
 		// 125
-		{"x-coreint64", EnvVar, false, false, false, false, SettingNotFoundErr{name: "x-coreint64"}},
+		{"x-coreint64", EnvVar, false, false, false, false, SettingNotFoundErr{k: "x-coreint64"}},
 		{"coreint64", Flag, false, false, false, false, CoreUpdateErr{k: "coreint64"}},
 		{"coreint64", Flag, true, false, false, false, CoreUpdateErr{k: "coreint64"}},
 		{"coreint64", Flag, false, true, false, false, CoreUpdateErr{k: "coreint64"}},
@@ -319,7 +319,7 @@ func TestCanUpdate(t *testing.T) {
 		{"coreint64", Flag, false, true, true, false, CoreUpdateErr{k: "coreint64"}},
 		{"coreint64", Flag, true, false, true, false, CoreUpdateErr{k: "coreint64"}},
 		{"coreint64", Flag, true, true, true, false, CoreUpdateErr{k: "coreint64"}},
-		{"x-coreint64", Flag, false, false, false, false, SettingNotFoundErr{name: "x-coreint64"}},
+		{"x-coreint64", Flag, false, false, false, false, SettingNotFoundErr{k: "x-coreint64"}},
 		// 135
 		{"corestring", Basic, false, false, false, false, CoreUpdateErr{k: "corestring"}},
 		{"corestring", Basic, true, false, false, false, CoreUpdateErr{k: "corestring"}},
@@ -330,7 +330,7 @@ func TestCanUpdate(t *testing.T) {
 		{"corestring", Basic, false, true, true, false, CoreUpdateErr{k: "corestring"}},
 		{"corestring", Basic, true, false, true, false, CoreUpdateErr{k: "corestring"}},
 		{"corestring", Basic, true, true, true, false, CoreUpdateErr{k: "corestring"}},
-		{"x-corestring", Basic, false, false, false, false, SettingNotFoundErr{name: "x-corestring"}},
+		{"x-corestring", Basic, false, false, false, false, SettingNotFoundErr{k: "x-corestring"}},
 		{"corestring", Core, false, false, false, false, CoreUpdateErr{k: "corestring"}},
 		// 145
 		{"corestring", Core, true, false, false, false, CoreUpdateErr{k: "corestring"}},
@@ -341,7 +341,7 @@ func TestCanUpdate(t *testing.T) {
 		// 150
 		{"corestring", Core, true, false, true, false, CoreUpdateErr{k: "corestring"}},
 		{"corestring", Core, true, true, true, false, CoreUpdateErr{k: "corestring"}},
-		{"x-corestring", Core, false, false, false, false, SettingNotFoundErr{name: "x-corestring"}},
+		{"x-corestring", Core, false, false, false, false, SettingNotFoundErr{k: "x-corestring"}},
 		{"corestring", ConfFileVar, false, false, false, false, CoreUpdateErr{k: "corestring"}},
 		{"corestring", ConfFileVar, true, false, false, false, CoreUpdateErr{k: "corestring"}},
 		// 155
@@ -352,7 +352,7 @@ func TestCanUpdate(t *testing.T) {
 		{"corestring", ConfFileVar, true, false, true, false, CoreUpdateErr{k: "corestring"}},
 		// 160
 		{"corestring", ConfFileVar, true, true, true, false, CoreUpdateErr{k: "corestring"}},
-		{"x-corestring", ConfFileVar, false, false, false, false, SettingNotFoundErr{name: "x-corestring"}},
+		{"x-corestring", ConfFileVar, false, false, false, false, SettingNotFoundErr{k: "x-corestring"}},
 		{"corestring", EnvVar, false, false, false, false, CoreUpdateErr{k: "corestring"}},
 		{"corestring", EnvVar, true, false, false, false, CoreUpdateErr{k: "corestring"}},
 		{"corestring", EnvVar, false, true, false, false, CoreUpdateErr{k: "corestring"}},
@@ -363,7 +363,7 @@ func TestCanUpdate(t *testing.T) {
 		{"corestring", EnvVar, true, false, true, false, CoreUpdateErr{k: "corestring"}},
 		{"corestring", EnvVar, true, true, true, false, CoreUpdateErr{k: "corestring"}},
 		// 170
-		{"x-corestring", EnvVar, false, false, false, false, SettingNotFoundErr{name: "x-corestring"}},
+		{"x-corestring", EnvVar, false, false, false, false, SettingNotFoundErr{k: "x-corestring"}},
 		{"corestring", Flag, false, false, false, false, CoreUpdateErr{k: "corestring"}},
 		{"corestring", Flag, true, false, false, false, CoreUpdateErr{k: "corestring"}},
 		{"corestring", Flag, false, true, false, false, CoreUpdateErr{k: "corestring"}},
@@ -373,7 +373,7 @@ func TestCanUpdate(t *testing.T) {
 		{"corestring", Flag, false, true, true, false, CoreUpdateErr{k: "corestring"}},
 		{"corestring", Flag, true, false, true, false, CoreUpdateErr{k: "corestring"}},
 		{"corestring", Flag, true, true, true, false, CoreUpdateErr{k: "corestring"}},
-		{"x-corestring", Flag, false, false, false, false, SettingNotFoundErr{name: "x-corestring"}},
+		{"x-corestring", Flag, false, false, false, false, SettingNotFoundErr{k: "x-corestring"}},
 		// 180
 		{"cfgbool", Basic, false, false, false, false, UpdateErr{typ: "configuration file", k: "cfgbool"}},
 		{"cfgbool", Basic, true, false, false, false, UpdateErr{typ: "configuration file", k: "cfgbool"}},
@@ -384,7 +384,7 @@ func TestCanUpdate(t *testing.T) {
 		{"cfgbool", Basic, false, true, true, false, UpdateErr{typ: "configuration file", k: "cfgbool"}},
 		{"cfgbool", Basic, true, false, true, false, UpdateErr{typ: "configuration file", k: "cfgbool"}},
 		{"cfgbool", Basic, true, true, true, false, UpdateErr{typ: "configuration file", k: "cfgbool"}},
-		{"x-cfgbool", Basic, false, false, false, false, SettingNotFoundErr{name: "x-cfgbool"}},
+		{"x-cfgbool", Basic, false, false, false, false, SettingNotFoundErr{k: "x-cfgbool"}},
 		{"cfgbool", Core, false, false, false, false, updateErr{typ: Core, k: "cfgbool", slug: "invalid update type"}},
 		// 190
 		{"cfgbool", Core, true, false, false, false, updateErr{typ: Core, k: "cfgbool", slug: "invalid update type"}},
@@ -395,7 +395,7 @@ func TestCanUpdate(t *testing.T) {
 		// 195
 		{"cfgbool", Core, true, false, true, false, updateErr{typ: Core, k: "cfgbool", slug: "invalid update type"}},
 		{"cfgbool", Core, true, true, true, false, updateErr{typ: Core, k: "cfgbool", slug: "invalid update type"}},
-		{"x-cfgbool", Core, false, false, false, false, SettingNotFoundErr{name: "x-cfgbool"}},
+		{"x-cfgbool", Core, false, false, false, false, SettingNotFoundErr{k: "x-cfgbool"}},
 		{"cfgbool", ConfFileVar, false, false, false, true, nil},
 		{"cfgbool", ConfFileVar, true, false, false, false, updateErr{typ: ConfFileVar, k: "cfgbool", slug: "already set from the configuration file"}},
 		// 200
@@ -406,7 +406,7 @@ func TestCanUpdate(t *testing.T) {
 		{"cfgbool", ConfFileVar, true, false, true, false, updateErr{typ: ConfFileVar, k: "cfgbool", slug: "already set from flags"}},
 		// 205
 		{"cfgbool", ConfFileVar, true, true, true, false, updateErr{typ: ConfFileVar, k: "cfgbool", slug: "already set from flags"}},
-		{"x-cfgbool", ConfFileVar, false, false, false, false, SettingNotFoundErr{name: "x-cfgbool"}},
+		{"x-cfgbool", ConfFileVar, false, false, false, false, SettingNotFoundErr{k: "x-cfgbool"}},
 		{"cfgbool", EnvVar, false, false, false, false, updateErr{typ: EnvVar, k: "cfgbool", slug: "is not an env var"}},
 		{"cfgbool", EnvVar, true, false, false, false, updateErr{typ: EnvVar, k: "cfgbool", slug: "is not an env var"}},
 		{"cfgbool", EnvVar, false, true, false, false, updateErr{typ: EnvVar, k: "cfgbool", slug: "is not an env var"}},
@@ -417,7 +417,7 @@ func TestCanUpdate(t *testing.T) {
 		{"cfgbool", EnvVar, true, false, true, false, updateErr{typ: EnvVar, k: "cfgbool", slug: "is not an env var"}},
 		{"cfgbool", EnvVar, true, true, true, false, updateErr{typ: EnvVar, k: "cfgbool", slug: "is not an env var"}},
 		// 215
-		{"x-cfgbool", EnvVar, false, false, false, false, SettingNotFoundErr{name: "x-cfgbool"}},
+		{"x-cfgbool", EnvVar, false, false, false, false, SettingNotFoundErr{k: "x-cfgbool"}},
 		{"cfgbool", Flag, false, false, false, false, updateErr{typ: Flag, k: "cfgbool", slug: "is not a flag"}},
 		{"cfgbool", Flag, true, false, false, false, updateErr{typ: Flag, k: "cfgbool", slug: "is not a flag"}},
 		{"cfgbool", Flag, false, true, false, false, updateErr{typ: Flag, k: "cfgbool", slug: "is not a flag"}},
@@ -427,7 +427,7 @@ func TestCanUpdate(t *testing.T) {
 		{"cfgbool", Flag, false, true, true, false, updateErr{typ: Flag, k: "cfgbool", slug: "is not a flag"}},
 		{"cfgbool", Flag, true, false, true, false, updateErr{typ: Flag, k: "cfgbool", slug: "is not a flag"}},
 		{"cfgbool", Flag, true, true, true, false, updateErr{typ: Flag, k: "cfgbool", slug: "is not a flag"}},
-		{"x-cfgbool", Flag, false, false, false, false, SettingNotFoundErr{name: "x-cfgbool"}},
+		{"x-cfgbool", Flag, false, false, false, false, SettingNotFoundErr{k: "x-cfgbool"}},
 		// 225
 		{"cfgint", Basic, false, false, false, false, UpdateErr{typ: "configuration file", k: "cfgint"}},
 		{"cfgint", Basic, true, false, false, false, UpdateErr{typ: "configuration file", k: "cfgint"}},
@@ -438,7 +438,7 @@ func TestCanUpdate(t *testing.T) {
 		{"cfgint", Basic, false, true, true, false, UpdateErr{typ: "configuration file", k: "cfgint"}},
 		{"cfgint", Basic, true, false, true, false, UpdateErr{typ: "configuration file", k: "cfgint"}},
 		{"cfgint", Basic, true, true, true, false, UpdateErr{typ: "configuration file", k: "cfgint"}},
-		{"x-cfgint", Basic, false, false, false, false, SettingNotFoundErr{name: "x-cfgint"}},
+		{"x-cfgint", Basic, false, false, false, false, SettingNotFoundErr{k: "x-cfgint"}},
 		{"cfgint", Core, false, false, false, false, updateErr{typ: Core, k: "cfgint", slug: "invalid update type"}},
 		// 235
 		{"cfgint", Core, true, false, false, false, updateErr{typ: Core, k: "cfgint", slug: "invalid update type"}},
@@ -449,7 +449,7 @@ func TestCanUpdate(t *testing.T) {
 		// 240
 		{"cfgint", Core, true, false, true, false, updateErr{typ: Core, k: "cfgint", slug: "invalid update type"}},
 		{"cfgint", Core, true, true, true, false, updateErr{typ: Core, k: "cfgint", slug: "invalid update type"}},
-		{"x-cfgint", Core, false, false, false, false, SettingNotFoundErr{name: "x-cfgint"}},
+		{"x-cfgint", Core, false, false, false, false, SettingNotFoundErr{k: "x-cfgint"}},
 		{"cfgint", ConfFileVar, false, false, false, true, nil},
 		{"cfgint", ConfFileVar, true, false, false, false, updateErr{typ: ConfFileVar, k: "cfgint", slug: "already set from the configuration file"}},
 		// 245
@@ -460,7 +460,7 @@ func TestCanUpdate(t *testing.T) {
 		{"cfgint", ConfFileVar, true, false, true, false, updateErr{typ: ConfFileVar, k: "cfgint", slug: "already set from flags"}},
 		// 250
 		{"cfgint", ConfFileVar, true, true, true, false, updateErr{typ: ConfFileVar, k: "cfgint", slug: "already set from flags"}},
-		{"x-cfgint", ConfFileVar, false, false, false, false, SettingNotFoundErr{name: "x-cfgint"}},
+		{"x-cfgint", ConfFileVar, false, false, false, false, SettingNotFoundErr{k: "x-cfgint"}},
 		{"cfgint", EnvVar, false, false, false, false, updateErr{typ: EnvVar, k: "cfgint", slug: "is not an env var"}},
 		{"cfgint", EnvVar, true, false, false, false, updateErr{typ: EnvVar, k: "cfgint", slug: "is not an env var"}},
 		{"cfgint", EnvVar, false, true, false, false, updateErr{typ: EnvVar, k: "cfgint", slug: "is not an env var"}},
@@ -471,7 +471,7 @@ func TestCanUpdate(t *testing.T) {
 		{"cfgint", EnvVar, true, false, true, false, updateErr{typ: EnvVar, k: "cfgint", slug: "is not an env var"}},
 		{"cfgint", EnvVar, true, true, true, false, updateErr{typ: EnvVar, k: "cfgint", slug: "is not an env var"}},
 		// 260
-		{"x-cfgint", EnvVar, false, false, false, false, SettingNotFoundErr{name: "x-cfgint"}},
+		{"x-cfgint", EnvVar, false, false, false, false, SettingNotFoundErr{k: "x-cfgint"}},
 		{"cfgint", Flag, false, false, false, false, updateErr{typ: Flag, k: "cfgint", slug: "is not a flag"}},
 		{"cfgint", Flag, true, false, false, false, updateErr{typ: Flag, k: "cfgint", slug: "is not a flag"}},
 		{"cfgint", Flag, false, true, false, false, updateErr{typ: Flag, k: "cfgint", slug: "is not a flag"}},
@@ -481,7 +481,7 @@ func TestCanUpdate(t *testing.T) {
 		{"cfgint", Flag, false, true, true, false, updateErr{typ: Flag, k: "cfgint", slug: "is not a flag"}},
 		{"cfgint", Flag, true, false, true, false, updateErr{typ: Flag, k: "cfgint", slug: "is not a flag"}},
 		{"cfgint", Flag, true, true, true, false, updateErr{typ: Flag, k: "cfgint", slug: "is not a flag"}},
-		{"x-cfgint", Flag, false, false, false, false, SettingNotFoundErr{name: "x-cfgint"}},
+		{"x-cfgint", Flag, false, false, false, false, SettingNotFoundErr{k: "x-cfgint"}},
 		// 270
 		{"cfgint64", Basic, false, false, false, false, UpdateErr{typ: "configuration file", k: "cfgint64"}},
 		{"cfgint64", Basic, true, false, false, false, UpdateErr{typ: "configuration file", k: "cfgint64"}},
@@ -492,7 +492,7 @@ func TestCanUpdate(t *testing.T) {
 		{"cfgint64", Basic, false, true, true, false, UpdateErr{typ: "configuration file", k: "cfgint64"}},
 		{"cfgint64", Basic, true, false, true, false, UpdateErr{typ: "configuration file", k: "cfgint64"}},
 		{"cfgint64", Basic, true, true, true, false, UpdateErr{typ: "configuration file", k: "cfgint64"}},
-		{"x-cfgint64", Basic, false, false, false, false, SettingNotFoundErr{name: "x-cfgint64"}},
+		{"x-cfgint64", Basic, false, false, false, false, SettingNotFoundErr{k: "x-cfgint64"}},
 		{"cfgint64", Core, false, false, false, false, updateErr{typ: Core, k: "cfgint64", slug: "invalid update type"}},
 		// 280
 		{"cfgint64", Core, true, false, false, false, updateErr{typ: Core, k: "cfgint64", slug: "invalid update type"}},
@@ -503,7 +503,7 @@ func TestCanUpdate(t *testing.T) {
 		// 285
 		{"cfgint64", Core, true, false, true, false, updateErr{typ: Core, k: "cfgint64", slug: "invalid update type"}},
 		{"cfgint64", Core, true, true, true, false, updateErr{typ: Core, k: "cfgint64", slug: "invalid update type"}},
-		{"x-cfgint64", Core, false, false, false, false, SettingNotFoundErr{name: "x-cfgint64"}},
+		{"x-cfgint64", Core, false, false, false, false, SettingNotFoundErr{k: "x-cfgint64"}},
 		{"cfgint64", ConfFileVar, false, false, false, true, nil},
 		{"cfgint64", ConfFileVar, true, false, false, false, updateErr{typ: ConfFileVar, k: "cfgint64", slug: "already set from the configuration file"}},
 		// 290
@@ -514,7 +514,7 @@ func TestCanUpdate(t *testing.T) {
 		{"cfgint64", ConfFileVar, true, false, true, false, updateErr{typ: ConfFileVar, k: "cfgint64", slug: "already set from flags"}},
 		// 295
 		{"cfgint64", ConfFileVar, true, true, true, false, updateErr{typ: ConfFileVar, k: "cfgint64", slug: "already set from flags"}},
-		{"x-cfgint64", ConfFileVar, false, false, false, false, SettingNotFoundErr{name: "x-cfgint64"}},
+		{"x-cfgint64", ConfFileVar, false, false, false, false, SettingNotFoundErr{k: "x-cfgint64"}},
 		{"cfgint64", EnvVar, false, false, false, false, updateErr{typ: EnvVar, k: "cfgint64", slug: "is not an env var"}},
 		{"cfgint64", EnvVar, true, false, false, false, updateErr{typ: EnvVar, k: "cfgint64", slug: "is not an env var"}},
 		{"cfgint64", EnvVar, false, true, false, false, updateErr{typ: EnvVar, k: "cfgint64", slug: "is not an env var"}},
@@ -525,7 +525,7 @@ func TestCanUpdate(t *testing.T) {
 		{"cfgint64", EnvVar, true, false, true, false, updateErr{typ: EnvVar, k: "cfgint64", slug: "is not an env var"}},
 		{"cfgint64", EnvVar, true, true, true, false, updateErr{typ: EnvVar, k: "cfgint64", slug: "is not an env var"}},
 		// 305
-		{"x-cfgint64", EnvVar, false, false, false, false, SettingNotFoundErr{name: "x-cfgint64"}},
+		{"x-cfgint64", EnvVar, false, false, false, false, SettingNotFoundErr{k: "x-cfgint64"}},
 		{"cfgint64", Flag, false, false, false, false, updateErr{typ: Flag, k: "cfgint64", slug: "is not a flag"}},
 		{"cfgint64", Flag, true, false, false, false, updateErr{typ: Flag, k: "cfgint64", slug: "is not a flag"}},
 		{"cfgint64", Flag, false, true, false, false, updateErr{typ: Flag, k: "cfgint64", slug: "is not a flag"}},
@@ -535,7 +535,7 @@ func TestCanUpdate(t *testing.T) {
 		{"cfgint64", Flag, false, true, true, false, updateErr{typ: Flag, k: "cfgint64", slug: "is not a flag"}},
 		{"cfgint64", Flag, true, false, true, false, updateErr{typ: Flag, k: "cfgint64", slug: "is not a flag"}},
 		{"cfgint64", Flag, true, true, true, false, updateErr{typ: Flag, k: "cfgint64", slug: "is not a flag"}},
-		{"x-cfgint64", Flag, false, false, false, false, SettingNotFoundErr{name: "x-cfgint64"}},
+		{"x-cfgint64", Flag, false, false, false, false, SettingNotFoundErr{k: "x-cfgint64"}},
 		// 315
 		{"cfgstring", Basic, false, false, false, false, UpdateErr{typ: "configuration file", k: "cfgstring"}},
 		{"cfgstring", Basic, true, false, false, false, UpdateErr{typ: "configuration file", k: "cfgstring"}},
@@ -546,7 +546,7 @@ func TestCanUpdate(t *testing.T) {
 		{"cfgstring", Basic, false, true, true, false, UpdateErr{typ: "configuration file", k: "cfgstring"}},
 		{"cfgstring", Basic, true, false, true, false, UpdateErr{typ: "configuration file", k: "cfgstring"}},
 		{"cfgstring", Basic, true, true, true, false, UpdateErr{typ: "configuration file", k: "cfgstring"}},
-		{"x-cfgstring", Basic, false, false, false, false, SettingNotFoundErr{name: "x-cfgstring"}},
+		{"x-cfgstring", Basic, false, false, false, false, SettingNotFoundErr{k: "x-cfgstring"}},
 		{"cfgstring", Core, false, false, false, false, updateErr{typ: Core, k: "cfgstring", slug: "invalid update type"}},
 		// 325
 		{"cfgstring", Core, true, false, false, false, updateErr{typ: Core, k: "cfgstring", slug: "invalid update type"}},
@@ -557,7 +557,7 @@ func TestCanUpdate(t *testing.T) {
 		// 330
 		{"cfgstring", Core, true, false, true, false, updateErr{typ: Core, k: "cfgstring", slug: "invalid update type"}},
 		{"cfgstring", Core, true, true, true, false, updateErr{typ: Core, k: "cfgstring", slug: "invalid update type"}},
-		{"x-cfgstring", Core, false, false, false, false, SettingNotFoundErr{name: "x-cfgstring"}},
+		{"x-cfgstring", Core, false, false, false, false, SettingNotFoundErr{k: "x-cfgstring"}},
 		{"cfgstring", ConfFileVar, false, false, false, true, nil},
 		{"cfgstring", ConfFileVar, true, false, false, false, updateErr{typ: ConfFileVar, k: "cfgstring", slug: "already set from the configuration file"}},
 		// 335
@@ -568,7 +568,7 @@ func TestCanUpdate(t *testing.T) {
 		{"cfgstring", ConfFileVar, true, false, true, false, updateErr{typ: ConfFileVar, k: "cfgstring", slug: "already set from flags"}},
 		// 340
 		{"cfgstring", ConfFileVar, true, true, true, false, updateErr{typ: ConfFileVar, k: "cfgstring", slug: "already set from flags"}},
-		{"x-cfgstring", ConfFileVar, false, false, false, false, SettingNotFoundErr{name: "x-cfgstring"}},
+		{"x-cfgstring", ConfFileVar, false, false, false, false, SettingNotFoundErr{k: "x-cfgstring"}},
 		{"cfgstring", EnvVar, false, false, false, false, updateErr{typ: EnvVar, k: "cfgstring", slug: "is not an env var"}},
 		{"cfgstring", EnvVar, true, false, false, false, updateErr{typ: EnvVar, k: "cfgstring", slug: "is not an env var"}},
 		{"cfgstring", EnvVar, false, true, false, false, updateErr{typ: EnvVar, k: "cfgstring", slug: "is not an env var"}},
@@ -579,7 +579,7 @@ func TestCanUpdate(t *testing.T) {
 		{"cfgstring", EnvVar, true, false, true, false, updateErr{typ: EnvVar, k: "cfgstring", slug: "is not an env var"}},
 		{"cfgstring", EnvVar, true, true, true, false, updateErr{typ: EnvVar, k: "cfgstring", slug: "is not an env var"}},
 		// 350
-		{"x-cfgstring", EnvVar, false, false, false, false, SettingNotFoundErr{name: "x-cfgstring"}},
+		{"x-cfgstring", EnvVar, false, false, false, false, SettingNotFoundErr{k: "x-cfgstring"}},
 		{"cfgstring", Flag, false, false, false, false, updateErr{typ: Flag, k: "cfgstring", slug: "is not a flag"}},
 		{"cfgstring", Flag, true, false, false, false, updateErr{typ: Flag, k: "cfgstring", slug: "is not a flag"}},
 		{"cfgstring", Flag, false, true, false, false, updateErr{typ: Flag, k: "cfgstring", slug: "is not a flag"}},
@@ -589,7 +589,7 @@ func TestCanUpdate(t *testing.T) {
 		{"cfgstring", Flag, false, true, true, false, updateErr{typ: Flag, k: "cfgstring", slug: "is not a flag"}},
 		{"cfgstring", Flag, true, false, true, false, updateErr{typ: Flag, k: "cfgstring", slug: "is not a flag"}},
 		{"cfgstring", Flag, true, true, true, false, updateErr{typ: Flag, k: "cfgstring", slug: "is not a flag"}},
-		{"x-cfgstring", Flag, false, false, false, false, SettingNotFoundErr{name: "x-cfgstring"}},
+		{"x-cfgstring", Flag, false, false, false, false, SettingNotFoundErr{k: "x-cfgstring"}},
 
 		// 360
 		{"envbool", Basic, false, false, false, false, UpdateErr{typ: "env var", k: "envbool"}},
@@ -601,7 +601,7 @@ func TestCanUpdate(t *testing.T) {
 		{"envbool", Basic, false, true, true, false, UpdateErr{typ: "env var", k: "envbool"}},
 		{"envbool", Basic, true, false, true, false, UpdateErr{typ: "env var", k: "envbool"}},
 		{"envbool", Basic, true, true, true, false, UpdateErr{typ: "env var", k: "envbool"}},
-		{"x-envbool", Basic, false, false, false, false, SettingNotFoundErr{name: "x-envbool"}},
+		{"x-envbool", Basic, false, false, false, false, SettingNotFoundErr{k: "x-envbool"}},
 
 		{"envbool", Core, false, false, false, false, updateErr{typ: Core, k: "envbool", slug: "invalid update type"}},
 		// 370
@@ -613,7 +613,7 @@ func TestCanUpdate(t *testing.T) {
 		// 375
 		{"envbool", Core, true, false, true, false, updateErr{typ: Core, k: "envbool", slug: "invalid update type"}},
 		{"envbool", Core, true, true, true, false, updateErr{typ: Core, k: "envbool", slug: "invalid update type"}},
-		{"x-envbool", Core, false, false, false, false, SettingNotFoundErr{name: "x-envbool"}},
+		{"x-envbool", Core, false, false, false, false, SettingNotFoundErr{k: "x-envbool"}},
 		{"envbool", ConfFileVar, false, false, false, true, nil},
 		{"envbool", ConfFileVar, true, false, false, false, updateErr{typ: ConfFileVar, k: "envbool", slug: "already set from the configuration file"}},
 		// 380
@@ -624,7 +624,7 @@ func TestCanUpdate(t *testing.T) {
 		{"envbool", ConfFileVar, true, false, true, false, updateErr{typ: ConfFileVar, k: "envbool", slug: "already set from flags"}},
 		// 385
 		{"envbool", ConfFileVar, true, true, true, false, updateErr{typ: ConfFileVar, k: "envbool", slug: "already set from flags"}},
-		{"x-envbool", ConfFileVar, false, false, false, false, SettingNotFoundErr{name: "x-envbool"}},
+		{"x-envbool", ConfFileVar, false, false, false, false, SettingNotFoundErr{k: "x-envbool"}},
 		{"envbool", EnvVar, false, false, false, true, nil},
 		{"envbool", EnvVar, true, false, false, true, nil},
 		{"envbool", EnvVar, false, true, false, false, updateErr{typ: EnvVar, k: "envbool", slug: "already set from env vars"}},
@@ -635,7 +635,7 @@ func TestCanUpdate(t *testing.T) {
 		{"envbool", EnvVar, true, false, true, false, updateErr{typ: EnvVar, k: "envbool", slug: "already set from flags"}},
 		{"envbool", EnvVar, true, true, true, false, updateErr{typ: EnvVar, k: "envbool", slug: "already set from flags"}},
 		// 395
-		{"x-envbool", EnvVar, false, false, false, false, SettingNotFoundErr{name: "x-envbool"}},
+		{"x-envbool", EnvVar, false, false, false, false, SettingNotFoundErr{k: "x-envbool"}},
 		{"envbool", Flag, false, false, false, false, updateErr{typ: Flag, k: "envbool", slug: "is not a flag"}},
 		{"envbool", Flag, true, false, false, false, updateErr{typ: Flag, k: "envbool", slug: "is not a flag"}},
 		{"envbool", Flag, false, true, false, false, updateErr{typ: Flag, k: "envbool", slug: "is not a flag"}},
@@ -645,7 +645,7 @@ func TestCanUpdate(t *testing.T) {
 		{"envbool", Flag, false, true, true, false, updateErr{typ: Flag, k: "envbool", slug: "is not a flag"}},
 		{"envbool", Flag, true, false, true, false, updateErr{typ: Flag, k: "envbool", slug: "is not a flag"}},
 		{"envbool", Flag, true, true, true, false, updateErr{typ: Flag, k: "envbool", slug: "is not a flag"}},
-		{"x-envbool", Flag, false, false, false, false, SettingNotFoundErr{name: "x-envbool"}},
+		{"x-envbool", Flag, false, false, false, false, SettingNotFoundErr{k: "x-envbool"}},
 		// 405
 		{"envint", Basic, false, false, false, false, UpdateErr{typ: "env var", k: "envint"}},
 		{"envint", Basic, true, false, false, false, UpdateErr{typ: "env var", k: "envint"}},
@@ -656,7 +656,7 @@ func TestCanUpdate(t *testing.T) {
 		{"envint", Basic, false, true, true, false, UpdateErr{typ: "env var", k: "envint"}},
 		{"envint", Basic, true, false, true, false, UpdateErr{typ: "env var", k: "envint"}},
 		{"envint", Basic, true, true, true, false, UpdateErr{typ: "env var", k: "envint"}},
-		{"x-envint", Basic, false, false, false, false, SettingNotFoundErr{name: "x-envint"}},
+		{"x-envint", Basic, false, false, false, false, SettingNotFoundErr{k: "x-envint"}},
 		{"envint", Core, false, false, false, false, updateErr{typ: Core, k: "envint", slug: "invalid update type"}},
 		// 415
 		{"envint", Core, true, false, false, false, updateErr{typ: Core, k: "envint", slug: "invalid update type"}},
@@ -667,7 +667,7 @@ func TestCanUpdate(t *testing.T) {
 		// 420
 		{"envint", Core, true, false, true, false, updateErr{typ: Core, k: "envint", slug: "invalid update type"}},
 		{"envint", Core, true, true, true, false, updateErr{typ: Core, k: "envint", slug: "invalid update type"}},
-		{"x-envint", Core, false, false, false, false, SettingNotFoundErr{name: "x-envint"}},
+		{"x-envint", Core, false, false, false, false, SettingNotFoundErr{k: "x-envint"}},
 		{"envint", ConfFileVar, false, false, false, true, nil},
 		{"envint", ConfFileVar, true, false, false, false, updateErr{typ: ConfFileVar, k: "envint", slug: "already set from the configuration file"}},
 		// 425
@@ -678,7 +678,7 @@ func TestCanUpdate(t *testing.T) {
 		{"envint", ConfFileVar, true, false, true, false, updateErr{typ: ConfFileVar, k: "envint", slug: "already set from flags"}},
 		// 430
 		{"envint", ConfFileVar, true, true, true, false, updateErr{typ: ConfFileVar, k: "envint", slug: "already set from flags"}},
-		{"x-envint", ConfFileVar, false, false, false, false, SettingNotFoundErr{name: "x-envint"}},
+		{"x-envint", ConfFileVar, false, false, false, false, SettingNotFoundErr{k: "x-envint"}},
 		{"envint", EnvVar, false, false, false, true, nil},
 		{"envint", EnvVar, true, false, false, true, nil},
 		{"envint", EnvVar, false, true, false, false, updateErr{typ: EnvVar, k: "envint", slug: "already set from env vars"}},
@@ -689,7 +689,7 @@ func TestCanUpdate(t *testing.T) {
 		{"envint", EnvVar, true, false, true, false, updateErr{typ: EnvVar, k: "envint", slug: "already set from flags"}},
 		{"envint", EnvVar, true, true, true, false, updateErr{typ: EnvVar, k: "envint", slug: "already set from flags"}},
 		// 440
-		{"x-envint", EnvVar, false, false, false, false, SettingNotFoundErr{name: "x-envint"}},
+		{"x-envint", EnvVar, false, false, false, false, SettingNotFoundErr{k: "x-envint"}},
 		{"envint", Flag, false, false, false, false, updateErr{typ: Flag, k: "envint", slug: "is not a flag"}},
 		{"envint", Flag, true, false, false, false, updateErr{typ: Flag, k: "envint", slug: "is not a flag"}},
 		{"envint", Flag, false, true, false, false, updateErr{typ: Flag, k: "envint", slug: "is not a flag"}},
@@ -699,7 +699,7 @@ func TestCanUpdate(t *testing.T) {
 		{"envint", Flag, false, true, true, false, updateErr{typ: Flag, k: "envint", slug: "is not a flag"}},
 		{"envint", Flag, true, false, true, false, updateErr{typ: Flag, k: "envint", slug: "is not a flag"}},
 		{"envint", Flag, true, true, true, false, updateErr{typ: Flag, k: "envint", slug: "is not a flag"}},
-		{"x-envint", Flag, false, false, false, false, SettingNotFoundErr{name: "x-envint"}},
+		{"x-envint", Flag, false, false, false, false, SettingNotFoundErr{k: "x-envint"}},
 		// 450
 		{"envint64", Basic, false, false, false, false, UpdateErr{typ: "env var", k: "envint64"}},
 		{"envint64", Basic, true, false, false, false, UpdateErr{typ: "env var", k: "envint64"}},
@@ -711,7 +711,7 @@ func TestCanUpdate(t *testing.T) {
 		{"envint64", Basic, false, true, true, false, UpdateErr{typ: "env var", k: "envint64"}},
 		{"envint64", Basic, true, false, true, false, UpdateErr{typ: "env var", k: "envint64"}},
 		{"envint64", Basic, true, true, true, false, UpdateErr{typ: "env var", k: "envint64"}},
-		{"x-envint64", Basic, false, false, false, false, SettingNotFoundErr{name: "x-envint64"}},
+		{"x-envint64", Basic, false, false, false, false, SettingNotFoundErr{k: "x-envint64"}},
 		// 460
 		{"envint64", Core, false, false, false, false, updateErr{typ: Core, k: "envint64", slug: "invalid update type"}},
 		{"envint64", Core, true, false, false, false, updateErr{typ: Core, k: "envint64", slug: "invalid update type"}},
@@ -722,7 +722,7 @@ func TestCanUpdate(t *testing.T) {
 		{"envint64", Core, false, true, true, false, updateErr{typ: Core, k: "envint64", slug: "invalid update type"}},
 		{"envint64", Core, true, false, true, false, updateErr{typ: Core, k: "envint64", slug: "invalid update type"}},
 		{"envint64", Core, true, true, true, false, updateErr{typ: Core, k: "envint64", slug: "invalid update type"}},
-		{"x-envint64", Core, false, false, false, false, SettingNotFoundErr{name: "x-envint64"}},
+		{"x-envint64", Core, false, false, false, false, SettingNotFoundErr{k: "x-envint64"}},
 		{"envint64", ConfFileVar, false, false, false, true, nil},
 		// 470
 		{"envint64", ConfFileVar, true, false, false, false, updateErr{typ: ConfFileVar, k: "envint64", slug: "already set from the configuration file"}},
@@ -733,7 +733,7 @@ func TestCanUpdate(t *testing.T) {
 		// 475
 		{"envint64", ConfFileVar, true, false, true, false, updateErr{typ: ConfFileVar, k: "envint64", slug: "already set from flags"}},
 		{"envint64", ConfFileVar, true, true, true, false, updateErr{typ: ConfFileVar, k: "envint64", slug: "already set from flags"}},
-		{"x-envint64", ConfFileVar, false, false, false, false, SettingNotFoundErr{name: "x-envint64"}},
+		{"x-envint64", ConfFileVar, false, false, false, false, SettingNotFoundErr{k: "x-envint64"}},
 		{"envint64", EnvVar, false, false, false, true, nil},
 		{"envint64", EnvVar, true, false, false, true, nil},
 		// 480
@@ -744,7 +744,7 @@ func TestCanUpdate(t *testing.T) {
 		{"envint64", EnvVar, true, false, true, false, updateErr{typ: EnvVar, k: "envint64", slug: "already set from flags"}},
 		// 485
 		{"envint64", EnvVar, true, true, true, false, updateErr{typ: EnvVar, k: "envint64", slug: "already set from flags"}},
-		{"x-envint64", EnvVar, false, false, false, false, SettingNotFoundErr{name: "x-envint64"}},
+		{"x-envint64", EnvVar, false, false, false, false, SettingNotFoundErr{k: "x-envint64"}},
 		{"envint64", Flag, false, false, false, false, updateErr{typ: Flag, k: "envint64", slug: "is not a flag"}},
 		{"envint64", Flag, true, false, false, false, updateErr{typ: Flag, k: "envint64", slug: "is not a flag"}},
 		{"envint64", Flag, false, true, false, false, updateErr{typ: Flag, k: "envint64", slug: "is not a flag"}},
@@ -755,7 +755,7 @@ func TestCanUpdate(t *testing.T) {
 		{"envint64", Flag, true, false, true, false, updateErr{typ: Flag, k: "envint64", slug: "is not a flag"}},
 		{"envint64", Flag, true, true, true, false, updateErr{typ: Flag, k: "envint64", slug: "is not a flag"}},
 		// 495
-		{"x-envint64", Flag, false, false, false, false, SettingNotFoundErr{name: "x-envint64"}},
+		{"x-envint64", Flag, false, false, false, false, SettingNotFoundErr{k: "x-envint64"}},
 		{"envstring", Basic, false, false, false, false, UpdateErr{typ: "env var", k: "envstring"}},
 		{"envstring", Basic, true, false, false, false, UpdateErr{typ: "env var", k: "envstring"}},
 		{"envstring", Basic, false, true, false, false, UpdateErr{typ: "env var", k: "envstring"}},
@@ -765,7 +765,7 @@ func TestCanUpdate(t *testing.T) {
 		{"envstring", Basic, false, true, true, false, UpdateErr{typ: "env var", k: "envstring"}},
 		{"envstring", Basic, true, false, true, false, UpdateErr{typ: "env var", k: "envstring"}},
 		{"envstring", Basic, true, true, true, false, UpdateErr{typ: "env var", k: "envstring"}},
-		{"x-envstring", Basic, false, false, false, false, SettingNotFoundErr{name: "x-envstring"}},
+		{"x-envstring", Basic, false, false, false, false, SettingNotFoundErr{k: "x-envstring"}},
 		// 505
 		{"envstring", Core, false, false, false, false, updateErr{typ: Core, k: "envstring", slug: "invalid update type"}},
 		{"envstring", Core, true, false, false, false, updateErr{typ: Core, k: "envstring", slug: "invalid update type"}},
@@ -776,7 +776,7 @@ func TestCanUpdate(t *testing.T) {
 		{"envstring", Core, false, true, true, false, updateErr{typ: Core, k: "envstring", slug: "invalid update type"}},
 		{"envstring", Core, true, false, true, false, updateErr{typ: Core, k: "envstring", slug: "invalid update type"}},
 		{"envstring", Core, true, true, true, false, updateErr{typ: Core, k: "envstring", slug: "invalid update type"}},
-		{"x-envstring", Core, false, false, false, false, SettingNotFoundErr{name: "x-envstring"}},
+		{"x-envstring", Core, false, false, false, false, SettingNotFoundErr{k: "x-envstring"}},
 		{"envstring", ConfFileVar, false, false, false, true, nil},
 		// 515
 		{"envstring", ConfFileVar, true, false, false, false, updateErr{typ: ConfFileVar, k: "envstring", slug: "already set from the configuration file"}},
@@ -787,7 +787,7 @@ func TestCanUpdate(t *testing.T) {
 		// 520
 		{"envstring", ConfFileVar, true, false, true, false, updateErr{typ: ConfFileVar, k: "envstring", slug: "already set from flags"}},
 		{"envstring", ConfFileVar, true, true, true, false, updateErr{typ: ConfFileVar, k: "envstring", slug: "already set from flags"}},
-		{"x-envstring", ConfFileVar, false, false, false, false, SettingNotFoundErr{name: "x-envstring"}},
+		{"x-envstring", ConfFileVar, false, false, false, false, SettingNotFoundErr{k: "x-envstring"}},
 		{"envstring", EnvVar, false, false, false, true, nil},
 		{"envstring", EnvVar, true, false, false, true, nil},
 		// 525
@@ -798,7 +798,7 @@ func TestCanUpdate(t *testing.T) {
 		{"envstring", EnvVar, true, false, true, false, updateErr{typ: EnvVar, k: "envstring", slug: "already set from flags"}},
 		// 530
 		{"envstring", EnvVar, true, true, true, false, updateErr{typ: EnvVar, k: "envstring", slug: "already set from flags"}},
-		{"x-envstring", EnvVar, false, false, false, false, SettingNotFoundErr{name: "x-envstring"}},
+		{"x-envstring", EnvVar, false, false, false, false, SettingNotFoundErr{k: "x-envstring"}},
 		{"envstring", Flag, false, false, false, false, updateErr{typ: Flag, k: "envstring", slug: "is not a flag"}},
 		{"envstring", Flag, true, false, false, false, updateErr{typ: Flag, k: "envstring", slug: "is not a flag"}},
 		{"envstring", Flag, false, true, false, false, updateErr{typ: Flag, k: "envstring", slug: "is not a flag"}},
@@ -809,7 +809,7 @@ func TestCanUpdate(t *testing.T) {
 		{"envstring", Flag, true, false, true, false, updateErr{typ: Flag, k: "envstring", slug: "is not a flag"}},
 		{"envstring", Flag, true, true, true, false, updateErr{typ: Flag, k: "envstring", slug: "is not a flag"}},
 		// 540
-		{"x-envstring", Flag, false, false, false, false, SettingNotFoundErr{name: "x-envstring"}},
+		{"x-envstring", Flag, false, false, false, false, SettingNotFoundErr{k: "x-envstring"}},
 		{"flagbool", Basic, false, false, false, false, UpdateErr{typ: "flag", k: "flagbool"}},
 		{"flagbool", Basic, true, false, false, false, UpdateErr{typ: "flag", k: "flagbool"}},
 		{"flagbool", Basic, false, true, false, false, UpdateErr{typ: "flag", k: "flagbool"}},
@@ -819,7 +819,7 @@ func TestCanUpdate(t *testing.T) {
 		{"flagbool", Basic, false, true, true, false, UpdateErr{typ: "flag", k: "flagbool"}},
 		{"flagbool", Basic, true, false, true, false, UpdateErr{typ: "flag", k: "flagbool"}},
 		{"flagbool", Basic, true, true, true, false, UpdateErr{typ: "flag", k: "flagbool"}},
-		{"x-flagbool", Basic, false, false, false, false, SettingNotFoundErr{name: "x-flagbool"}},
+		{"x-flagbool", Basic, false, false, false, false, SettingNotFoundErr{k: "x-flagbool"}},
 		// 550
 		{"flagbool", Core, false, false, false, false, updateErr{typ: Core, k: "flagbool", slug: "invalid update type"}},
 		{"flagbool", Core, true, false, false, false, updateErr{typ: Core, k: "flagbool", slug: "invalid update type"}},
@@ -830,7 +830,7 @@ func TestCanUpdate(t *testing.T) {
 		{"flagbool", Core, false, true, true, false, updateErr{typ: Core, k: "flagbool", slug: "invalid update type"}},
 		{"flagbool", Core, true, false, true, false, updateErr{typ: Core, k: "flagbool", slug: "invalid update type"}},
 		{"flagbool", Core, true, true, true, false, updateErr{typ: Core, k: "flagbool", slug: "invalid update type"}},
-		{"x-flagbool", Core, false, false, false, false, SettingNotFoundErr{name: "x-flagbool"}},
+		{"x-flagbool", Core, false, false, false, false, SettingNotFoundErr{k: "x-flagbool"}},
 		{"flagbool", ConfFileVar, false, false, false, true, nil},
 		// 560
 		{"flagbool", ConfFileVar, true, false, false, false, updateErr{typ: ConfFileVar, k: "flagbool", slug: "already set from the configuration file"}},
@@ -841,7 +841,7 @@ func TestCanUpdate(t *testing.T) {
 		// 565
 		{"flagbool", ConfFileVar, true, false, true, false, updateErr{typ: ConfFileVar, k: "flagbool", slug: "already set from flags"}},
 		{"flagbool", ConfFileVar, true, true, true, false, updateErr{typ: ConfFileVar, k: "flagbool", slug: "already set from flags"}},
-		{"x-flagbool", ConfFileVar, false, false, false, false, SettingNotFoundErr{name: "x-flagbool"}},
+		{"x-flagbool", ConfFileVar, false, false, false, false, SettingNotFoundErr{k: "x-flagbool"}},
 		{"flagbool", EnvVar, false, false, false, true, nil},
 		{"flagbool", EnvVar, true, false, false, true, nil},
 		// 570
@@ -852,7 +852,7 @@ func TestCanUpdate(t *testing.T) {
 		{"flagbool", EnvVar, true, false, true, false, updateErr{typ: EnvVar, k: "flagbool", slug: "already set from flags"}},
 		// 575
 		{"flagbool", EnvVar, true, true, true, false, updateErr{typ: EnvVar, k: "flagbool", slug: "already set from flags"}},
-		{"x-flagbool", EnvVar, false, false, false, false, SettingNotFoundErr{name: "x-flagbool"}},
+		{"x-flagbool", EnvVar, false, false, false, false, SettingNotFoundErr{k: "x-flagbool"}},
 		{"flagbool", Flag, false, false, false, true, nil},
 		{"flagbool", Flag, true, false, false, true, nil},
 		{"flagbool", Flag, false, true, false, true, nil},
@@ -863,7 +863,7 @@ func TestCanUpdate(t *testing.T) {
 		{"flagbool", Flag, true, false, true, false, updateErr{typ: Flag, k: "flagbool", slug: "already set from flags"}},
 		{"flagbool", Flag, true, true, true, false, updateErr{typ: Flag, k: "flagbool", slug: "already set from flags"}},
 		// 585
-		{"x-flagbool", Flag, false, false, false, false, SettingNotFoundErr{name: "x-flagbool"}},
+		{"x-flagbool", Flag, false, false, false, false, SettingNotFoundErr{k: "x-flagbool"}},
 		{"flagint", Basic, false, false, false, false, UpdateErr{typ: "flag", k: "flagint"}},
 		{"flagint", Basic, true, false, false, false, UpdateErr{typ: "flag", k: "flagint"}},
 		{"flagint", Basic, true, false, false, false, UpdateErr{typ: "flag", k: "flagint"}},
@@ -875,7 +875,7 @@ func TestCanUpdate(t *testing.T) {
 		{"flagint", Basic, true, false, true, false, UpdateErr{typ: "flag", k: "flagint"}},
 		{"flagint", Basic, true, true, true, false, UpdateErr{typ: "flag", k: "flagint"}},
 		// 595
-		{"x-flagint", Basic, false, false, false, false, SettingNotFoundErr{name: "x-flagint"}},
+		{"x-flagint", Basic, false, false, false, false, SettingNotFoundErr{k: "x-flagint"}},
 		{"flagint", Core, false, false, false, false, updateErr{typ: Core, k: "flagint", slug: "invalid update type"}},
 		{"flagint", Core, true, false, false, false, updateErr{typ: Core, k: "flagint", slug: "invalid update type"}},
 		{"flagint", Core, false, true, false, false, updateErr{typ: Core, k: "flagint", slug: "invalid update type"}},
@@ -885,7 +885,7 @@ func TestCanUpdate(t *testing.T) {
 		{"flagint", Core, false, true, true, false, updateErr{typ: Core, k: "flagint", slug: "invalid update type"}},
 		{"flagint", Core, true, false, true, false, updateErr{typ: Core, k: "flagint", slug: "invalid update type"}},
 		{"flagint", Core, true, true, true, false, updateErr{typ: Core, k: "flagint", slug: "invalid update type"}},
-		{"x-flagint", Core, false, false, false, false, SettingNotFoundErr{name: "x-flagint"}},
+		{"x-flagint", Core, false, false, false, false, SettingNotFoundErr{k: "x-flagint"}},
 		// 605
 		{"flagint", ConfFileVar, false, false, false, true, nil},
 		{"flagint", ConfFileVar, true, false, false, false, updateErr{typ: ConfFileVar, k: "flagint", slug: "already set from the configuration file"}},
@@ -896,7 +896,7 @@ func TestCanUpdate(t *testing.T) {
 		{"flagint", ConfFileVar, false, true, true, false, updateErr{typ: ConfFileVar, k: "flagint", slug: "already set from flags"}},
 		{"flagint", ConfFileVar, true, false, true, false, updateErr{typ: ConfFileVar, k: "flagint", slug: "already set from flags"}},
 		{"flagint", ConfFileVar, true, true, true, false, updateErr{typ: Flag, k: "flagint", slug: "already set from flags"}},
-		{"x-flagint", ConfFileVar, false, false, false, false, SettingNotFoundErr{name: "x-flagint"}},
+		{"x-flagint", ConfFileVar, false, false, false, false, SettingNotFoundErr{k: "x-flagint"}},
 		{"flagint", EnvVar, false, false, false, true, nil},
 		// 615
 		{"flagint", EnvVar, true, false, false, true, nil},
@@ -907,7 +907,7 @@ func TestCanUpdate(t *testing.T) {
 		// 620
 		{"flagint", EnvVar, true, false, true, false, updateErr{typ: EnvVar, k: "flagint", slug: "already set from flags"}},
 		{"flagint", EnvVar, true, true, true, false, updateErr{typ: EnvVar, k: "flagint", slug: "already set from flags"}},
-		{"x-flagint", EnvVar, false, false, false, false, SettingNotFoundErr{name: "x-flagint"}},
+		{"x-flagint", EnvVar, false, false, false, false, SettingNotFoundErr{k: "x-flagint"}},
 		{"flagint", Flag, false, false, false, true, nil},
 		{"flagint", Flag, true, false, false, true, nil},
 		// 625
@@ -918,7 +918,7 @@ func TestCanUpdate(t *testing.T) {
 		{"flagint", Flag, true, false, true, false, updateErr{typ: Flag, k: "flagint", slug: "already set from flags"}},
 		// 630
 		{"flagint", Flag, true, true, true, false, updateErr{typ: Flag, k: "flagint", slug: "already set from flags"}},
-		{"x-flagint", Flag, false, false, false, false, SettingNotFoundErr{name: "x-flagint"}},
+		{"x-flagint", Flag, false, false, false, false, SettingNotFoundErr{k: "x-flagint"}},
 		{"flagint64", Basic, false, false, false, false, UpdateErr{typ: "flag", k: "flagint64"}},
 		{"flagint64", Basic, true, false, false, false, UpdateErr{typ: "flag", k: "flagint64"}},
 		{"flagint64", Basic, true, false, false, false, UpdateErr{typ: "flag", k: "flagint64"}},
@@ -930,7 +930,7 @@ func TestCanUpdate(t *testing.T) {
 		{"flagint64", Basic, true, false, true, false, UpdateErr{typ: "flag", k: "flagint64"}},
 		// 640
 		{"flagint64", Basic, true, true, true, false, UpdateErr{typ: "flag", k: "flagint64"}},
-		{"x-flagint64", Basic, false, false, false, false, SettingNotFoundErr{name: "x-flagint64"}},
+		{"x-flagint64", Basic, false, false, false, false, SettingNotFoundErr{k: "x-flagint64"}},
 		{"flagint64", Core, false, false, false, false, updateErr{typ: Core, k: "flagint64", slug: "invalid update type"}},
 		{"flagint64", Core, true, false, false, false, updateErr{typ: Core, k: "flagint64", slug: "invalid update type"}},
 		{"flagint64", Core, false, true, false, false, updateErr{typ: Core, k: "flagint64", slug: "invalid update type"}},
@@ -941,7 +941,7 @@ func TestCanUpdate(t *testing.T) {
 		{"flagint64", Core, true, false, true, false, updateErr{typ: Core, k: "flagint64", slug: "invalid update type"}},
 		{"flagint64", Core, true, true, true, false, updateErr{typ: Core, k: "flagint64", slug: "invalid update type"}},
 		// 650
-		{"x-flagint64", Core, false, false, false, false, SettingNotFoundErr{name: "x-flagint64"}},
+		{"x-flagint64", Core, false, false, false, false, SettingNotFoundErr{k: "x-flagint64"}},
 		{"flagint64", ConfFileVar, false, false, false, true, nil},
 		{"flagint64", ConfFileVar, true, false, false, false, updateErr{typ: ConfFileVar, k: "flagint64", slug: "already set from the configuration file"}},
 		{"flagint64", ConfFileVar, false, true, false, false, updateErr{typ: ConfFileVar, k: "flagint64", slug: "already set from env vars"}},
@@ -951,7 +951,7 @@ func TestCanUpdate(t *testing.T) {
 		{"flagint64", ConfFileVar, false, true, true, false, updateErr{typ: ConfFileVar, k: "flagint64", slug: "already set from flags"}},
 		{"flagint64", ConfFileVar, true, false, true, false, updateErr{typ: ConfFileVar, k: "flagint64", slug: "already set from flags"}},
 		{"flagint64", ConfFileVar, true, true, true, false, updateErr{typ: ConfFileVar, k: "flagint64", slug: "already set from flags"}},
-		{"x-flagint64", ConfFileVar, false, false, false, false, SettingNotFoundErr{name: "x-flagint64"}},
+		{"x-flagint64", ConfFileVar, false, false, false, false, SettingNotFoundErr{k: "x-flagint64"}},
 		// 660
 		{"flagint64", EnvVar, false, false, false, true, nil},
 		{"flagint64", EnvVar, true, false, false, true, nil},
@@ -962,7 +962,7 @@ func TestCanUpdate(t *testing.T) {
 		{"flagint64", EnvVar, false, true, true, false, updateErr{typ: EnvVar, k: "flagint64", slug: "already set from flags"}},
 		{"flagint64", EnvVar, true, false, true, false, updateErr{typ: EnvVar, k: "flagint64", slug: "already set from flags"}},
 		{"flagint64", EnvVar, true, true, true, false, updateErr{typ: EnvVar, k: "flagint64", slug: "already set from flags"}},
-		{"x-flagint64", EnvVar, false, false, false, false, SettingNotFoundErr{name: "x-flagint64"}},
+		{"x-flagint64", EnvVar, false, false, false, false, SettingNotFoundErr{k: "x-flagint64"}},
 		{"flagint64", Flag, false, false, false, true, nil},
 		// 670
 		{"flagint64", Flag, true, false, false, true, nil},
@@ -973,7 +973,7 @@ func TestCanUpdate(t *testing.T) {
 		// 675
 		{"flagint64", Flag, true, false, true, false, updateErr{typ: Flag, k: "flagint64", slug: "already set from flags"}},
 		{"flagint64", Flag, true, true, true, false, updateErr{typ: Flag, k: "flagint64", slug: "already set from flags"}},
-		{"x-flagint64", Flag, false, false, false, false, SettingNotFoundErr{name: "x-flagint64"}},
+		{"x-flagint64", Flag, false, false, false, false, SettingNotFoundErr{k: "x-flagint64"}},
 		{"flagstring", Basic, false, false, false, false, UpdateErr{typ: "flag", k: "flagstring"}},
 		{"flagstring", Basic, true, false, false, false, UpdateErr{typ: "flag", k: "flagstring"}},
 		// 680
@@ -985,7 +985,7 @@ func TestCanUpdate(t *testing.T) {
 		// 685
 		{"flagstring", Basic, true, false, true, false, UpdateErr{typ: "flag", k: "flagstring"}},
 		{"flagstring", Basic, true, true, true, false, UpdateErr{typ: "flag", k: "flagstring"}},
-		{"x-flagstring", Basic, false, false, false, false, SettingNotFoundErr{name: "x-flagstring"}},
+		{"x-flagstring", Basic, false, false, false, false, SettingNotFoundErr{k: "x-flagstring"}},
 		{"flagstring", Core, false, false, false, false, updateErr{typ: Core, k: "flagstring", slug: "invalid update type"}},
 		{"flagstring", Core, true, false, false, false, updateErr{typ: Core, k: "flagstring", slug: "invalid update type"}},
 		// 690
@@ -996,7 +996,7 @@ func TestCanUpdate(t *testing.T) {
 		{"flagstring", Core, true, false, true, false, updateErr{typ: Core, k: "flagstring", slug: "invalid update type"}},
 		// 695
 		{"flagstring", Core, true, true, true, false, updateErr{typ: Core, k: "flagstring", slug: "invalid update type"}},
-		{"x-flagstring", Core, false, false, false, false, SettingNotFoundErr{name: "x-flagstring"}},
+		{"x-flagstring", Core, false, false, false, false, SettingNotFoundErr{k: "x-flagstring"}},
 		{"flagstring", ConfFileVar, false, false, false, true, nil},
 		{"flagstring", ConfFileVar, true, false, false, false, updateErr{typ: ConfFileVar, k: "flagstring", slug: "already set from the configuration file"}},
 		{"flagstring", ConfFileVar, false, true, false, false, updateErr{typ: ConfFileVar, k: "flagstring", slug: "already set from env vars"}},
@@ -1007,7 +1007,7 @@ func TestCanUpdate(t *testing.T) {
 		{"flagstring", ConfFileVar, true, false, true, false, updateErr{typ: ConfFileVar, k: "flagstring", slug: "already set from flags"}},
 		{"flagstring", ConfFileVar, true, true, true, false, updateErr{typ: ConfFileVar, k: "flagstring", slug: "already set from flags"}},
 		// 705
-		{"x-flagstring", ConfFileVar, false, false, false, false, SettingNotFoundErr{name: "x-flagstring"}},
+		{"x-flagstring", ConfFileVar, false, false, false, false, SettingNotFoundErr{k: "x-flagstring"}},
 		{"flagstring", EnvVar, false, false, false, true, nil},
 		{"flagstring", EnvVar, true, false, false, true, nil},
 		{"flagstring", EnvVar, false, true, false, false, updateErr{typ: EnvVar, k: "flagstring", slug: "already set from env vars"}},
@@ -1017,7 +1017,7 @@ func TestCanUpdate(t *testing.T) {
 		{"flagstring", EnvVar, false, true, true, false, updateErr{typ: EnvVar, k: "flagstring", slug: "already set from flags"}},
 		{"flagstring", EnvVar, true, false, true, false, updateErr{typ: EnvVar, k: "flagstring", slug: "already set from flags"}},
 		{"flagstring", EnvVar, true, true, true, false, updateErr{typ: EnvVar, k: "flagstring", slug: "already set from flags"}},
-		{"x-flagstring", EnvVar, false, false, false, false, SettingNotFoundErr{name: "x-flagstring"}},
+		{"x-flagstring", EnvVar, false, false, false, false, SettingNotFoundErr{k: "x-flagstring"}},
 		// 715
 		{"flagstring", Flag, false, false, false, true, nil},
 		{"flagstring", Flag, true, false, false, true, nil},
@@ -1028,7 +1028,7 @@ func TestCanUpdate(t *testing.T) {
 		{"flagstring", Flag, false, true, true, false, updateErr{typ: Flag, k: "flagstring", slug: "already set from flags"}},
 		{"flagstring", Flag, true, false, true, false, updateErr{typ: Flag, k: "flagstring", slug: "already set from flags"}},
 		{"flagstring", Flag, true, true, true, false, updateErr{typ: Flag, k: "flagstring", slug: "already set from flags"}},
-		{"x-flagstring", Flag, false, false, false, false, SettingNotFoundErr{name: "x-flagstring"}},
+		{"x-flagstring", Flag, false, false, false, false, SettingNotFoundErr{k: "x-flagstring"}},
 		{"bool", Basic, false, false, false, true, nil},
 
 		// 725
@@ -1040,7 +1040,7 @@ func TestCanUpdate(t *testing.T) {
 		// 730
 		{"bool", Basic, true, false, true, true, nil},
 		{"bool", Basic, true, true, true, true, nil},
-		{"x-bool", Basic, false, false, false, false, SettingNotFoundErr{name: "x-bool"}},
+		{"x-bool", Basic, false, false, false, false, SettingNotFoundErr{k: "x-bool"}},
 		{"bool", Core, false, false, false, false, updateErr{typ: Core, k: "bool", slug: "invalid update type"}},
 		{"bool", Core, true, false, false, false, updateErr{typ: Core, k: "bool", slug: "invalid update type"}},
 		// 735
@@ -1051,7 +1051,7 @@ func TestCanUpdate(t *testing.T) {
 		{"bool", Core, true, false, true, false, updateErr{typ: Core, k: "bool", slug: "invalid update type"}},
 		// 740
 		{"bool", Core, true, true, true, false, updateErr{typ: Core, k: "bool", slug: "invalid update type"}},
-		{"x-bool", Core, false, false, false, false, SettingNotFoundErr{name: "x-bool"}},
+		{"x-bool", Core, false, false, false, false, SettingNotFoundErr{k: "x-bool"}},
 		{"bool", ConfFileVar, false, false, false, false, updateErr{typ: ConfFileVar, k: "bool", slug: fmt.Sprintf("is not a %s", ConfFileVar)}},
 		{"bool", ConfFileVar, true, false, false, false, updateErr{typ: ConfFileVar, k: "bool", slug: fmt.Sprintf("is not a %s", ConfFileVar)}},
 		{"bool", ConfFileVar, false, true, false, false, updateErr{typ: ConfFileVar, k: "bool", slug: fmt.Sprintf("is not a %s", ConfFileVar)}},
@@ -1062,7 +1062,7 @@ func TestCanUpdate(t *testing.T) {
 		{"bool", ConfFileVar, true, false, true, false, updateErr{typ: ConfFileVar, k: "bool", slug: fmt.Sprintf("is not a %s", ConfFileVar)}},
 		{"bool", ConfFileVar, true, true, true, false, updateErr{typ: ConfFileVar, k: "bool", slug: fmt.Sprintf("is not a %s", ConfFileVar)}},
 		// 750
-		{"x-bool", ConfFileVar, false, false, false, false, SettingNotFoundErr{name: "x-bool"}},
+		{"x-bool", ConfFileVar, false, false, false, false, SettingNotFoundErr{k: "x-bool"}},
 		{"bool", EnvVar, false, false, false, false, updateErr{typ: ConfFileVar, k: "bool", slug: fmt.Sprintf("is not an %s", EnvVar)}},
 		{"bool", EnvVar, true, false, false, false, updateErr{typ: ConfFileVar, k: "bool", slug: fmt.Sprintf("is not an %s", EnvVar)}},
 		{"bool", EnvVar, false, true, false, false, updateErr{typ: ConfFileVar, k: "bool", slug: fmt.Sprintf("is not an %s", EnvVar)}},
@@ -1072,7 +1072,7 @@ func TestCanUpdate(t *testing.T) {
 		{"bool", EnvVar, false, true, true, false, updateErr{typ: ConfFileVar, k: "bool", slug: fmt.Sprintf("is not an %s", EnvVar)}},
 		{"bool", EnvVar, true, false, true, false, updateErr{typ: ConfFileVar, k: "bool", slug: fmt.Sprintf("is not an %s", EnvVar)}},
 		{"bool", EnvVar, true, true, true, false, updateErr{typ: ConfFileVar, k: "bool", slug: fmt.Sprintf("is not an %s", EnvVar)}},
-		{"x-bool", EnvVar, false, false, false, false, SettingNotFoundErr{name: "x-bool"}},
+		{"x-bool", EnvVar, false, false, false, false, SettingNotFoundErr{k: "x-bool"}},
 		// 760
 		{"bool", Flag, false, false, false, false, updateErr{typ: ConfFileVar, k: "bool", slug: fmt.Sprintf("is not a %s", Flag)}},
 		{"bool", Flag, true, false, false, false, updateErr{typ: ConfFileVar, k: "bool", slug: fmt.Sprintf("is not a %s", Flag)}},
@@ -1083,7 +1083,7 @@ func TestCanUpdate(t *testing.T) {
 		{"bool", Flag, false, true, true, false, updateErr{typ: ConfFileVar, k: "bool", slug: fmt.Sprintf("is not a %s", Flag)}},
 		{"bool", Flag, true, false, true, false, updateErr{typ: ConfFileVar, k: "bool", slug: fmt.Sprintf("is not a %s", Flag)}},
 		{"bool", Flag, true, true, true, false, updateErr{typ: ConfFileVar, k: "bool", slug: fmt.Sprintf("is not a %s", Flag)}},
-		{"x-bool", Flag, false, false, false, false, SettingNotFoundErr{name: "x-bool"}},
+		{"x-bool", Flag, false, false, false, false, SettingNotFoundErr{k: "x-bool"}},
 		{"int", Basic, false, false, false, true, nil},
 		// 770
 		{"int", Basic, true, false, false, true, nil},
@@ -1094,7 +1094,7 @@ func TestCanUpdate(t *testing.T) {
 		// 775
 		{"int", Basic, true, false, true, true, nil},
 		{"int", Basic, true, true, true, true, nil},
-		{"x-int", Basic, false, false, false, false, SettingNotFoundErr{name: "x-int"}},
+		{"x-int", Basic, false, false, false, false, SettingNotFoundErr{k: "x-int"}},
 		{"int", Core, false, false, false, false, updateErr{typ: Core, k: "int", slug: "invalid update type"}},
 		{"int", Core, true, false, false, false, updateErr{typ: Core, k: "int", slug: "invalid update type"}},
 		// 780
@@ -1105,7 +1105,7 @@ func TestCanUpdate(t *testing.T) {
 		{"int", Core, true, false, true, false, updateErr{typ: Core, k: "int", slug: "invalid update type"}},
 		// 785
 		{"int", Core, true, true, true, false, updateErr{typ: Core, k: "int", slug: "invalid update type"}},
-		{"x-int", Core, false, false, false, false, SettingNotFoundErr{name: "x-int"}},
+		{"x-int", Core, false, false, false, false, SettingNotFoundErr{k: "x-int"}},
 		{"int", ConfFileVar, false, false, false, false, updateErr{typ: ConfFileVar, k: "int", slug: fmt.Sprintf("is not a %s", ConfFileVar)}},
 		{"int", ConfFileVar, true, false, false, false, updateErr{typ: ConfFileVar, k: "int", slug: fmt.Sprintf("is not a %s", ConfFileVar)}},
 		{"int", ConfFileVar, false, true, false, false, updateErr{typ: ConfFileVar, k: "int", slug: fmt.Sprintf("is not a %s", ConfFileVar)}},
@@ -1116,7 +1116,7 @@ func TestCanUpdate(t *testing.T) {
 		{"int", ConfFileVar, true, false, true, false, updateErr{typ: ConfFileVar, k: "int", slug: fmt.Sprintf("is not a %s", ConfFileVar)}},
 		// 795
 		{"int", ConfFileVar, true, true, true, false, updateErr{typ: ConfFileVar, k: "int", slug: fmt.Sprintf("is not a %s", ConfFileVar)}},
-		{"x-int", ConfFileVar, false, false, false, false, SettingNotFoundErr{name: "x-int"}},
+		{"x-int", ConfFileVar, false, false, false, false, SettingNotFoundErr{k: "x-int"}},
 		{"int", EnvVar, false, false, false, false, updateErr{typ: ConfFileVar, k: "int", slug: fmt.Sprintf("is not an %s", EnvVar)}},
 		{"int", EnvVar, true, false, false, false, updateErr{typ: ConfFileVar, k: "int", slug: fmt.Sprintf("is not an %s", EnvVar)}},
 		{"int", EnvVar, false, true, false, false, updateErr{typ: ConfFileVar, k: "int", slug: fmt.Sprintf("is not an %s", EnvVar)}},
@@ -1126,7 +1126,7 @@ func TestCanUpdate(t *testing.T) {
 		{"int", EnvVar, false, true, true, false, updateErr{typ: ConfFileVar, k: "int", slug: fmt.Sprintf("is not an %s", EnvVar)}},
 		{"int", EnvVar, true, false, true, false, updateErr{typ: ConfFileVar, k: "int", slug: fmt.Sprintf("is not an %s", EnvVar)}},
 		{"int", EnvVar, true, true, true, false, updateErr{typ: ConfFileVar, k: "int", slug: fmt.Sprintf("is not an %s", EnvVar)}},
-		{"x-int", EnvVar, false, false, false, false, SettingNotFoundErr{name: "x-int"}},
+		{"x-int", EnvVar, false, false, false, false, SettingNotFoundErr{k: "x-int"}},
 		// 805
 		{"int", Flag, false, false, false, false, updateErr{typ: ConfFileVar, k: "int", slug: fmt.Sprintf("is not a %s", Flag)}},
 		{"int", Flag, true, false, false, false, updateErr{typ: ConfFileVar, k: "int", slug: fmt.Sprintf("is not a %s", Flag)}},
@@ -1137,7 +1137,7 @@ func TestCanUpdate(t *testing.T) {
 		{"int", Flag, false, true, true, false, updateErr{typ: ConfFileVar, k: "int", slug: fmt.Sprintf("is not a %s", Flag)}},
 		{"int", Flag, true, false, true, false, updateErr{typ: ConfFileVar, k: "int", slug: fmt.Sprintf("is not a %s", Flag)}},
 		{"int", Flag, true, true, true, false, updateErr{typ: ConfFileVar, k: "int", slug: fmt.Sprintf("is not a %s", Flag)}},
-		{"x-int", Flag, false, false, false, false, SettingNotFoundErr{name: "x-int"}},
+		{"x-int", Flag, false, false, false, false, SettingNotFoundErr{k: "x-int"}},
 		{"int64", Basic, false, false, false, true, nil},
 		// 815
 		{"int64", Basic, true, false, false, true, nil},
@@ -1148,7 +1148,7 @@ func TestCanUpdate(t *testing.T) {
 		// 820
 		{"int64", Basic, true, false, true, true, nil},
 		{"int64", Basic, true, true, true, true, nil},
-		{"x-int64", Basic, false, false, false, false, SettingNotFoundErr{name: "x-int64"}},
+		{"x-int64", Basic, false, false, false, false, SettingNotFoundErr{k: "x-int64"}},
 		{"int64", Core, false, false, false, false, updateErr{typ: Core, k: "int64", slug: "invalid update type"}},
 		{"int64", Core, true, false, false, false, updateErr{typ: Core, k: "int64", slug: "invalid update type"}},
 		// 825
@@ -1159,7 +1159,7 @@ func TestCanUpdate(t *testing.T) {
 		{"int64", Core, true, false, true, false, updateErr{typ: Core, k: "int64", slug: "invalid update type"}},
 		// 830
 		{"int64", Core, true, true, true, false, updateErr{typ: Core, k: "int64", slug: "invalid update type"}},
-		{"x-int64", Core, false, false, false, false, SettingNotFoundErr{name: "x-int64"}},
+		{"x-int64", Core, false, false, false, false, SettingNotFoundErr{k: "x-int64"}},
 		{"int64", ConfFileVar, false, false, false, false, updateErr{typ: ConfFileVar, k: "int64", slug: fmt.Sprintf("is not a %s", ConfFileVar)}},
 		{"int64", ConfFileVar, true, false, false, false, updateErr{typ: ConfFileVar, k: "int64", slug: fmt.Sprintf("is not a %s", ConfFileVar)}},
 		{"int64", ConfFileVar, false, true, false, false, updateErr{typ: ConfFileVar, k: "int64", slug: fmt.Sprintf("is not a %s", ConfFileVar)}},
@@ -1170,7 +1170,7 @@ func TestCanUpdate(t *testing.T) {
 		{"int64", ConfFileVar, true, false, true, false, updateErr{typ: ConfFileVar, k: "int64", slug: fmt.Sprintf("is not a %s", ConfFileVar)}},
 		{"int64", ConfFileVar, true, true, true, false, updateErr{typ: ConfFileVar, k: "int64", slug: fmt.Sprintf("is not a %s", ConfFileVar)}},
 		// 840
-		{"x-int64", ConfFileVar, false, false, false, false, SettingNotFoundErr{name: "x-int64"}},
+		{"x-int64", ConfFileVar, false, false, false, false, SettingNotFoundErr{k: "x-int64"}},
 		{"int64", EnvVar, false, false, false, false, updateErr{typ: ConfFileVar, k: "int64", slug: fmt.Sprintf("is not an %s", EnvVar)}},
 		{"int64", EnvVar, true, false, false, false, updateErr{typ: ConfFileVar, k: "int64", slug: fmt.Sprintf("is not an %s", EnvVar)}},
 		{"int64", EnvVar, false, true, false, false, updateErr{typ: ConfFileVar, k: "int64", slug: fmt.Sprintf("is not an %s", EnvVar)}},
@@ -1180,7 +1180,7 @@ func TestCanUpdate(t *testing.T) {
 		{"int64", EnvVar, false, true, true, false, updateErr{typ: ConfFileVar, k: "int64", slug: fmt.Sprintf("is not an %s", EnvVar)}},
 		{"int64", EnvVar, true, false, true, false, updateErr{typ: ConfFileVar, k: "int64", slug: fmt.Sprintf("is not an %s", EnvVar)}},
 		{"int64", EnvVar, true, true, true, false, updateErr{typ: ConfFileVar, k: "int64", slug: fmt.Sprintf("is not an %s", EnvVar)}},
-		{"x-int64", EnvVar, false, false, false, false, SettingNotFoundErr{name: "x-int64"}},
+		{"x-int64", EnvVar, false, false, false, false, SettingNotFoundErr{k: "x-int64"}},
 		// 850
 		{"int64", Flag, false, false, false, false, updateErr{typ: ConfFileVar, k: "int64", slug: fmt.Sprintf("is not a %s", Flag)}},
 		{"int64", Flag, true, false, false, false, updateErr{typ: ConfFileVar, k: "int64", slug: fmt.Sprintf("is not a %s", Flag)}},
@@ -1191,7 +1191,7 @@ func TestCanUpdate(t *testing.T) {
 		{"int64", Flag, false, true, true, false, updateErr{typ: ConfFileVar, k: "int64", slug: fmt.Sprintf("is not a %s", Flag)}},
 		{"int64", Flag, true, false, true, false, updateErr{typ: ConfFileVar, k: "int64", slug: fmt.Sprintf("is not a %s", Flag)}},
 		{"int64", Flag, true, true, true, false, updateErr{typ: ConfFileVar, k: "int64", slug: fmt.Sprintf("is not a %s", Flag)}},
-		{"x-int64", Flag, false, false, false, false, SettingNotFoundErr{name: "x-int64"}},
+		{"x-int64", Flag, false, false, false, false, SettingNotFoundErr{k: "x-int64"}},
 		{"string", Basic, false, false, false, true, nil},
 		// 860
 		{"string", Basic, true, false, false, true, nil},
@@ -1202,7 +1202,7 @@ func TestCanUpdate(t *testing.T) {
 		// 865
 		{"string", Basic, true, false, true, true, nil},
 		{"string", Basic, true, true, true, true, nil},
-		{"x-string", Basic, false, false, false, false, SettingNotFoundErr{name: "x-string"}},
+		{"x-string", Basic, false, false, false, false, SettingNotFoundErr{k: "x-string"}},
 		{"string", Core, false, false, false, false, updateErr{typ: Core, k: "string", slug: "invalid update type"}},
 		{"string", Core, true, false, false, false, updateErr{typ: Core, k: "string", slug: "invalid update type"}},
 		// 870
@@ -1213,7 +1213,7 @@ func TestCanUpdate(t *testing.T) {
 		{"string", Core, true, false, true, false, updateErr{typ: Core, k: "string", slug: "invalid update type"}},
 		// 875
 		{"string", Core, true, true, true, false, updateErr{typ: Core, k: "string", slug: "invalid update type"}},
-		{"x-string", Core, false, false, false, false, SettingNotFoundErr{name: "x-string"}},
+		{"x-string", Core, false, false, false, false, SettingNotFoundErr{k: "x-string"}},
 		{"string", ConfFileVar, false, false, false, false, updateErr{typ: ConfFileVar, k: "string", slug: fmt.Sprintf("is not a %s", ConfFileVar)}},
 		{"string", ConfFileVar, true, false, false, false, updateErr{typ: ConfFileVar, k: "string", slug: fmt.Sprintf("is not a %s", ConfFileVar)}},
 		{"string", ConfFileVar, false, true, false, false, updateErr{typ: ConfFileVar, k: "string", slug: fmt.Sprintf("is not a %s", ConfFileVar)}},
@@ -1224,7 +1224,7 @@ func TestCanUpdate(t *testing.T) {
 		{"string", ConfFileVar, true, false, true, false, updateErr{typ: ConfFileVar, k: "string", slug: fmt.Sprintf("is not a %s", ConfFileVar)}},
 		{"string", ConfFileVar, true, true, true, false, updateErr{typ: ConfFileVar, k: "string", slug: fmt.Sprintf("is not a %s", ConfFileVar)}},
 		// 885
-		{"x-string", ConfFileVar, false, false, false, false, SettingNotFoundErr{name: "x-string"}},
+		{"x-string", ConfFileVar, false, false, false, false, SettingNotFoundErr{k: "x-string"}},
 		{"string", EnvVar, false, false, false, false, updateErr{typ: ConfFileVar, k: "string", slug: fmt.Sprintf("is not an %s", EnvVar)}},
 		{"string", EnvVar, true, false, false, false, updateErr{typ: ConfFileVar, k: "string", slug: fmt.Sprintf("is not an %s", EnvVar)}},
 		{"string", EnvVar, false, true, false, false, updateErr{typ: ConfFileVar, k: "string", slug: fmt.Sprintf("is not an %s", EnvVar)}},
@@ -1234,7 +1234,7 @@ func TestCanUpdate(t *testing.T) {
 		{"string", EnvVar, false, true, true, false, updateErr{typ: ConfFileVar, k: "string", slug: fmt.Sprintf("is not an %s", EnvVar)}},
 		{"string", EnvVar, true, false, true, false, updateErr{typ: ConfFileVar, k: "string", slug: fmt.Sprintf("is not an %s", EnvVar)}},
 		{"string", EnvVar, true, true, true, false, updateErr{typ: ConfFileVar, k: "string", slug: fmt.Sprintf("is not an %s", EnvVar)}},
-		{"x-string", EnvVar, false, false, false, false, SettingNotFoundErr{name: "x-string"}},
+		{"x-string", EnvVar, false, false, false, false, SettingNotFoundErr{k: "x-string"}},
 		// 895
 		{"string", Flag, false, false, false, false, updateErr{typ: ConfFileVar, k: "string", slug: fmt.Sprintf("is not a %s", Flag)}},
 		{"string", Flag, true, false, false, false, updateErr{typ: ConfFileVar, k: "string", slug: fmt.Sprintf("is not a %s", Flag)}},
@@ -1245,7 +1245,7 @@ func TestCanUpdate(t *testing.T) {
 		{"string", Flag, false, true, true, false, updateErr{typ: ConfFileVar, k: "string", slug: fmt.Sprintf("is not a %s", Flag)}},
 		{"string", Flag, true, false, true, false, updateErr{typ: ConfFileVar, k: "string", slug: fmt.Sprintf("is not a %s", Flag)}},
 		{"string", Flag, true, true, true, false, updateErr{typ: ConfFileVar, k: "string", slug: fmt.Sprintf("is not a %s", Flag)}},
-		{"x-string", Flag, false, false, false, false, SettingNotFoundErr{name: "x-string"}},
+		{"x-string", Flag, false, false, false, false, SettingNotFoundErr{k: "x-string"}},
 	}
 	appCfg := newTestSettings()
 	for i, test := range tests {
@@ -1253,21 +1253,21 @@ func TestCanUpdate(t *testing.T) {
 		appCfg.confFileVarsSet = test.confFileVarsSet
 		appCfg.envVarsSet = test.envVarsSet
 		appCfg.flagsParsed = test.flagsParsed
-		b, err := appCfg.canUpdate(test.typ, test.name)
+		b, err := appCfg.canUpdate(test.typ, test.k)
 		if err != nil {
 			if test.err == nil {
-				t.Errorf("%d: %s: %s: got %s; wanted no error", i, test.name, test.typ, err)
+				t.Errorf("%d: %s: %s: got %s; wanted no error", i, test.k, test.typ, err)
 			} else if err.Error() != test.err.Error() {
-				t.Errorf("%d: %s: %s: got %s; want %s", i, test.name, test.typ, err, test.err)
+				t.Errorf("%d: %s: %s: got %s; want %s", i, test.k, test.typ, err, test.err)
 			}
 		} else {
 			if test.err != nil {
-				t.Errorf("%d: %s: %s: got no error; wanted %s", i, test.name, test.typ, test.err)
+				t.Errorf("%d: %s: %s: got no error; wanted %s", i, test.k, test.typ, test.err)
 			}
 		}
 
 		if b != test.expected {
-			t.Errorf("%d: %s:%s: got %v; want %v", i, test.name, test.typ, b, test.expected)
+			t.Errorf("%d: %s:%s: got %v; want %v", i, test.k, test.typ, b, test.expected)
 		}
 	}
 }

@@ -491,7 +491,7 @@ func TestSettingNotFoundErr(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		err := error(SettingNotFoundErr{settingType: test.settingType, name: test.value})
+		err := error(SettingNotFoundErr{settingType: test.settingType, k: test.value})
 		if err.Error() != test.expectedErr {
 			t.Errorf("%s: expected %q got %q", test.name, test.expectedErr, err)
 		}

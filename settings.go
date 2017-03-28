@@ -375,125 +375,125 @@ func (s *Settings) Name() string {
 
 // IsCoreE returns if setting k is a Core setting. If setting k doesn't exist,
 // a SettingNotFoundErr will be returned.
-func IsCoreE(name string) (bool, error) { return settings.IsCoreE(name) }
+func IsCoreE(k string) (bool, error) { return settings.IsCoreE(k) }
 
 // IsCoreE returns if setting k is a Core setting. If setting k doesn't exist,
 // a SettingNotFoundErr will be returned.
-func (s *Settings) IsCoreE(name string) (bool, error) {
+func (s *Settings) IsCoreE(k string) (bool, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return s.isCore(name)
+	return s.isCore(k)
 }
 
-func (s *Settings) isCore(name string) (bool, error) {
-	val, ok := s.settings[name]
+func (s *Settings) isCore(k string) (bool, error) {
+	val, ok := s.settings[k]
 	if !ok {
-		return false, SettingNotFoundErr{settingType: Core, name: name}
+		return false, SettingNotFoundErr{settingType: Core, k: k}
 	}
 	return val.IsCore, nil
 }
 
 // IsCore returns if setting k is a Core setting. If setting k doesn't exist,
 // a false will be returned.
-func IsCore(name string) bool { return settings.IsCore(name) }
+func IsCore(k string) bool { return settings.IsCore(k) }
 
 // IsCore returns if setting k is a Core setting. If setting k doesn't exist,
 // a false will be returned.
-func (s *Settings) IsCore(name string) bool {
-	b, _ := s.IsCoreE(name)
+func (s *Settings) IsCore(k string) bool {
+	b, _ := s.IsCoreE(k)
 	return b
 }
 
 // IsConfFileVarE returns if setting k is a ConfFileVar setting. If setting k
 // doesn't exist, a SettingNotFoundErr will be returned.
-func IsConfFileVarE(name string) (bool, error) { return settings.IsConfFileVarE(name) }
+func IsConfFileVarE(k string) (bool, error) { return settings.IsConfFileVarE(k) }
 
 // IsConfFileVarE returns if setting k is a ConfFileVar setting. If setting k
 // doesn't exist, a SettingNotFoundErr will be returned.
-func (s *Settings) IsConfFileVarE(name string) (bool, error) {
+func (s *Settings) IsConfFileVarE(k string) (bool, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return s.isConfFileVar(name)
+	return s.isConfFileVar(k)
 }
 
-func (s *Settings) isConfFileVar(name string) (bool, error) {
-	val, ok := s.settings[name]
+func (s *Settings) isConfFileVar(k string) (bool, error) {
+	val, ok := s.settings[k]
 	if !ok {
-		return false, SettingNotFoundErr{settingType: ConfFileVar, name: name}
+		return false, SettingNotFoundErr{settingType: ConfFileVar, k: k}
 	}
 	return val.IsConfFileVar, nil
 }
 
 // IsConfFileVar returns if setting k is a ConfFileVar setting. If setting k
 // doesn't exist, a false will be returned.
-func IsConfFileVar(name string) bool { return settings.IsConfFileVar(name) }
+func IsConfFileVar(k string) bool { return settings.IsConfFileVar(k) }
 
 // IsConfFileVar returns if setting k is a ConfFileVar setting. If setting k
 // doesn't exist, a false will be returned.
-func (s *Settings) IsConfFileVar(name string) bool {
-	b, _ := s.IsConfFileVarE(name)
+func (s *Settings) IsConfFileVar(k string) bool {
+	b, _ := s.IsConfFileVarE(k)
 	return b
 }
 
 // IsEnvVarE returns if setting k is an EnvVar setting. If setting k doesn't
 // exist, a SettingNotFoundErr will be returned.
-func IsEnvVarE(name string) (bool, error) { return settings.IsEnvVarE(name) }
+func IsEnvVarE(k string) (bool, error) { return settings.IsEnvVarE(k) }
 
 // IsEnvVarE returns if setting k is an EnvVar setting. If setting k doesn't
 // exist, a SettingNotFoundErr will be returned.
-func (s *Settings) IsEnvVarE(name string) (bool, error) {
+func (s *Settings) IsEnvVarE(k string) (bool, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return s.isEnvVar(name)
+	return s.isEnvVar(k)
 }
 
-func (s *Settings) isEnvVar(name string) (bool, error) {
-	val, ok := s.settings[name]
+func (s *Settings) isEnvVar(k string) (bool, error) {
+	val, ok := s.settings[k]
 	if !ok {
-		return false, SettingNotFoundErr{settingType: EnvVar, name: name}
+		return false, SettingNotFoundErr{settingType: EnvVar, k: k}
 	}
 	return val.IsEnvVar, nil
 }
 
 // IsEnvVar returns if setting k is an EnvVar setting. If setting k doesn't
 // exist, a false will be returned.
-func IsEnvVar(name string) bool { return settings.IsEnvVar(name) }
+func IsEnvVar(k string) bool { return settings.IsEnvVar(k) }
 
 // IsEnvVar returns if setting k is an EnvVar setting. If setting k doesn't
 // exist, a false will be returned.
-func (s *Settings) IsEnvVar(name string) bool {
-	b, _ := s.IsEnvVarE(name)
+func (s *Settings) IsEnvVar(k string) bool {
+	b, _ := s.IsEnvVarE(k)
 	return b
 }
 
 // IsFlagE returns if setting k is a Flag setting. If setting k doesn't exist,
 // a SettingNotFoundErr will be returned.
-func IsFlagE(name string) (bool, error) { return settings.IsFlagE(name) }
+func IsFlagE(k string) (bool, error) { return settings.IsFlagE(k) }
 
 // IsFlagE returns if setting k is a Flag setting. If setting k doesn't exist,
 // a SettingNotFoundErr will be returned.
-func (s *Settings) IsFlagE(name string) (bool, error) {
+func (s *Settings) IsFlagE(k string) (bool, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return s.isFlag(name)
+	return s.isFlag(k)
 }
 
-func (s *Settings) isFlag(name string) (bool, error) {
-	val, ok := s.settings[name]
+func (s *Settings) isFlag(k string) (bool, error) {
+	val, ok := s.settings[k]
 	if !ok {
-		return false, SettingNotFoundErr{settingType: Flag, name: name}
+		return false, SettingNotFoundErr{settingType: Flag, k: k}
 	}
 	return val.IsFlag, nil
 }
 
 // IsFlag returns if setting k is a Flag setting. If setting k doesn't exist,
 // a false will be returned.
-func IsFlag(name string) bool { return settings.IsFlag(name) }
+func IsFlag(k string) bool { return settings.IsFlag(k) }
 
 // IsFlag returns if setting k is a Flag setting. If setting k doesn't exist,
 // a false will be returned.
-func (s *Settings) IsFlag(name string) bool {
-	b, _ := s.IsFlagE(name)
+func (s *Settings) IsFlag(k string) bool {
+	b, _ := s.IsFlagE(k)
 	return b
 }
 

@@ -25,7 +25,7 @@ func (s *Settings) GetE(k string) (interface{}, error) {
 func (s *Settings) get(k string) (interface{}, error) {
 	_, ok := s.settings[k]
 	if !ok {
-		return nil, SettingNotFoundErr{name: k}
+		return nil, SettingNotFoundErr{k: k}
 	}
 	return s.settings[k].Value, nil
 }
@@ -61,7 +61,7 @@ func (s *Settings) BoolE(k string) (bool, error) {
 		return *v.(*bool), nil
 	}
 	// Isn't a bool.
-	return false, DataTypeErr{name: k, is: reflect.TypeOf(v).String(), not: _bool}
+	return false, DataTypeErr{k: k, is: reflect.TypeOf(v).String(), not: _bool}
 }
 
 // Bool returns the key's value as a bool. A false will be returned if the key
@@ -104,7 +104,7 @@ func (s *Settings) int(k string) (int, error) {
 	}
 
 	// Isn't an int.
-	return 0, DataTypeErr{name: k, is: reflect.TypeOf(v).String(), not: _int}
+	return 0, DataTypeErr{k: k, is: reflect.TypeOf(v).String(), not: _int}
 }
 
 // Int returns the key's value as an int. A 0 will be returned if the key
@@ -151,7 +151,7 @@ func (s *Settings) int64(k string) (int64, error) {
 	}
 
 	// Is neither an int64 nor an int.
-	return 0, DataTypeErr{name: k, is: reflect.TypeOf(v).String(), not: _int64}
+	return 0, DataTypeErr{k: k, is: reflect.TypeOf(v).String(), not: _int64}
 }
 
 // Int64 returns the key's value as an int64. A 0 will be returned if the key
@@ -194,7 +194,7 @@ func (s *Settings) string(k string) (string, error) {
 	}
 
 	// Isn't a string.
-	return "", DataTypeErr{name: k, is: reflect.TypeOf(v).String(), not: _string}
+	return "", DataTypeErr{k: k, is: reflect.TypeOf(v).String(), not: _string}
 }
 
 // String returns the key's value as a string. An empty string, "", will be

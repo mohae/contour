@@ -163,7 +163,7 @@ func (s *Settings) canUpdate(typ SettingType, k string) (can bool, err error) {
 	// See if the key exists, if it doesn't already exist, it can't be updated.
 	v, ok := s.settings[k]
 	if !ok {
-		return false, SettingNotFoundErr{name: k}
+		return false, SettingNotFoundErr{k: k}
 	}
 	// See if there are any settings that prevent it from being overridden.  Core and
 	// environment variables are never settable. Core must be set during registration.
