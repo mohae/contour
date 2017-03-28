@@ -30,12 +30,10 @@ func (s *Settings) parseFlags(args []string) ([]string, error) {
 	}
 
 	// Get the flag information and set the flagSet
-	err := s.setFlags()
-	if err != nil {
-		return nil, err
-	}
+	s.setFlags()
+
 	// Parse args for flags
-	err = s.flagSet.Parse(args)
+	err := s.flagSet.Parse(args)
 	if err != nil {
 		return nil, fmt.Errorf("parse of command-line arguments failed: %s", err)
 	}
@@ -77,7 +75,7 @@ func (s *Settings) parseFlags(args []string) ([]string, error) {
 // that have IsFlag set to true. It a setting IsFlag but its type is
 // interface{} it will not be added to the flagset as parsing interface{} is
 // not supported.
-func (s *Settings) setFlags() error {
+func (s *Settings) setFlags() {
 	// Get the flag filters from the config variable information.
 	for _, v := range s.settings {
 		if v.IsFlag {
@@ -105,7 +103,6 @@ func (s *Settings) setFlags() error {
 			}
 		}
 	}
-	return nil
 }
 
 // Visited returns the names of all flags that were set during argument
