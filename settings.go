@@ -14,13 +14,16 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// Settings is a group of settings and holds all of the application setting
-// information. Even though contour automatically uses environment variables,
-// unless its told to ignore them, it still needs to maintain state
-// information about each setting so it knows how to handle attempst to update.
-// TODO:
-//	* support ignoring environment variables
+// Settings is a named group of settings and information related to that set,
+// e.g. configuration file, if applicable, if it should emit an error when the
+// configuration file is missing, flags parsed, etc. This is safe for
+// concurrent use.
 //
+// The name of the Settings is used for environment variable naming, if
+// applicable.
+//
+// There will always be a package global Settings whose name is the
+// application's name.
 type Settings struct {
 	name string
 	mu   sync.RWMutex
@@ -69,7 +72,7 @@ type Settings struct {
 	settings map[string]setting
 }
 
-// New provides an initialized Settings.
+// New provides an initialized Settings named name.
 func New(name string) *Settings {
 	return &Settings{
 		name:                 name,
@@ -83,7 +86,7 @@ func New(name string) *Settings {
 	}
 }
 
-// SetConfFilename sets the Setting's configuration filename and configures
+// SetConfFilename sets the Settings' configuration filename and configures
 // settings to use a configuration file. If the filename is empty, an error is
 // returned.
 func SetConfFilename(v string) error { return settings.SetConfFilename(v) }
@@ -100,16 +103,11 @@ func (s *Settings) SetConfFilename(v string) error {
 	return nil
 }
 
-// Set updates the registered settings according to Settings' configuration:
-// it can be updated using a configuration file and/or environment variables;
-// in that order of precedence. This is only run once; subsequent calls will
-// result in no changes.
-//
-// Only settings that are set as Environment, Conf, or Flag types are
-// updateable from environment variables.
-//
-// Only settings that are set as Conf or Flag types are updateable from a
-// configuration file.
+// Set sets the registered settings according to Settings' configuration: it
+// can be updated using a configuration file and/or environment variables; in
+// that order of precedence. This is only run once; subsequent calls will
+// result in no changes. Only settings that are of type ConfFileVar or EnvVar
+// will be affected. This does not handle flags.
 func Set() error { return settings.Set() }
 func (s *Settings) Set() error {
 	s.mu.Lock()
@@ -290,8 +288,11 @@ func (s *Settings) SetErrOnMissingConfFile(b bool) {
 }
 
 // SearchPath returns whether or not the Path environment variable should be
-// searched when looking for the config file.
+// searched when looking for the configuration file.
 func SearchPath() bool { return settings.SearchPath() }
+
+// SearchPath returns whether or not the Path environment variable should be
+// searched when looking for the configuration file.
 func (s *Settings) SearchPath() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -301,15 +302,21 @@ func (s *Settings) SearchPath() bool {
 // SetSearchPath set's whether or not the user's PATH env variable should be
 // searched for the configuratiom file.
 func SetSearchPath(b bool) { settings.SetSearchPath(b) }
+
+// SetSearchPath set's whether or not the user's PATH env variable should be
+// searched for the configuratiom file.
 func (s *Settings) SetSearchPath(b bool) {
 	s.mu.Lock()
 	s.searchPath = b
 	s.mu.Unlock()
 }
 
-// UseConfFile returns if Conf settings are to be updated from a configuration
-// file.
+// UseConfFile returns if ConfFileVar settings are to be updated from a
+// configuration file.
 func UseConfFile() bool { return settings.UseConfFile() }
+
+// UseConfFile returns if ConfFileVar settings are to be updated from a
+// configuration file.
 func (s *Settings) UseConfFile() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -327,6 +334,8 @@ func (s *Settings) SetUseConfFile(b bool) {
 
 // UseEnvVars returns whether or not environment variables are used.
 func UseEnvVars() bool { return settings.useEnvVars }
+
+// UseEnvVars returns whether or not environment variables are used.
 func (s *Settings) UseEnvVars() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -345,6 +354,9 @@ func (s *Settings) SetUseEnvVars(b bool) {
 // IsSet returns if the Settings has been set from all of its configured
 // inputs, as applicable: env vars, configuration file, and flags.
 func IsSet() bool { return settings.IsSet() }
+
+// IsSet returns if the Settings has been set from all of its configured
+// inputs, as applicable: env vars, configuration file, and flags.
 func (s *Settings) IsSet() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -361,8 +373,10 @@ func (s *Settings) IsSet() bool {
 	return true
 }
 
-// SetUsage sets flagSet.Usage
+// SetUsage sets the Usage func.
 func SetUsage(f func()) { settings.SetUsage(f) }
+
+// SetUsage sets the Usage func.
 func (s *Settings) SetUsage(f func()) {
 	s.mu.Lock()
 	s.flagSet.Usage = f
@@ -371,12 +385,18 @@ func (s *Settings) SetUsage(f func()) {
 
 // Name returns the Settings' name.
 func Name() string { return settings.Name() }
+
+// Name returns the Settings' name.
 func (s *Settings) Name() string {
 	return s.name
 }
 
-// IsCore returns whether the passed setting  is a core setting.
+// IsCoreE returns if setting k is a Core setting. If setting k doesn't exist,
+// a SettingNotFoundErr will be returned.
 func IsCoreE(name string) (bool, error) { return settings.IsCoreE(name) }
+
+// IsCoreE returns if setting k is a Core setting. If setting k doesn't exist,
+// a SettingNotFoundErr will be returned.
 func (s *Settings) IsCoreE(name string) (bool, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -391,15 +411,23 @@ func (s *Settings) isCore(name string) (bool, error) {
 	return val.IsCore, nil
 }
 
+// IsCore returns if setting k is a Core setting. If setting k doesn't exist,
+// a false will be returned.
 func IsCore(name string) bool { return settings.IsCore(name) }
+
+// IsCore returns if setting k is a Core setting. If setting k doesn't exist,
+// a false will be returned.
 func (s *Settings) IsCore(name string) bool {
 	b, _ := s.IsCoreE(name)
 	return b
 }
 
-// IsConfE returns if the setting is a Conf setting. If a setting with the
-// requested name does not exist, a SettingNotFoundErr will be returned.
+// IsConfFileVarE returns if setting k is a ConfFileVar setting. If setting k
+// doesn't exist, a SettingNotFoundErr will be returned.
 func IsConfFileVarE(name string) (bool, error) { return settings.IsConfFileVarE(name) }
+
+// IsConfFileVarE returns if setting k is a ConfFileVar setting. If setting k
+// doesn't exist, a SettingNotFoundErr will be returned.
 func (s *Settings) IsConfFileVarE(name string) (bool, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -414,16 +442,23 @@ func (s *Settings) isConfFileVar(name string) (bool, error) {
 	return val.IsConfFileVar, nil
 }
 
-// IsConfFileVar returns if the setting is a Conf setting. If a setting with
-// the requested name does not exist, a false will also be returned.
+// IsConfFileVar returns if setting k is a ConfFileVar setting. If setting k
+// doesn't exist, a false will be returned.
 func IsConfFileVar(name string) bool { return settings.IsConfFileVar(name) }
+
+// IsConfFileVar returns if setting k is a ConfFileVar setting. If setting k
+// doesn't exist, a false will be returned.
 func (s *Settings) IsConfFileVar(name string) bool {
 	b, _ := s.IsConfFileVarE(name)
 	return b
 }
 
-// IsEnvVar returns whether the passed setting is a env setting.
+// IsEnvVarE returns if setting k is an EnvVar setting. If setting k doesn't
+// exist, a SettingNotFoundErr will be returned.
 func IsEnvVarE(name string) (bool, error) { return settings.IsEnvVarE(name) }
+
+// IsEnvVarE returns if setting k is an EnvVar setting. If setting k doesn't
+// exist, a SettingNotFoundErr will be returned.
 func (s *Settings) IsEnvVarE(name string) (bool, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -438,14 +473,23 @@ func (s *Settings) isEnvVar(name string) (bool, error) {
 	return val.IsEnvVar, nil
 }
 
+// IsEnvVar returns if setting k is an EnvVar setting. If setting k doesn't
+// exist, a false will be returned.
 func IsEnvVar(name string) bool { return settings.IsEnvVar(name) }
+
+// IsEnvVar returns if setting k is an EnvVar setting. If setting k doesn't
+// exist, a false will be returned.
 func (s *Settings) IsEnvVar(name string) bool {
 	b, _ := s.IsEnvVarE(name)
 	return b
 }
 
-// IsFlag returns whether the passed setting is a flag setting.
+// IsFlagE returns if setting k is a Flag setting. If setting k doesn't exist,
+// a SettingNotFoundErr will be returned.
 func IsFlagE(name string) (bool, error) { return settings.IsFlagE(name) }
+
+// IsFlagE returns if setting k is a Flag setting. If setting k doesn't exist,
+// a SettingNotFoundErr will be returned.
 func (s *Settings) IsFlagE(name string) (bool, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -460,7 +504,12 @@ func (s *Settings) isFlag(name string) (bool, error) {
 	return val.IsFlag, nil
 }
 
+// IsFlag returns if setting k is a Flag setting. If setting k doesn't exist,
+// a false will be returned.
 func IsFlag(name string) bool { return settings.IsFlag(name) }
+
+// IsFlag returns if setting k is a Flag setting. If setting k doesn't exist,
+// a false will be returned.
 func (s *Settings) IsFlag(name string) bool {
 	b, _ := s.IsFlagE(name)
 	return b
@@ -478,8 +527,10 @@ func (s *Settings) EnvVarName(k string) string {
 	return strings.ToUpper(fmt.Sprintf("%s_%s", s.name, k))
 }
 
-// Exists returns if a setting with the key exists.
+// Exists returns if setting k exists.
 func Exists(k string) bool { return settings.Exists(k) }
+
+// Exists returns if setting k exists.
 func (s *Settings) Exists(k string) bool {
 	s.mu.RLock()
 	s.mu.RUnlock()

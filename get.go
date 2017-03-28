@@ -120,12 +120,12 @@ func (s *Settings) Int(k string) int {
 
 // Int64E returns the key's value as an int64. A SettingNotFoundErr is returned
 // if the key doesn't exist. A DataTypeErr will be returned if the setting's
-// type is neither an int64 not an int.
+// type is neither an int64 nor an int.
 func Int64E(k string) (int64, error) { return settings.Int64E(k) }
 
 // Int64E returns the key's value as an int64. A SettingNotFoundErr is returned
 // if the key doesn't exist. A DataTypeErr will be returned if the setting's
-// type is neither an int64 not an int.
+// type is neither an int64 nor an int.
 func (s *Settings) Int64E(k string) (int64, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

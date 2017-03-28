@@ -1,8 +1,24 @@
+// Copyright 2016, Joel Scoble. All rights reserved.
+// Licensed under the MIT License. See the included LICENSE file.
+
 // Package contour: a package for settings.
 //
-// The package global Settings struct uses the application's name as its name.
-// When using the package global settings and environment variables, the
-// environment variables will be APPNAME_SETTINGNAME.
+// Contour supports application settings, loading settings from a configuration
+// file, environment variables, and flags. Where a setting can be set from is
+// configurable at the per setting level. In addition to setting's
+// overridability being configurable, the Settings behavior is also
+// configurable.
+//
+// Application settings can either be core settings, not updateable once set,
+// or they can be settings that can only be updated within the application
+// using the Update methods; these settings are not exposed to configuration
+// files, environment variables, or flags and cannot be modified by them.
+//
+// For flags, short flag aliases are also supported.
+//
+// The package global Settings uses the application's name as its name.
+//
+// All operations are thread-safe.
 package contour
 
 import (
@@ -16,12 +32,17 @@ import (
 var app = appname.Get()
 
 const (
+	// Unsupported configuration encoding format.
 	Unsupported Format = iota
+	// JSON encoding format.
 	JSON
+	// TOML encoding format.
 	TOML
+	// YAML encoding format
 	YAML
 )
 
+// Format is the type of esupported encoding for configuration files.
 type Format int
 
 func (f Format) String() string {
@@ -52,8 +73,8 @@ func (f Format) isSupported() bool {
 }
 
 // ParseFormat takes a string and returns the Format it represents or an
-// UnsupportedFormatErr if it can't be matched to a format. The string is
-// normalized to lower case before matching.
+// UnsupportedFormatErr if it can't be matched to a supported format. The
+// string is normalized to lower case before matching.
 func ParseFormat(s string) (Format, error) {
 	ls := strings.ToLower(s)
 	switch ls {
@@ -68,7 +89,7 @@ func ParseFormat(s string) (Format, error) {
 }
 
 // ParseFilenameFormat takes a string that represents a filename and returns
-// the files format based on its extension. If either the filename doesn't have
+// the files format based on its extension. If the filename either doesn't have
 // an extension or the extension is not one of a supported file format an
 // UnsupportedFormatErr will be returned.
 func ParseFilenameFormat(s string) (Format, error) {
@@ -136,23 +157,26 @@ func (e DataTypeErr) Error() string {
 // any of the types with higher precedence if contour is configured to use that
 // type.
 const (
-	// Basic settings are settings that are none of the below.
+	// Basic settings are settings that are none of the below. These are often
+	// referred to as application settings: settings that can only be updated
+	// within an application and not by configuration files, environment
+	// variables, or flags. These settings do not have to be registered.
 	Basic SettingType = iota + 1
-	// Core settings are immutable once set.
+	// Core settings are immutable once registered.
 	Core
-	// File settings can be set from a configuration file.
+	// ConFileVar settings can be set from a configuration file.
 	ConfFileVar
 	// EnvVar settings can be set from a configuration file and an environment
-	// variable; unless it has been explicitly set not to be updateable from a
+	// variable; unless it has been explicitly set to not be updateable from a
 	// configuration file.
 	EnvVar
 	// Flag settings can be set from a configuration file, an environment
-	// variable, and a flag; unless it has been explicitly set not to be
+	// variable, and a flag; unless it has been explicitly set to not be
 	// updateable from either a configuration file or an environment variable.
 	Flag
 )
 
-// SettingType is type of setting
+// SettingType is type of setting.
 type SettingType int
 
 func (t SettingType) String() string {
@@ -179,7 +203,7 @@ func init() {
 	settings = New(app)
 }
 
-// NotFoundErr occurs when the value was not found.
+// NotFoundErr occurs when the setting k cannot be found.
 type NotFoundErr struct {
 	v string
 }

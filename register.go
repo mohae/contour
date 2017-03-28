@@ -15,6 +15,8 @@ import (
 	"strconv"
 )
 
+// RegistrationErr provides information on errors that occurred during the
+// registration of a setting.
 type RegistrationErr struct {
 	name string
 	slug string
@@ -40,7 +42,22 @@ func (e RegistrationErr) Error() string {
 // The short, dflt, and usage parms only apply to settings with IsFlag set to
 // true.
 //
-// For non string, bool, int, and int64 types, the type must be "interface{}".
+// When IsCore is true, nothing can modify the setting's value once it is
+// registered.
+//
+// If the setting can be updated by a configuration file, environment variable
+// or a flag, the IsConfFileVar, IsEnv, and IsFlag bools should be set to true
+// as appropriate. These conditionals are independent; e.g. a setting can have
+// both IsConfFileVar and IsFlag set to true if the setting is not to be
+// updateable from an environment variable.
+//
+// If IsCore, IsConfFileVar, IsEnv, and IsFlag are all false, the setting will
+// only be modifiable from application code via Update methods. The setting
+// will not be exposed to the configuration file, environment variables, or
+// as flags. These settings, along with Core settings are best added using Add
+// and AddCore methods.
+//
+// For non string, bool, int, and int64 types, the type must be "interface{}"
 func RegisterSetting(typ, name, short string, value interface{}, dflt, usage string, IsCore, IsConfFileVar, IsEnv, IsFlag bool) error {
 	return settings.RegisterSetting(typ, name, short, value, dflt, usage, IsCore, IsConfFileVar, IsEnv, IsFlag)
 }
@@ -55,7 +72,22 @@ func RegisterSetting(typ, name, short string, value interface{}, dflt, usage str
 // The short, dflt, and usage parms only apply to settings with IsFlag set to
 // true.
 //
-// For non string, bool, int, and int64 types, the type must be "interface{}".
+// When IsCore is true, nothing can modify the setting's value once it is
+// registered.
+//
+// If the setting can be updated by a configuration file, environment variable
+// or a flag, the IsConfFileVar, IsEnv, and IsFlag bools should be set to true
+// as appropriate. These conditionals are independent; e.g. a setting can have
+// both IsConfFileVar and IsFlag set to true if the setting is not to be
+// updateable from an environment variable.
+//
+// If IsCore, IsConfFileVar, IsEnv, and IsFlag are all false, the setting will
+// only be modifiable from application code via Update methods. The setting
+// will not be exposed to the configuration file, environment variables, or
+// as flags. These settings, along with Core settings are best added using Add
+// and AddCore methods.
+//
+// For non string, bool, int, and int64 types, the type must be "interface{}"
 func (s *Settings) RegisterSetting(typ, name, short string, value interface{}, dflt, usage string, IsCore, IsConfFileVar, IsEnvVar, IsFlag bool) error {
 	dType := parseDataType(typ)
 	s.mu.Lock()
