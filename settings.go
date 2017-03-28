@@ -173,21 +173,21 @@ func (s *Settings) updateFromEnv() error {
 			switch v.Type {
 			case _bool:
 				b, _ := strconv.ParseBool(tmp)
-				err = s.updateBoolE(k, b)
+				err = s.updateBool(k, b)
 			case _int:
 				i, err := strconv.Atoi(tmp)
 				if err != nil {
 					return fmt.Errorf("getenv %s: %s", s.GetEnvName(k), err)
 				}
-				err = s.updateIntE(k, i)
+				err = s.updateInt(k, i)
 			case _int64:
 				i, err := strconv.ParseInt(tmp, 10, 64)
 				if err != nil {
 					return fmt.Errorf("getenv %s: %s", s.GetEnvName(k), err)
 				}
-				err = s.updateInt64E(k, i)
+				err = s.updateInt64(k, i)
 			case _string:
-				err = s.updateStringE(k, tmp)
+				err = s.updateString(k, tmp)
 			default:
 				return fmt.Errorf("%s: unsupported env variable type: %s", s.GetEnvName(k), v.Type)
 			}

@@ -44,76 +44,64 @@ func (s *Settings) update(k string, v interface{}) error {
 	return nil
 }
 
-// UpdateBoolE updates a bool setting, returning any error that occurs.
-func UpdateBoolE(k string, v bool) error { return settings.UpdateBoolE(k, v) }
-func (s *Settings) UpdateBoolE(k string, v bool) error {
+// UpdateBool updates a bool setting. If the setting k doesn't exist, both a
+// false and a SettingNotFoundErr will be returned. If the setting k is not
+// updateable, both a false and one of the following errors will be returned:
+// CoreUpdateErr. BasicUpdateErr, or UpdateErr.
+func UpdateBool(k string, v bool) error { return settings.UpdateBool(k, v) }
+func (s *Settings) UpdateBool(k string, v bool) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.updateBoolE(k, v)
+	return s.updateBool(k, v)
 }
 
-func (s *Settings) updateBoolE(k string, v bool) error {
+func (s *Settings) updateBool(k string, v bool) error {
 	return s.update(k, v)
 }
 
-// UpdateBool calls UpdateBoolE and drops the error.
-func UpdateBool(k string, v bool) { settings.UpdateBool(k, v) }
-func (s *Settings) UpdateBool(k string, v bool) {
-	s.UpdateBoolE(k, v)
-}
-
-// UpdateIntE updates a int setting, returning any error that occurs.
-func UpdateIntE(k string, v int) error { return settings.UpdateIntE(k, v) }
-func (s *Settings) UpdateIntE(k string, v int) error {
+// UpdateInt updates an int setting. If the setting k doesn't exist, both a
+// false and a SettingNotFoundErr will be returned. If the setting k is not
+// updateable, both a false and one of the following errors will be returned:
+// CoreUpdateErr. BasicUpdateErr, or UpdateErr.
+func UpdateInt(k string, v int) error { return settings.UpdateInt(k, v) }
+func (s *Settings) UpdateInt(k string, v int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.updateIntE(k, v)
+	return s.updateInt(k, v)
 }
 
-func (s *Settings) updateIntE(k string, v int) error {
+func (s *Settings) updateInt(k string, v int) error {
 	return s.update(k, v)
 }
 
-// UpdateInt calls UpdateIntE and drops the error.
-func UpdateInt(k string, v int) { settings.UpdateInt(k, v) }
-func (s *Settings) UpdateInt(k string, v int) {
-	s.UpdateIntE(k, v)
-}
-
-// UpdateInt64E updates a int64 setting, returning any error that occurs.
-func UpdateInt64E(k string, v int64) error { return settings.UpdateInt64E(k, v) }
-func (s *Settings) UpdateInt64E(k string, v int64) error {
+// UpdateInt64 updates an int64 setting. If the setting k doesn't exist, both a
+// false and a SettingNotFoundErr will be returned. If the setting k is not
+// updateable, both a false and one of the following errors will be returned:
+// CoreUpdateErr. BasicUpdateErr, or UpdateErr.
+func UpdateInt64(k string, v int64) error { return settings.UpdateInt64(k, v) }
+func (s *Settings) UpdateInt64(k string, v int64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.updateInt64E(k, v)
+	return s.updateInt64(k, v)
 }
 
-func (s *Settings) updateInt64E(k string, v int64) error {
+func (s *Settings) updateInt64(k string, v int64) error {
 	return s.update(k, v)
 }
 
-// UpdateInt64 calls UpdateInt64E and drops the error.
-func UpdateInt64(k string, v int64) { settings.UpdateInt64(k, v) }
-func (s *Settings) UpdateInt64(k string, v int64) {
-	s.UpdateInt64E(k, v)
-}
-
-// UpdateStringE updates a string setting, returning any error that occurs.
-func UpdateStringE(k string, v string) error { return settings.UpdateStringE(k, v) }
-func (s *Settings) UpdateStringE(k, v string) error {
+// UpdateString updates a string setting. If the setting k doesn't exist, both
+// a false and a SettingNotFoundErr will be returned. If the setting k is not
+// updateable, both a false and one of the following errors will be returned:
+// CoreUpdateErr. BasicUpdateErr, or UpdateErr.
+func UpdateString(k string, v string) error { return settings.UpdateString(k, v) }
+func (s *Settings) UpdateString(k, v string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.updateStringE(k, v)
+	return s.updateString(k, v)
 }
 
-func (s *Settings) updateStringE(k, v string) error {
+func (s *Settings) updateString(k, v string) error {
 	return s.update(k, v)
-}
-
-// UpdateBool calls UpdateStringE and drops the error.
-func UpdateString(k string, v string) { settings.UpdateString(k, v) }
-func (s *Settings) UpdateString(k, v string) {
-	s.UpdateStringE(k, v)
 }
 
 // canUpdate checks to see if the passed setting key is updateable. If the key
