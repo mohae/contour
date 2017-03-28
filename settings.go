@@ -170,7 +170,7 @@ func (s *Settings) updateFromEnvVars() error {
 		if !v.IsEnvVar {
 			continue
 		}
-		tmp := os.Getenv(s.GetEnvVarName(k))
+		tmp := os.Getenv(s.EnvVarName(k))
 		if tmp != "" {
 			switch v.Type {
 			case _bool:
@@ -179,22 +179,22 @@ func (s *Settings) updateFromEnvVars() error {
 			case _int:
 				i, err := strconv.Atoi(tmp)
 				if err != nil {
-					return fmt.Errorf("getenv %s: %s", s.GetEnvVarName(k), err)
+					return fmt.Errorf("getenv %s: %s", s.EnvVarName(k), err)
 				}
 				err = s.updateInt(EnvVar, k, i)
 			case _int64:
 				i, err := strconv.ParseInt(tmp, 10, 64)
 				if err != nil {
-					return fmt.Errorf("getenv %s: %s", s.GetEnvVarName(k), err)
+					return fmt.Errorf("getenv %s: %s", s.EnvVarName(k), err)
 				}
 				err = s.updateInt64(EnvVar, k, i)
 			case _string:
 				err = s.updateString(EnvVar, k, tmp)
 			default:
-				return fmt.Errorf("%s: unsupported env variable type: %s", s.GetEnvVarName(k), v.Type)
+				return fmt.Errorf("%s: unsupported env variable type: %s", s.EnvVarName(k), v.Type)
 			}
 			if err != nil {
-				return fmt.Errorf("get env %s: %s", s.GetEnvVarName(k), err)
+				return fmt.Errorf("get env %s: %s", s.EnvVarName(k), err)
 			}
 			// lock to check next setting, if there is one.
 		}
@@ -466,10 +466,16 @@ func (s *Settings) IsFlag(name string) bool {
 	return b
 }
 
-// GetEnvVarName returns the env variable name version of the passed string.
-func GetEnvVarName(s string) string { return settings.GetEnvVarName(s) }
-func (s *Settings) GetEnvVarName(v string) string {
-	return strings.ToUpper(fmt.Sprintf("%s_%s", s.name, v))
+// EnvVarName returns the environment variable name for k. This will be
+// NAME_K, where K is k and NAME is the name of Settings. For the pkg global
+// Settings, this will be the executable name.
+func EnvVarName(k string) string { return settings.EnvVarName(k) }
+
+// EnvVarName returns the environment variable name for k. This will be
+// NAME_K, where K is k and NAME is the name of Settings. For the pkg global
+// Settings, this will be the executable name.
+func (s *Settings) EnvVarName(k string) string {
+	return strings.ToUpper(fmt.Sprintf("%s_%s", s.name, k))
 }
 
 // Exists returns if a setting with the key exists.

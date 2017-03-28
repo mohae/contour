@@ -449,7 +449,7 @@ func TestSetCfg(t *testing.T) {
 	for i, test := range tests {
 		tstCfg.SetUseConfFile(test.useCfg)
 		tstCfg.SetUseEnvVars(test.useEnvVars)
-		os.Setenv(GetEnvVarName(test.name), test.envValue)
+		os.Setenv(EnvVarName(test.name), test.envValue)
 		err := tstCfg.SetFromConfFile()
 		if err != nil {
 			if test.err != err.Error() {
