@@ -199,7 +199,7 @@ func newTestSettings() *Settings {
 	return &Settings{
 		flagSet:     flag.NewFlagSet(fmt.Sprintf("rancher-%d", rand.Int63()), flag.ContinueOnError),
 		useConfFile: true,
-		useEnv:      true,
+		useEnvVars:  true,
 		useFlags:    true,
 		flagVars:    map[string]interface{}{},
 		settings: map[string]setting{
@@ -289,21 +289,21 @@ func newTestSettings() *Settings {
 				Value:         true,
 				Short:         "",
 				IsConfFileVar: true,
-				IsEnv:         true,
+				IsEnvVar:      true,
 			},
 			"envint": setting{
 				Type:          _int,
 				Name:          "cfgint",
 				Value:         42,
 				IsConfFileVar: true,
-				IsEnv:         true,
+				IsEnvVar:      true,
 			},
 			"envint64": setting{
 				Type:          _int64,
 				Name:          "cfgint64",
 				Value:         int64(42),
 				IsConfFileVar: true,
-				IsEnv:         true,
+				IsEnvVar:      true,
 			},
 			"envstring": setting{
 				Type:          _string,
@@ -311,7 +311,7 @@ func newTestSettings() *Settings {
 				Value:         "a cfg string",
 				Short:         "",
 				IsConfFileVar: true,
-				IsEnv:         true,
+				IsEnvVar:      true,
 			},
 			"envslice": setting{
 				//Type:  "string-slice",
@@ -320,7 +320,7 @@ func newTestSettings() *Settings {
 				Value:         []string{},
 				Short:         "",
 				IsConfFileVar: true,
-				IsEnv:         true,
+				IsEnvVar:      true,
 			},
 			"envmap": setting{
 				//Type:  "map",
@@ -329,7 +329,7 @@ func newTestSettings() *Settings {
 				Value:         map[string]interface{}{},
 				Short:         "",
 				IsConfFileVar: true,
-				IsEnv:         true,
+				IsEnvVar:      true,
 			},
 			"flagbool": setting{
 				Type:          _bool,
@@ -337,7 +337,7 @@ func newTestSettings() *Settings {
 				Value:         true,
 				Short:         "b",
 				IsConfFileVar: true,
-				IsEnv:         true,
+				IsEnvVar:      true,
 				IsFlag:        true,
 			},
 			"flagbool-tst": setting{
@@ -346,7 +346,7 @@ func newTestSettings() *Settings {
 				Value:         true,
 				Short:         "",
 				IsConfFileVar: true,
-				IsEnv:         true,
+				IsEnvVar:      true,
 				IsFlag:        true,
 			},
 			"flagint": setting{
@@ -355,7 +355,7 @@ func newTestSettings() *Settings {
 				Value:         42,
 				Short:         "i",
 				IsConfFileVar: true,
-				IsEnv:         true,
+				IsEnvVar:      true,
 				IsFlag:        true,
 			},
 			"flagint-tst": setting{
@@ -364,7 +364,7 @@ func newTestSettings() *Settings {
 				Value:         42,
 				Short:         "",
 				IsConfFileVar: true,
-				IsEnv:         true,
+				IsEnvVar:      true,
 				IsFlag:        true,
 			},
 			"flagint64": setting{
@@ -373,7 +373,7 @@ func newTestSettings() *Settings {
 				Value:         int64(42),
 				Short:         "",
 				IsConfFileVar: true,
-				IsEnv:         true,
+				IsEnvVar:      true,
 				IsFlag:        true,
 			},
 			"flagint64-tst": setting{
@@ -382,7 +382,7 @@ func newTestSettings() *Settings {
 				Value:         int64(42),
 				Short:         "",
 				IsConfFileVar: true,
-				IsEnv:         true,
+				IsEnvVar:      true,
 				IsFlag:        true,
 			},
 			"flagstring": setting{
@@ -391,7 +391,7 @@ func newTestSettings() *Settings {
 				Value:         "a flag string",
 				Short:         "s",
 				IsConfFileVar: true,
-				IsEnv:         true,
+				IsEnvVar:      true,
 				IsFlag:        true,
 			},
 			"flagstring-tst": setting{
@@ -400,7 +400,7 @@ func newTestSettings() *Settings {
 				Value:         "a flag string",
 				Short:         "",
 				IsConfFileVar: true,
-				IsEnv:         true,
+				IsEnvVar:      true,
 				IsFlag:        true,
 			},
 			"flagslice": setting{
@@ -410,7 +410,7 @@ func newTestSettings() *Settings {
 				Value:         []string{},
 				Short:         "",
 				IsConfFileVar: true,
-				IsEnv:         true,
+				IsEnvVar:      true,
 				IsFlag:        true,
 			},
 			"flagmap": setting{
@@ -420,7 +420,7 @@ func newTestSettings() *Settings {
 				Value:         map[string]interface{}{},
 				Short:         "",
 				IsConfFileVar: true,
-				IsEnv:         true,
+				IsEnvVar:      true,
 				IsFlag:        true,
 			},
 			"bool": setting{

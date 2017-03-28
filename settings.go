@@ -48,9 +48,9 @@ type Settings struct {
 	// If settings should be loaded from environment variables. Environment
 	// variable names will be in the form of NAME_VARNAME where NAME is this
 	// Setting's name.
-	useEnv bool
+	useEnvVars bool
 	// If the settings have been updated from environment variables.
-	envSet bool
+	envVarsSet bool
 	// flagset is the set of flags for arg parsing.
 	flagSet *flag.FlagSet
 	// If the settings should be updated from passed args.
@@ -116,10 +116,10 @@ func (s *Settings) Set() error {
 	defer s.mu.Unlock()
 	// if this has already been set from env vars and config, don't do it again.
 	// TODO: decide if this should be handled differently to allow for reload.
-	if s.confFileVarsSet && s.envSet {
+	if s.confFileVarsSet && s.envVarsSet {
 		return nil
 	}
-	err := s.updateFromEnv()
+	err := s.updateFromEnvVars()
 	if err != nil {
 		return fmt.Errorf("setting configuration from env failed: %s", err)
 	}
@@ -131,21 +131,23 @@ func (s *Settings) Set() error {
 	return nil
 }
 
-// SetFromEnv sets the settings that are of type Env from env vars if the
-// Settings is set to use env vars. If any settings are registered as env
-// settings, the use env vars flag will be set to true. This can be overridden.
+// SetFromEnvVars sets the settings that are of type EnvVar from env vars if
+// the Settings is set to use env vars. If any settings are registered as an
+// EnvVar settings, the use env vars flag will be set to true. This can be
+// overridden.
 //
 // Once a Settings has been set from environment variables they will not be
 // updated again on subsequent calls.
 //
-// A setting's env name is a concatonation of the setting's name, an underscore
-// (_), and the Settings' name, e.g. a Settings with the name 'foo' and a
-// setting whose name is 'bar' will result in 'FOO_BAR'.
-func SetFromEnv() error { return settings.SetFromEnv() }
+// A setting's env var name is a concatonation of the setting's name, an
+// underscore, (_), and the Settings' name, e.g. a Settings with the name
+// 'foo' and a setting whose name is 'bar' will result in 'FOO_BAR'.
+func SetFromEnvVars() error { return settings.SetFromEnvVars() }
 
-// SetFromEnv sets the settings that are of type Env from env vars if the
-// Settings is set to use env vars. If any settings are registered as env
-// settings, the use env vars flag will be set to true. This can be overridden.
+// SetFromEnvVars sets the settings that are of type EnvVars from env vars if
+// the Settings is set to use env vars. If any settings are registered as an
+// EnnVars settings, the use env vars flag will be set to true. This can be
+// overridden.
 //
 // Once a Settings has been set from environment variables they will not be
 // updated again on subsequent calls.
@@ -153,52 +155,52 @@ func SetFromEnv() error { return settings.SetFromEnv() }
 // A setting's env name is a concatonation of the setting's name, an underscore
 // (_), and the Settings' name, e.g. a Settings with the name 'foo' and a
 // setting whose name is 'bar' will result in 'FOO_BAR'.
-func (s *Settings) SetFromEnv() error {
+func (s *Settings) SetFromEnvVars() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.updateFromEnv()
+	return s.updateFromEnvVars()
 }
 
-func (s *Settings) updateFromEnv() error {
-	if !s.useEnv || s.envSet {
+func (s *Settings) updateFromEnvVars() error {
+	if !s.useEnvVars || s.envVarsSet {
 		return nil
 	}
 	var err error
 	for k, v := range s.settings {
-		if !v.IsEnv {
+		if !v.IsEnvVar {
 			continue
 		}
-		tmp := os.Getenv(s.GetEnvName(k))
+		tmp := os.Getenv(s.GetEnvVarName(k))
 		if tmp != "" {
 			switch v.Type {
 			case _bool:
 				b, _ := strconv.ParseBool(tmp)
-				err = s.updateBool(Env, k, b)
+				err = s.updateBool(EnvVar, k, b)
 			case _int:
 				i, err := strconv.Atoi(tmp)
 				if err != nil {
-					return fmt.Errorf("getenv %s: %s", s.GetEnvName(k), err)
+					return fmt.Errorf("getenv %s: %s", s.GetEnvVarName(k), err)
 				}
-				err = s.updateInt(Env, k, i)
+				err = s.updateInt(EnvVar, k, i)
 			case _int64:
 				i, err := strconv.ParseInt(tmp, 10, 64)
 				if err != nil {
-					return fmt.Errorf("getenv %s: %s", s.GetEnvName(k), err)
+					return fmt.Errorf("getenv %s: %s", s.GetEnvVarName(k), err)
 				}
-				err = s.updateInt64(Env, k, i)
+				err = s.updateInt64(EnvVar, k, i)
 			case _string:
-				err = s.updateString(Env, k, tmp)
+				err = s.updateString(EnvVar, k, tmp)
 			default:
-				return fmt.Errorf("%s: unsupported env variable type: %s", s.GetEnvName(k), v.Type)
+				return fmt.Errorf("%s: unsupported env variable type: %s", s.GetEnvVarName(k), v.Type)
 			}
 			if err != nil {
-				return fmt.Errorf("get env %s: %s", s.GetEnvName(k), err)
+				return fmt.Errorf("get env %s: %s", s.GetEnvVarName(k), err)
 			}
 			// lock to check next setting, if there is one.
 		}
 	}
 	// Rlock isn't sufficient for updating to close it and get a Lock() for update.
-	s.envSet = true
+	s.envVarsSet = true
 	return nil
 }
 
@@ -323,20 +325,20 @@ func (s *Settings) SetUseConfFile(b bool) {
 	s.useConfFile = b
 }
 
-// UseEnv is whether or not environment variables are used.
-func UseEnv() bool { return settings.useEnv }
-func (s *Settings) UseEnv() bool {
+// UseEnvVars returns whether or not environment variables are used.
+func UseEnvVars() bool { return settings.useEnvVars }
+func (s *Settings) UseEnvVars() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return s.useEnv
+	return s.useEnvVars
 }
 
-// SetUseEnv set's whether or not environment variables should be used with
-// this cfg.
-func SetUseEnv(b bool) { settings.SetUseEnv(b) }
-func (s *Settings) SetUseEnv(b bool) {
+// SetUseEnvVars sets whether or not environment variables should be used with
+// this Settings.
+func SetUseEnvVars(b bool) { settings.SetUseEnvVars(b) }
+func (s *Settings) SetUseEnvVars(b bool) {
 	s.mu.Lock()
-	s.useEnv = b
+	s.useEnvVars = b
 	s.mu.Unlock()
 }
 
@@ -349,7 +351,7 @@ func (s *Settings) IsSet() bool {
 	if s.useConfFile && !s.confFileVarsSet {
 		return false
 	}
-	if s.useEnv && !s.envSet {
+	if s.useEnvVars && !s.envVarsSet {
 		return false
 	}
 	if s.useFlags && !s.flagsParsed {
@@ -420,25 +422,25 @@ func (s *Settings) IsConfFileVar(name string) bool {
 	return b
 }
 
-// IsEnv returns whether the passed setting is a env setting.
-func IsEnvE(name string) (bool, error) { return settings.IsEnvE(name) }
-func (s *Settings) IsEnvE(name string) (bool, error) {
+// IsEnvVar returns whether the passed setting is a env setting.
+func IsEnvVarE(name string) (bool, error) { return settings.IsEnvVarE(name) }
+func (s *Settings) IsEnvVarE(name string) (bool, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return s.isEnv(name)
+	return s.isEnvVar(name)
 }
 
-func (s *Settings) isEnv(name string) (bool, error) {
+func (s *Settings) isEnvVar(name string) (bool, error) {
 	val, ok := s.settings[name]
 	if !ok {
-		return false, SettingNotFoundErr{settingType: Env, name: name}
+		return false, SettingNotFoundErr{settingType: EnvVar, name: name}
 	}
-	return val.IsEnv, nil
+	return val.IsEnvVar, nil
 }
 
-func IsEnv(name string) bool { return settings.IsEnv(name) }
-func (s *Settings) IsEnv(name string) bool {
-	b, _ := s.IsEnvE(name)
+func IsEnvVar(name string) bool { return settings.IsEnvVar(name) }
+func (s *Settings) IsEnvVar(name string) bool {
+	b, _ := s.IsEnvVarE(name)
 	return b
 }
 
@@ -464,9 +466,9 @@ func (s *Settings) IsFlag(name string) bool {
 	return b
 }
 
-// GetEnvName returns the env variable name version of the passed string.
-func GetEnvName(s string) string { return settings.GetEnvName(s) }
-func (s *Settings) GetEnvName(v string) string {
+// GetEnvVarName returns the env variable name version of the passed string.
+func GetEnvVarName(s string) string { return settings.GetEnvVarName(s) }
+func (s *Settings) GetEnvVarName(v string) string {
 	return strings.ToUpper(fmt.Sprintf("%s_%s", s.name, v))
 }
 

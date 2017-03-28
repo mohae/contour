@@ -14,7 +14,7 @@ func TestRegisterSettings(t *testing.T) {
 		checkValues   bool
 		IsCore        bool
 		IsConfFileVar bool
-		IsEnv         bool
+		IsEnvVar      bool
 		IsFlag        bool
 	}{
 		{"", _bool, true, true, "registration failed: setting name was empty", false, false, false, false, false},
@@ -63,8 +63,8 @@ func TestRegisterSettings(t *testing.T) {
 		if cfg.IsConfFileVar(test.name) != test.IsConfFileVar {
 			t.Errorf("%d expected IsConfFileVar to be %v, got %v", i, test.IsConfFileVar, cfg.IsConfFileVar(test.name))
 		}
-		if cfg.IsEnv(test.name) != test.IsEnv {
-			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, cfg.IsEnv(test.name))
+		if cfg.IsEnvVar(test.name) != test.IsEnvVar {
+			t.Errorf("%d expected IsEnvVar to be %v, got %v", i, test.IsEnvVar, cfg.IsEnvVar(test.name))
 		}
 		if cfg.IsFlag(test.name) != test.IsFlag {
 			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, cfg.IsFlag(test.name))
@@ -82,7 +82,7 @@ func TestRegisterCoreSettings(t *testing.T) {
 		checkValues   bool
 		IsCore        bool
 		IsConfFileVar bool
-		IsEnv         bool
+		IsEnvVar      bool
 		IsFlag        bool
 	}{
 		{"", _bool, true, true, "registration failed: setting name was empty", false, false, false, false, false},
@@ -131,8 +131,8 @@ func TestRegisterCoreSettings(t *testing.T) {
 		if tstSettings.IsConfFileVar(test.name) != test.IsConfFileVar {
 			t.Errorf("%d expected IsConfFileVar to be %v, got %v", i, test.IsConfFileVar, tstSettings.IsConfFileVar(test.name))
 		}
-		if tstSettings.IsEnv(test.name) != test.IsEnv {
-			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, tstSettings.IsEnv(test.name))
+		if tstSettings.IsEnvVar(test.name) != test.IsEnvVar {
+			t.Errorf("%d expected IsEnvVar to be %v, got %v", i, test.IsEnvVar, tstSettings.IsEnvVar(test.name))
 		}
 		if tstSettings.IsFlag(test.name) != test.IsFlag {
 			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, tstSettings.IsFlag(test.name))
@@ -150,7 +150,7 @@ func TestRegisterCfgSettings(t *testing.T) {
 		checkValues   bool
 		IsCore        bool
 		IsConfFileVar bool
-		IsEnv         bool
+		IsEnvVar      bool
 		IsFlag        bool
 	}{
 		{"", _bool, true, true, "registration failed: setting name was empty", false, false, false, false, false},
@@ -199,8 +199,8 @@ func TestRegisterCfgSettings(t *testing.T) {
 		if tstSettings.IsConfFileVar(test.name) != test.IsConfFileVar {
 			t.Errorf("%d expected IsConfFileVar to be %v, got %v", i, test.IsConfFileVar, tstSettings.IsConfFileVar(test.name))
 		}
-		if tstSettings.IsEnv(test.name) != test.IsEnv {
-			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, tstSettings.IsEnv(test.name))
+		if tstSettings.IsEnvVar(test.name) != test.IsEnvVar {
+			t.Errorf("%d expected IsEnvVar to be %v, got %v", i, test.IsEnvVar, tstSettings.IsEnvVar(test.name))
 		}
 		if tstSettings.IsFlag(test.name) != test.IsFlag {
 			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, tstSettings.IsFlag(test.name))
@@ -219,7 +219,7 @@ func TestRegisterFlagSettings(t *testing.T) {
 		checkValues   bool
 		IsCore        bool
 		IsConfFileVar bool
-		IsEnv         bool
+		IsEnvVar      bool
 		IsFlag        bool
 	}{
 		{"", "", _bool, true, true, "registration failed: setting name was empty", false, false, false, false, false},
@@ -268,8 +268,8 @@ func TestRegisterFlagSettings(t *testing.T) {
 		if tstSettings.IsConfFileVar(test.name) != test.IsConfFileVar {
 			t.Errorf("%d expected IsConfFileVar to be %v, got %v", i, test.IsConfFileVar, tstSettings.IsConfFileVar(test.name))
 		}
-		if tstSettings.IsEnv(test.name) != test.IsEnv {
-			t.Errorf("%d expected IsEnv to be %v, got %v", i, test.IsEnv, tstSettings.IsEnv(test.name))
+		if tstSettings.IsEnvVar(test.name) != test.IsEnvVar {
+			t.Errorf("%d expected IsEnvVar to be %v, got %v", i, test.IsEnvVar, tstSettings.IsEnvVar(test.name))
 		}
 		if tstSettings.IsFlag(test.name) != test.IsFlag {
 			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, tstSettings.IsFlag(test.name))

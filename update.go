@@ -173,16 +173,16 @@ func (s *Settings) canUpdate(typ SettingType, k string) (can bool, err error) {
 	// regular, Basic, settings are always updateable as long as this is a Basic
 	// update.
 	if typ == Basic {
-		if !v.IsConfFileVar && !v.IsEnv && !v.IsFlag {
+		if !v.IsConfFileVar && !v.IsEnvVar && !v.IsFlag {
 			return true, nil
 		}
 		var t string
 		if v.IsFlag {
-			t = "flag"
+			t = Flag.String()
 			goto basicErr
 		}
-		if v.IsEnv {
-			t = "env var"
+		if v.IsEnvVar {
+			t = EnvVar.String()
 			goto basicErr
 		}
 		t = "configuration file"
@@ -194,7 +194,7 @@ func (s *Settings) canUpdate(typ SettingType, k string) (can bool, err error) {
 	switch typ {
 	case ConfFileVar:
 		if v.IsConfFileVar {
-			if !s.confFileVarsSet && !s.envSet && !s.flagsParsed {
+			if !s.confFileVarsSet && !s.envVarsSet && !s.flagsParsed {
 				return true, nil
 			}
 			var set string
@@ -202,7 +202,7 @@ func (s *Settings) canUpdate(typ SettingType, k string) (can bool, err error) {
 				set = "flags"
 				goto confErr
 			}
-			if s.envSet {
+			if s.envVarsSet {
 				set = "env vars"
 				goto confErr
 			}
@@ -211,9 +211,9 @@ func (s *Settings) canUpdate(typ SettingType, k string) (can bool, err error) {
 			return false, updateErr{k: k, slug: fmt.Sprintf("already set from %s", set)}
 		}
 		return false, updateErr{typ: typ, k: k, slug: fmt.Sprintf("is not a %s", ConfFileVar)}
-	case Env:
-		if v.IsEnv {
-			if !s.envSet && !s.flagsParsed {
+	case EnvVar:
+		if v.IsEnvVar {
+			if !s.envVarsSet && !s.flagsParsed {
 				return true, nil
 			}
 			var set string
@@ -224,7 +224,7 @@ func (s *Settings) canUpdate(typ SettingType, k string) (can bool, err error) {
 			}
 			return false, updateErr{typ: typ, k: k, slug: fmt.Sprintf("already set from %s", set)}
 		}
-		return false, updateErr{typ: typ, k: k, slug: fmt.Sprintf("is not an %s", Env)}
+		return false, updateErr{typ: typ, k: k, slug: fmt.Sprintf("is not an %s", EnvVar)}
 	case Flag:
 		if v.IsFlag {
 			if !s.flagsParsed {

@@ -20,8 +20,8 @@ func TestSettings(t *testing.T) {
 		if s.name != "test" {
 			t.Errorf("Expected test got %s", s.name)
 		}
-		if s.UseEnv() != false {
-			t.Errorf("Expected true got %v", s.UseEnv())
+		if s.UseEnvVars() != false {
+			t.Errorf("Expected true got %v", s.UseEnvVars())
 		}
 	}
 	if settings == nil {
@@ -30,8 +30,8 @@ func TestSettings(t *testing.T) {
 		if settings.name != "contour.test" {
 			t.Errorf("Expected contour.test got %s", settings.name)
 		}
-		if settings.UseEnv() != false {
-			t.Errorf("Expected true got %v", settings.UseEnv())
+		if settings.UseEnvVars() != false {
+			t.Errorf("Expected true got %v", settings.UseEnvVars())
 		}
 	}
 }
@@ -70,7 +70,7 @@ func TestLoadEnv(t *testing.T) {
 		}
 		os.Setenv(strings.ToUpper(fmt.Sprintf("%s_%s", testCfg.Name(), test.name)), test.envValue)
 	}
-	testCfg.SetFromEnv()
+	testCfg.SetFromEnvVars()
 	for _, test := range tests {
 		tmp := testCfg.Get(test.name)
 		switch test.typ {
@@ -116,8 +116,8 @@ func TestCfgBools(t *testing.T) {
 		if b != test.expected {
 			t.Errorf("SetUseCfgFile:  expected %v, got %v", test.expected, b)
 		}
-		tstSettings.SetUseEnv(test.val)
-		b = tstSettings.UseEnv()
+		tstSettings.SetUseEnvVars(test.val)
+		b = tstSettings.UseEnvVars()
 		if b != test.expected {
 			t.Errorf("SetUseEnv:  expected %v, got %v", test.expected, b)
 		}
@@ -132,8 +132,8 @@ func TestCfgProcessed(t *testing.T) {
 	tests := []struct {
 		useConfFile     bool
 		confFileVarsSet bool
-		useEnv          bool
-		envSet          bool
+		useEnvVars      bool
+		envVarsSet      bool
 		useFlags        bool
 		flagsParsed     bool
 		expected        bool
@@ -220,8 +220,8 @@ func TestCfgProcessed(t *testing.T) {
 	for i, test := range tests {
 		appCfg.SetUseConfFile(test.useConfFile)
 		appCfg.confFileVarsSet = test.confFileVarsSet
-		appCfg.envSet = test.envSet
-		appCfg.SetUseEnv(test.useEnv)
+		appCfg.envVarsSet = test.envVarsSet
+		appCfg.SetUseEnvVars(test.useEnvVars)
 		appCfg.useFlags = test.useFlags
 		appCfg.flagsParsed = test.flagsParsed
 		b := appCfg.IsSet()
@@ -245,7 +245,7 @@ func TestIsFuncs(t *testing.T) {
 		name          string
 		IsCore        bool
 		IsConfFileVar bool
-		IsEnv         bool
+		IsEnvVar      bool
 		IsFlag        bool
 		err           string
 	}{
@@ -288,18 +288,18 @@ func TestIsFuncs(t *testing.T) {
 			}
 		}
 		// Env
-		b, err = tstSettings.IsEnvE(test.name)
+		b, err = tstSettings.IsEnvVarE(test.name)
 		if err != nil {
 			if err.Error() != fmt.Sprintf(": env var%s", test.err) {
 				t.Errorf("%d: expected %q got %s", i, fmt.Sprintf(": env var%s", test.err), err.Error())
 			}
 		} else {
-			if b != test.IsEnv {
-				t.Errorf("%d: expected %v, got %v", i, test.IsEnv, b)
+			if b != test.IsEnvVar {
+				t.Errorf("%d: expected %v, got %v", i, test.IsEnvVar, b)
 			}
-			b = tstSettings.IsEnv(test.name)
-			if b != test.IsEnv {
-				t.Errorf("%d: expected %v, got %v", i, test.IsEnv, b)
+			b = tstSettings.IsEnvVar(test.name)
+			if b != test.IsEnvVar {
+				t.Errorf("%d: expected %v, got %v", i, test.IsEnvVar, b)
 			}
 		}
 		// Flag
@@ -331,15 +331,15 @@ func TestSetCfg(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 	fname := "testcfg.json"
 	tests := []struct {
-		name      string
-		fullPath  string
-		format    Format
-		useCfg    bool
-		useEnv    bool
-		updateEnv bool
-		envValue  string
-		expected  interface{}
-		err       string
+		name          string
+		fullPath      string
+		format        Format
+		useCfg        bool
+		useEnvVars    bool
+		updateEnvVars bool
+		envValue      string
+		expected      interface{}
+		err           string
 	}{
 		// 0
 		{"", "", Unsupported, false, false, false, "", nil, ""},
@@ -448,8 +448,8 @@ func TestSetCfg(t *testing.T) {
 	tstCfg.SetConfFilename(tests[5].fullPath)
 	for i, test := range tests {
 		tstCfg.SetUseConfFile(test.useCfg)
-		tstCfg.SetUseEnv(test.useEnv)
-		os.Setenv(GetEnvName(test.name), test.envValue)
+		tstCfg.SetUseEnvVars(test.useEnvVars)
+		os.Setenv(GetEnvVarName(test.name), test.envValue)
 		err := tstCfg.SetFromConfFile()
 		if err != nil {
 			if test.err != err.Error() {

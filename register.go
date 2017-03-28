@@ -56,14 +56,14 @@ func RegisterSetting(typ, name, short string, value interface{}, dflt, usage str
 // true.
 //
 // For non string, bool, int, and int64 types, the type must be "interface{}".
-func (s *Settings) RegisterSetting(typ, name, short string, value interface{}, dflt, usage string, IsCore, IsConfFileVar, IsEnv, IsFlag bool) error {
+func (s *Settings) RegisterSetting(typ, name, short string, value interface{}, dflt, usage string, IsCore, IsConfFileVar, IsEnvVar, IsFlag bool) error {
 	dType := parseDataType(typ)
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.registerSetting(dType, name, short, value, dflt, usage, IsCore, IsConfFileVar, IsEnv, IsFlag)
+	return s.registerSetting(dType, name, short, value, dflt, usage, IsCore, IsConfFileVar, IsEnvVar, IsFlag)
 }
 
-func (s *Settings) registerSetting(typ dataType, name, short string, value interface{}, dflt, usage string, IsCore, IsConfFileVar, IsEnv, IsFlag bool) error {
+func (s *Settings) registerSetting(typ dataType, name, short string, value interface{}, dflt, usage string, IsCore, IsConfFileVar, IsEnvVar, IsFlag bool) error {
 	if name == "" {
 		return RegistrationErr{slug: "setting name was empty"}
 	}
@@ -83,7 +83,7 @@ func (s *Settings) registerSetting(typ dataType, name, short string, value inter
 		Usage:         usage,
 		IsCore:        IsCore,
 		IsConfFileVar: IsConfFileVar,
-		IsEnv:         IsEnv,
+		IsEnvVar:      IsEnvVar,
 		IsFlag:        IsFlag,
 	}
 	// if it's a conf file setting, add it to the confFileVars map
@@ -98,8 +98,8 @@ func (s *Settings) registerSetting(typ dataType, name, short string, value inter
 		}
 		s.shortFlags[short] = name
 	}
-	if IsEnv {
-		s.useEnv = IsEnv
+	if IsEnvVar {
+		s.useEnvVars = IsEnvVar
 	}
 	// If a setting is a confFile setting, enable using a conf file.
 	if IsConfFileVar {

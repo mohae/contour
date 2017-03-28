@@ -21,11 +21,13 @@ type setting struct {
 	// IsConfFileVar: a configuration file setting can only be updated from a
 	// configuration file. When this is true, IsEnv and IsFlag aare always false.
 	IsConfFileVar bool
-	// IsEnv: whether or not this is an env variable.  When true, and the cfg is set to
-	// useEnvs, the setting will be settable via env variables. All Cfg and Flag settings
-	// result in IsEnv being true.
-	IsEnv bool
-	// IsFlag:  whether or not this is a flag. When true, IsCfg and IsEnv will also be true.
+	// IsEnvVar: whether or not this is an environment variable.  When true, and
+	// the cfg is set to use EnvsVars, the setting will be settable via
+	// environment variables. All EnvVars and Flag settings result in IsEnv being
+	// true.
+	IsEnvVar bool
+	// IsFlag:  whether or not this is a flag. When true, IsCfg and IsEnvVar will
+	// also be true.
 	IsFlag bool
 	// Alias
 	Alias []string

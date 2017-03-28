@@ -142,10 +142,10 @@ const (
 	Core
 	// File settings can be set from a configuration file.
 	ConfFileVar
-	// Env settings can be set from a configuration file and an environment
+	// EnvVar settings can be set from a configuration file and an environment
 	// variable; unless it has been explicitly set not to be updateable from a
 	// configuration file.
-	Env
+	EnvVar
 	// Flag settings can be set from a configuration file, an environment
 	// variable, and a flag; unless it has been explicitly set not to be
 	// updateable from either a configuration file or an environment variable.
@@ -163,7 +163,7 @@ func (t SettingType) String() string {
 		return "core"
 	case ConfFileVar:
 		return "configuration file var"
-	case Env:
+	case EnvVar:
 		return "env var"
 	case Flag:
 		return "flag"
