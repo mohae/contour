@@ -203,15 +203,6 @@ func init() {
 	settings = New(app)
 }
 
-// NotFoundErr occurs when the setting k cannot be found.
-type NotFoundErr struct {
-	k string
-}
-
-func (e NotFoundErr) Error() string {
-	return fmt.Sprintf("%s: not found", e.k)
-}
-
 // SettingNotFoundErr occurs when a setting isn't found.
 type SettingNotFoundErr struct {
 	settingType SettingType

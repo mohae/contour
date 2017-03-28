@@ -470,20 +470,6 @@ func newTestSettings() *Settings {
 	}
 }
 
-func TestNotFoundErr(t *testing.T) {
-	tests := []basic{
-		basic{"notFoundErr test1", 0, "setting", "", "setting: not found"},
-		basic{"notFoundErr test2", 0, "grail", "", "grail: not found"},
-	}
-	for _, test := range tests {
-		err := error(NotFoundErr{test.value})
-		if err.Error() != test.expectedErr {
-			t.Errorf("%s: expected %s, got %s", test.name, test.expectedErr, err.Error())
-		}
-	}
-
-}
-
 func TestSettingNotFoundErr(t *testing.T) {
 	tests := []basic{
 		basic{name: "notFoundErr test1", value: "dinosaur", expected: "", expectedErr: "dinosaur: setting not found"},
