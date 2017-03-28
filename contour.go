@@ -164,7 +164,7 @@ func (t SettingType) String() string {
 	case ConfFileVar:
 		return "configuration file var"
 	case Env:
-		return "env"
+		return "env var"
 	case Flag:
 		return "flag"
 	default:

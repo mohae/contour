@@ -1,5 +1,35 @@
 package contour
 
+import "fmt"
+
+type UpdateErr struct {
+	k    string
+	typ  SettingType
+	slug string
+}
+
+func (e UpdateErr) Error() string {
+	return fmt.Sprintf("update of %s failed: %s", e.k, e.slug)
+}
+
+type BasicUpdateErr struct {
+	typ SettingType
+	k   string
+}
+
+func (e BasicUpdateErr) Error() string {
+	return fmt.Sprintf("%s: %s settings cannot be updated by a basic update", e.k, e.typ)
+}
+
+type CoreUpdateErr struct {
+	typ SettingType
+	k   string
+}
+
+func (e CoreUpdateErr) Error() string {
+	return fmt.Sprintf("%s: %s settings cannot be updated by a core update", e.k, e.typ)
+}
+
 // Only non-core settings are updateable. This assumes that the lock has
 // already been obtained by the caller.
 func (s *Settings) update(k string, v interface{}) error {
@@ -87,8 +117,10 @@ func (s *Settings) UpdateString(k, v string) {
 }
 
 // canUpdate checks to see if the passed setting key is updateable. If the key
-// doesn't exist, a false will be returned. This assumes that the lock has
-// already been obtained by the caller.
+// doesn't exist, both a false and a SettingNotFoundErr will be returned. If
+// the setting is not updateable, both a false and an Update type specific err
+// will be returned, e.g. CoreUpdateErr. This assumes that the lock has already
+// been obtained by the caller.
 //
 // core settings can never be set.
 // settings that are not a ConfFileVar, EnvVar, and Flag, i.e. a Basic setting,
@@ -108,22 +140,36 @@ func (s *Settings) UpdateString(k, v string) {
 //    flagsParsed is False.
 //
 // k is the key of the setting and typ is the type of update that is being
-// checked.
-func (s *Settings) canUpdate(typ SettingType, k string) bool {
+// checked, e.g. an update from an env var will have a typ of EnvVar.
+func (s *Settings) canUpdate(typ SettingType, k string) (can bool, err error) {
 	// See if the key exists, if it doesn't already exist, it can't be updated.
 	v, ok := s.settings[k]
 	if !ok {
-		return false
+		return false, SettingNotFoundErr{name: k}
 	}
 	// See if there are any settings that prevent it from being overridden.  Core and
 	// environment variables are never settable. Core must be set during registration.
 	if v.IsCore {
-		return false
+		return false, CoreUpdateErr{k: k}
 	}
 	// regular, Basic, settings are always updateable as long as this is a Basic
 	// update.
-	if !v.IsCore && !v.IsEnv && !v.IsFlag && typ == Basic {
-		return true
+	if typ == Basic {
+		if !v.IsConfFileVar && !v.IsEnv && !v.IsFlag {
+			return true, nil
+		}
+		var t SettingType
+		if v.IsFlag {
+			t = Flag
+			goto basicErr
+		}
+		if v.IsEnv {
+			t = Env
+			goto basicErr
+		}
+		t = ConfFileVar
+	basicErr:
+		return false, BasicUpdateErr{typ: t, k: k}
 	}
 
 	// check by update type
@@ -131,25 +177,47 @@ func (s *Settings) canUpdate(typ SettingType, k string) bool {
 	case ConfFileVar:
 		if v.IsConfFileVar {
 			if !s.confFileVarsSet && !s.envSet && !s.flagsParsed {
-				return true
+				return true, nil
 			}
+			var set string
+			if s.flagsParsed {
+				set = "flags"
+				goto confErr
+			}
+			if s.envSet {
+				set = "env vars"
+				goto confErr
+			}
+			set = "the configuration file"
+		confErr:
+			return false, UpdateErr{k: k, slug: fmt.Sprintf("already set from %s", set)}
 		}
-		return false
+		return false, UpdateErr{typ: typ, k: k, slug: fmt.Sprintf("is not a %s", ConfFileVar)}
 	case Env:
 		if v.IsEnv {
 			if !s.envSet && !s.flagsParsed {
-				return true
+				return true, nil
 			}
+			var set string
+			if s.flagsParsed {
+				set = "flags"
+			} else {
+				set = "env vars"
+			}
+			return false, UpdateErr{typ: typ, k: k, slug: fmt.Sprintf("already set from %s", set)}
 		}
-		return false
+		return false, UpdateErr{typ: typ, k: k, slug: fmt.Sprintf("is not an %s", Env)}
 	case Flag:
-		if v.IsFlag && !s.flagsParsed {
-			return true
+		if v.IsFlag {
+			if !s.flagsParsed {
+				return true, nil
+			}
+			return false, UpdateErr{typ: typ, k: k, slug: "already set from flags"}
 		}
-		return false
+		return false, UpdateErr{typ: typ, k: k, slug: fmt.Sprintf("is not a %s", Flag)}
 	}
 	// If it was not one of the above, we return a false. It's better to not allow
 	// an update if the case isn't handled than be too permissive. Getting here is
 	// a sign that something within this func should be updated and/or fixed.
-	return false
+	return false, UpdateErr{typ: typ, k: k, slug: "invalid update type"}
 }

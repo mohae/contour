@@ -252,7 +252,7 @@ func TestIsFuncs(t *testing.T) {
 		{"", false, false, false, false, " setting not found"},
 		{"string", false, false, false, false, ""},
 		{"corebool", true, false, false, false, ""},
-		{"cfgint", false, true, true, false, ""},
+		{"cfgint", false, true, false, false, ""},
 		{"flagint64", false, true, true, true, ""},
 	}
 	tstSettings := newTestSettings()
@@ -290,8 +290,8 @@ func TestIsFuncs(t *testing.T) {
 		// Env
 		b, err = tstSettings.IsEnvE(test.name)
 		if err != nil {
-			if err.Error() != fmt.Sprintf(": env%s", test.err) {
-				t.Errorf("%d: expected %q got %s", i, fmt.Sprintf(": env%s", test.err), err.Error())
+			if err.Error() != fmt.Sprintf(": env var%s", test.err) {
+				t.Errorf("%d: expected %q got %s", i, fmt.Sprintf(": env var%s", test.err), err.Error())
 			}
 		} else {
 			if b != test.IsEnv {
