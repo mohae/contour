@@ -2,6 +2,8 @@ package contour
 
 import "fmt"
 
+// UpdateErr is any error that happens on an update that isn't one of the
+// following: SettingNotFoundErr, BasicUpdateErr, or CoreUpdateErr.
 type UpdateErr struct {
 	k    string
 	typ  SettingType
@@ -12,6 +14,8 @@ func (e UpdateErr) Error() string {
 	return fmt.Sprintf("update of %s failed: %s", e.k, e.slug)
 }
 
+// BasicUpdateErr happens when there's an attempt to do a basic update on a
+// non-basic setting.
 type BasicUpdateErr struct {
 	typ SettingType
 	k   string
@@ -21,6 +25,8 @@ func (e BasicUpdateErr) Error() string {
 	return fmt.Sprintf("%s: %s settings cannot be updated by a basic update", e.k, e.typ)
 }
 
+// CoreUpdateErr happens when there's an attempt to do a core update, which
+// should never occur, or update a Core setting.
 type CoreUpdateErr struct {
 	typ SettingType
 	k   string
@@ -49,12 +55,18 @@ func (s *Settings) update(k string, v interface{}) error {
 // updateable, both a false and one of the following errors will be returned:
 // CoreUpdateErr. BasicUpdateErr, or UpdateErr.
 func UpdateBool(k string, v bool) error { return settings.UpdateBool(k, v) }
+
+// UpdateBool updates a bool setting. If the setting k doesn't exist, both a
+// false and a SettingNotFoundErr will be returned. If the setting k is not
+// updateable, both a false and one of the following errors will be returned:
+// CoreUpdateErr. BasicUpdateErr, or UpdateErr.
 func (s *Settings) UpdateBool(k string, v bool) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.updateBool(k, v)
 }
 
+// this assumes the lock is held by the caller.
 func (s *Settings) updateBool(k string, v bool) error {
 	return s.update(k, v)
 }
@@ -64,12 +76,18 @@ func (s *Settings) updateBool(k string, v bool) error {
 // updateable, both a false and one of the following errors will be returned:
 // CoreUpdateErr. BasicUpdateErr, or UpdateErr.
 func UpdateInt(k string, v int) error { return settings.UpdateInt(k, v) }
+
+// UpdateInt updates an int setting. If the setting k doesn't exist, both a
+// false and a SettingNotFoundErr will be returned. If the setting k is not
+// updateable, both a false and one of the following errors will be returned:
+// CoreUpdateErr. BasicUpdateErr, or UpdateErr.
 func (s *Settings) UpdateInt(k string, v int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.updateInt(k, v)
 }
 
+// this assumes the lock is held by the caller.
 func (s *Settings) updateInt(k string, v int) error {
 	return s.update(k, v)
 }
@@ -79,12 +97,18 @@ func (s *Settings) updateInt(k string, v int) error {
 // updateable, both a false and one of the following errors will be returned:
 // CoreUpdateErr. BasicUpdateErr, or UpdateErr.
 func UpdateInt64(k string, v int64) error { return settings.UpdateInt64(k, v) }
+
+// UpdateInt64 updates an int64 setting. If the setting k doesn't exist, both a
+// false and a SettingNotFoundErr will be returned. If the setting k is not
+// updateable, both a false and one of the following errors will be returned:
+// CoreUpdateErr. BasicUpdateErr, or UpdateErr.
 func (s *Settings) UpdateInt64(k string, v int64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.updateInt64(k, v)
 }
 
+// this assumes the lock is held by the caller.
 func (s *Settings) updateInt64(k string, v int64) error {
 	return s.update(k, v)
 }
@@ -94,12 +118,18 @@ func (s *Settings) updateInt64(k string, v int64) error {
 // updateable, both a false and one of the following errors will be returned:
 // CoreUpdateErr. BasicUpdateErr, or UpdateErr.
 func UpdateString(k string, v string) error { return settings.UpdateString(k, v) }
+
+// UpdateString updates a string setting. If the setting k doesn't exist, both
+// a false and a SettingNotFoundErr will be returned. If the setting k is not
+// updateable, both a false and one of the following errors will be returned:
+// CoreUpdateErr. BasicUpdateErr, or UpdateErr.
 func (s *Settings) UpdateString(k, v string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.updateString(k, v)
 }
 
+// this assumes the lock is held by the caller.
 func (s *Settings) updateString(k, v string) error {
 	return s.update(k, v)
 }
