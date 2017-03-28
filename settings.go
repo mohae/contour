@@ -323,15 +323,6 @@ func (s *Settings) UseConfFile() bool {
 	return s.useConfFile
 }
 
-// SetUseConfFile sets if Conf settings should be updated from a configuration
-// file.
-func SetUseConfFile(b bool) { settings.SetUseConfFile(b) }
-func (s *Settings) SetUseConfFile(b bool) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.useConfFile = b
-}
-
 // UseEnvVars returns whether or not environment variables are used.
 func UseEnvVars() bool { return settings.useEnvVars }
 
@@ -340,15 +331,6 @@ func (s *Settings) UseEnvVars() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.useEnvVars
-}
-
-// SetUseEnvVars sets whether or not environment variables should be used with
-// this Settings.
-func SetUseEnvVars(b bool) { settings.SetUseEnvVars(b) }
-func (s *Settings) SetUseEnvVars(b bool) {
-	s.mu.Lock()
-	s.useEnvVars = b
-	s.mu.Unlock()
 }
 
 // IsSet returns if the Settings has been set from all of its configured

@@ -111,16 +111,6 @@ func TestCfgBools(t *testing.T) {
 		if b != test.expected {
 			t.Errorf("SearchPath:  expected %v, got %v", test.expected, b)
 		}
-		tstSettings.SetUseConfFile(test.val)
-		b = tstSettings.UseConfFile()
-		if b != test.expected {
-			t.Errorf("SetUseCfgFile:  expected %v, got %v", test.expected, b)
-		}
-		tstSettings.SetUseEnvVars(test.val)
-		b = tstSettings.UseEnvVars()
-		if b != test.expected {
-			t.Errorf("SetUseEnv:  expected %v, got %v", test.expected, b)
-		}
 	}
 }
 
@@ -218,10 +208,10 @@ func TestCfgProcessed(t *testing.T) {
 	}
 	appCfg := New("test")
 	for i, test := range tests {
-		appCfg.SetUseConfFile(test.useConfFile)
+		appCfg.useConfFile = test.useConfFile
 		appCfg.confFileVarsSet = test.confFileVarsSet
 		appCfg.envVarsSet = test.envVarsSet
-		appCfg.SetUseEnvVars(test.useEnvVars)
+		appCfg.useEnvVars = test.useEnvVars
 		appCfg.useFlags = test.useFlags
 		appCfg.flagsParsed = test.flagsParsed
 		b := appCfg.IsSet()
@@ -447,8 +437,8 @@ func TestSetCfg(t *testing.T) {
 	tstCfg.name = "rancher"
 	tstCfg.SetConfFilename(tests[5].fullPath)
 	for i, test := range tests {
-		tstCfg.SetUseConfFile(test.useCfg)
-		tstCfg.SetUseEnvVars(test.useEnvVars)
+		tstCfg.useConfFile = test.useCfg
+		tstCfg.useEnvVars = test.useEnvVars
 		os.Setenv(EnvVarName(test.name), test.envValue)
 		err := tstCfg.SetFromConfFile()
 		if err != nil {
