@@ -173,21 +173,21 @@ func (s *Settings) updateFromEnv() error {
 			switch v.Type {
 			case _bool:
 				b, _ := strconv.ParseBool(tmp)
-				err = s.updateBool(k, b)
+				err = s.updateBool(Env, k, b)
 			case _int:
 				i, err := strconv.Atoi(tmp)
 				if err != nil {
 					return fmt.Errorf("getenv %s: %s", s.GetEnvName(k), err)
 				}
-				err = s.updateInt(k, i)
+				err = s.updateInt(Env, k, i)
 			case _int64:
 				i, err := strconv.ParseInt(tmp, 10, 64)
 				if err != nil {
 					return fmt.Errorf("getenv %s: %s", s.GetEnvName(k), err)
 				}
-				err = s.updateInt64(k, i)
+				err = s.updateInt64(Env, k, i)
 			case _string:
-				err = s.updateString(k, tmp)
+				err = s.updateString(Env, k, tmp)
 			default:
 				return fmt.Errorf("%s: unsupported env variable type: %s", s.GetEnvName(k), v.Type)
 			}
@@ -261,7 +261,7 @@ func (s *Settings) setFromConfFile() error {
 	// Go through settings and update setting values.
 	for k, v := range cnf.(map[string]interface{}) {
 		// otherwise update the setting
-		err = s.update(k, v)
+		err = s.update(ConfFileVar, k, v)
 		if err != nil {
 			return fmt.Errorf("update setting: %s", err)
 		}

@@ -2,48 +2,48 @@ package contour
 
 import "fmt"
 
-// UpdateErr is any error that happens on an update that isn't one of the
-// following: SettingNotFoundErr, BasicUpdateErr, or CoreUpdateErr.
-type UpdateErr struct {
+// updateErr is any error that happens on an update that isn't one of the
+// following: SettingNotFoundErr, CoreUpdateErr, or UpdateErr. This only
+// occurs on internal contour operations.
+type updateErr struct {
 	k    string
 	typ  SettingType
 	slug string
 }
 
-func (e UpdateErr) Error() string {
+func (e updateErr) Error() string {
 	return fmt.Sprintf("update of %s failed: %s", e.k, e.slug)
 }
 
-// BasicUpdateErr happens when there's an attempt to do a basic update on a
-// non-basic setting.
-type BasicUpdateErr struct {
-	typ SettingType
+// UpdateErr: when an Update operation results in an error that isn't neither a
+// SettingNotFoundErr nor a CoreUpdateErr.
+type UpdateErr struct {
+	typ string
 	k   string
 }
 
-func (e BasicUpdateErr) Error() string {
-	return fmt.Sprintf("%s: %s settings cannot be updated by a basic update", e.k, e.typ)
+func (e UpdateErr) Error() string {
+	return fmt.Sprintf("%s: %s settings cannot be updated", e.k, e.typ)
 }
 
 // CoreUpdateErr happens when there's an attempt to do a core update, which
 // should never occur, or update a Core setting.
 type CoreUpdateErr struct {
-	typ SettingType
-	k   string
+	k string
 }
 
 func (e CoreUpdateErr) Error() string {
-	return fmt.Sprintf("%s: %s settings cannot be updated by a core update", e.k, e.typ)
+	return fmt.Sprintf("%s: core settings cannot be updated", e.k)
 }
 
 // Only non-core settings are updateable. This assumes that the lock has
 // already been obtained by the caller.
-func (s *Settings) update(k string, v interface{}) error {
-	// if can't update, a false will also return an error explaining why.
-	//can := s.canUpdate(typ, k)
-	//if !can {
-	//	return fmt.Errorf("%se: cannot update using %s", typ)
-	//}
+func (s *Settings) update(typ SettingType, k string, v interface{}) error {
+	// the bool is ignored because a false will always return an error.
+	_, err := s.canUpdate(typ, k)
+	if err != nil {
+		return err
+	}
 	val, _ := s.settings[k]
 	val.Value = v
 	s.settings[k] = val
@@ -52,86 +52,86 @@ func (s *Settings) update(k string, v interface{}) error {
 
 // UpdateBool updates a bool setting. If the setting k doesn't exist, both a
 // false and a SettingNotFoundErr will be returned. If the setting k is not
-// updateable, both a false and one of the following errors will be returned:
-// CoreUpdateErr. BasicUpdateErr, or UpdateErr.
+// updateable, both a false and either a CoreUpdateErr or an UpdateErr will
+// be returned.
 func UpdateBool(k string, v bool) error { return settings.UpdateBool(k, v) }
 
 // UpdateBool updates a bool setting. If the setting k doesn't exist, both a
 // false and a SettingNotFoundErr will be returned. If the setting k is not
-// updateable, both a false and one of the following errors will be returned:
-// CoreUpdateErr. BasicUpdateErr, or UpdateErr.
+// updateable, both a false and either a CoreUpdateErr or an UpdateErr will
+// be returned.
 func (s *Settings) UpdateBool(k string, v bool) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.updateBool(k, v)
+	return s.updateBool(Basic, k, v)
 }
 
 // this assumes the lock is held by the caller.
-func (s *Settings) updateBool(k string, v bool) error {
-	return s.update(k, v)
+func (s *Settings) updateBool(typ SettingType, k string, v bool) error {
+	return s.update(typ, k, v)
 }
 
 // UpdateInt updates an int setting. If the setting k doesn't exist, both a
 // false and a SettingNotFoundErr will be returned. If the setting k is not
-// updateable, both a false and one of the following errors will be returned:
-// CoreUpdateErr. BasicUpdateErr, or UpdateErr.
+// updateable, both a false and either a CoreUpdateErr or an UpdateErr will
+// be returned.
 func UpdateInt(k string, v int) error { return settings.UpdateInt(k, v) }
 
 // UpdateInt updates an int setting. If the setting k doesn't exist, both a
 // false and a SettingNotFoundErr will be returned. If the setting k is not
-// updateable, both a false and one of the following errors will be returned:
-// CoreUpdateErr. BasicUpdateErr, or UpdateErr.
+// updateable, both a false and either a CoreUpdateErr or an UpdateErr will
+// be returned.
 func (s *Settings) UpdateInt(k string, v int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.updateInt(k, v)
+	return s.updateInt(Basic, k, v)
 }
 
 // this assumes the lock is held by the caller.
-func (s *Settings) updateInt(k string, v int) error {
-	return s.update(k, v)
+func (s *Settings) updateInt(typ SettingType, k string, v int) error {
+	return s.update(typ, k, v)
 }
 
 // UpdateInt64 updates an int64 setting. If the setting k doesn't exist, both a
 // false and a SettingNotFoundErr will be returned. If the setting k is not
-// updateable, both a false and one of the following errors will be returned:
-// CoreUpdateErr. BasicUpdateErr, or UpdateErr.
+// updateable, both a false and either a CoreUpdateErr or an UpdateErr will
+// be returned.
 func UpdateInt64(k string, v int64) error { return settings.UpdateInt64(k, v) }
 
 // UpdateInt64 updates an int64 setting. If the setting k doesn't exist, both a
 // false and a SettingNotFoundErr will be returned. If the setting k is not
-// updateable, both a false and one of the following errors will be returned:
-// CoreUpdateErr. BasicUpdateErr, or UpdateErr.
+// updateable, both a false and either a CoreUpdateErr or an UpdateErr will
+// be returned.
 func (s *Settings) UpdateInt64(k string, v int64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.updateInt64(k, v)
+	return s.updateInt64(Basic, k, v)
 }
 
 // this assumes the lock is held by the caller.
-func (s *Settings) updateInt64(k string, v int64) error {
-	return s.update(k, v)
+func (s *Settings) updateInt64(typ SettingType, k string, v int64) error {
+	return s.update(typ, k, v)
 }
 
 // UpdateString updates a string setting. If the setting k doesn't exist, both
 // a false and a SettingNotFoundErr will be returned. If the setting k is not
-// updateable, both a false and one of the following errors will be returned:
-// CoreUpdateErr. BasicUpdateErr, or UpdateErr.
+// updateable, both a false and either a CoreUpdateErr or an UpdateErr will
+// be returned.
 func UpdateString(k string, v string) error { return settings.UpdateString(k, v) }
 
 // UpdateString updates a string setting. If the setting k doesn't exist, both
 // a false and a SettingNotFoundErr will be returned. If the setting k is not
-// updateable, both a false and one of the following errors will be returned:
-// CoreUpdateErr. BasicUpdateErr, or UpdateErr.
+// updateable, both a false and either a CoreUpdateErr or an UpdateErr will
+// be returned.
 func (s *Settings) UpdateString(k, v string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.updateString(k, v)
+	return s.updateString(Basic, k, v)
 }
 
 // this assumes the lock is held by the caller.
-func (s *Settings) updateString(k, v string) error {
-	return s.update(k, v)
+func (s *Settings) updateString(typ SettingType, k, v string) error {
+	return s.update(typ, k, v)
 }
 
 // canUpdate checks to see if the passed setting key is updateable. If the key
@@ -176,18 +176,18 @@ func (s *Settings) canUpdate(typ SettingType, k string) (can bool, err error) {
 		if !v.IsConfFileVar && !v.IsEnv && !v.IsFlag {
 			return true, nil
 		}
-		var t SettingType
+		var t string
 		if v.IsFlag {
-			t = Flag
+			t = "flag"
 			goto basicErr
 		}
 		if v.IsEnv {
-			t = Env
+			t = "env var"
 			goto basicErr
 		}
-		t = ConfFileVar
+		t = "configuration file"
 	basicErr:
-		return false, BasicUpdateErr{typ: t, k: k}
+		return false, UpdateErr{typ: t, k: k}
 	}
 
 	// check by update type
@@ -208,9 +208,9 @@ func (s *Settings) canUpdate(typ SettingType, k string) (can bool, err error) {
 			}
 			set = "the configuration file"
 		confErr:
-			return false, UpdateErr{k: k, slug: fmt.Sprintf("already set from %s", set)}
+			return false, updateErr{k: k, slug: fmt.Sprintf("already set from %s", set)}
 		}
-		return false, UpdateErr{typ: typ, k: k, slug: fmt.Sprintf("is not a %s", ConfFileVar)}
+		return false, updateErr{typ: typ, k: k, slug: fmt.Sprintf("is not a %s", ConfFileVar)}
 	case Env:
 		if v.IsEnv {
 			if !s.envSet && !s.flagsParsed {
@@ -222,20 +222,20 @@ func (s *Settings) canUpdate(typ SettingType, k string) (can bool, err error) {
 			} else {
 				set = "env vars"
 			}
-			return false, UpdateErr{typ: typ, k: k, slug: fmt.Sprintf("already set from %s", set)}
+			return false, updateErr{typ: typ, k: k, slug: fmt.Sprintf("already set from %s", set)}
 		}
-		return false, UpdateErr{typ: typ, k: k, slug: fmt.Sprintf("is not an %s", Env)}
+		return false, updateErr{typ: typ, k: k, slug: fmt.Sprintf("is not an %s", Env)}
 	case Flag:
 		if v.IsFlag {
 			if !s.flagsParsed {
 				return true, nil
 			}
-			return false, UpdateErr{typ: typ, k: k, slug: "already set from flags"}
+			return false, updateErr{typ: typ, k: k, slug: "already set from flags"}
 		}
-		return false, UpdateErr{typ: typ, k: k, slug: fmt.Sprintf("is not a %s", Flag)}
+		return false, updateErr{typ: typ, k: k, slug: fmt.Sprintf("is not a %s", Flag)}
 	}
 	// If it was not one of the above, we return a false. It's better to not allow
 	// an update if the case isn't handled than be too permissive. Getting here is
 	// a sign that something within this func should be updated and/or fixed.
-	return false, UpdateErr{typ: typ, k: k, slug: "invalid update type"}
+	return false, updateErr{typ: typ, k: k, slug: "invalid update type"}
 }
