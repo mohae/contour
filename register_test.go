@@ -18,19 +18,19 @@ func TestRegisterCfgSettings(t *testing.T) {
 		IsFlag        bool
 	}{
 		{"", _bool, true, true, "no setting name provided", false, false, false, false, false},
-		{"cfgbool", _bool, true, true, "", true, false, true, true, false},
-		{"cfgbool", _bool, false, true, "cfgbool: configuration file var setting exists", true, false, true, true, false},
+		{"cfgbool", _bool, true, true, "", true, false, true, false, false},
+		{"cfgbool", _bool, false, true, "cfgbool: configuration file var setting exists", true, false, true, false, false},
 		{"", _int, 42, 42, "no setting name provided", false, false, false, false, false},
-		{"cfgint", _int, 42, 42, "", true, false, true, true, false},
+		{"cfgint", _int, 42, 42, "", true, false, true, false, false},
 
-		{"cfgint", _int, 84, 42, "cfgint: configuration file var setting exists", true, false, true, true, false},
+		{"cfgint", _int, 84, 42, "cfgint: configuration file var setting exists", true, false, true, false, false},
 		{"", _int64, int64(42), int64(42), "no setting name provided", false, false, false, false, false},
-		{"cfgint64", _int64, int64(42), int64(42), "", true, false, true, true, false},
-		{"cfgint64", _int64, int64(84), int64(42), "cfgint64: configuration file var setting exists", true, false, true, true, false},
+		{"cfgint64", _int64, int64(42), int64(42), "", true, false, true, false, false},
+		{"cfgint64", _int64, int64(84), int64(42), "cfgint64: configuration file var setting exists", true, false, true, false, false},
 		{"", _string, "bar", "bar", "no setting name provided", false, false, false, false, false},
 
-		{"cfgstring", _string, "bar", "bar", "", true, false, true, true, false},
-		{"cfgstring", _string, "baz", "bar", "cfgstring: configuration file var setting exists", true, false, true, true, false},
+		{"cfgstring", _string, "bar", "bar", "", true, false, true, false, false},
+		{"cfgstring", _string, "baz", "bar", "cfgstring: configuration file var setting exists", true, false, true, false, false},
 	}
 	tstSettings := New("test register")
 	var err error

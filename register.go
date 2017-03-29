@@ -225,7 +225,7 @@ func (s *Settings) registerStringConfFileVar(k, v string) error {
 }
 
 func (s *Settings) registerConfFileVar(typ dataType, k string, v interface{}, dflt string) error {
-	return s.registerSetting(ConfFileVar, typ, k, "", v, dflt, "", false, true, true, false)
+	return s.registerSetting(ConfFileVar, typ, k, "", v, dflt, "", false, true, false, false)
 }
 
 // EnvVar settings are settable from the config file and environment variables.

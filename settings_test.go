@@ -56,11 +56,11 @@ func TestLoadEnv(t *testing.T) {
 	for _, test := range tests {
 		switch test.typ {
 		case "cfgbool":
-			testCfg.RegisterBoolConfFileVar(test.name, test.origValue.(bool))
+			testCfg.RegisterBoolEnvVar(test.name, test.origValue.(bool))
 		case "cfgint":
-			testCfg.RegisterIntConfFileVar(test.name, test.origValue.(int))
+			testCfg.RegisterIntEnvVar(test.name, test.origValue.(int))
 		case "cfgstring":
-			testCfg.RegisterStringConfFileVar(test.name, test.origValue.(string))
+			testCfg.RegisterStringEnvVar(test.name, test.origValue.(string))
 		case "flagbool":
 			testCfg.RegisterBoolFlag(test.name, "", test.origValue.(bool), "", "")
 		case "flagint":
