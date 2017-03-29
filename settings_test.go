@@ -38,51 +38,53 @@ func TestSettings(t *testing.T) {
 
 func TestLoadEnv(t *testing.T) {
 	tests := []struct {
-		name        string
+		sTyp        SettingType
+		dTyp        dataType
 		envValue    string
-		typ         string
+		name        string
 		origValue   interface{}
+		origString  string
 		expValue    interface{}
 		expectedErr string
 	}{
-		{"tcfgbool", "true", "cfgbool", false, true, ""},
-		{"tcfgint", "99", "cfgint", 42, 99, ""},
-		{"tcfgstring", "bar", "cfgstring", "foo", "bar", ""},
-		{"tflagbool", "true", "fkagbool", false, true, ""},
-		{"tflagint", "88", "flagint", 42, 88, ""},
-		{"tflagstring", "biz", "flagstring", "fiz", "biz", ""},
+		{ConfFileVar, _bool, "true", "cfgbool", false, "false", false, ""},
+		{ConfFileVar, _int, "99", "cfgint", 42, "42", 42, ""},
+		{ConfFileVar, _string, "bar", "cfgstring", "foo", "foo", "foo", ""},
+		{EnvVar, _bool, "true", "envbool", false, "false", true, ""},
+		{EnvVar, _int, "99", "envint", 42, "42", 99, ""},
+		{EnvVar, _string, "bar", "envstring", "foo", "foo", "bar", ""},
+		{Flag, _bool, "true", "flagbool", false, "false", true, ""},
+		{Flag, _int, "88", "flagint", 42, "42", 88, ""},
+		{Flag, _string, "biz", "flagstring", "fiz", "fiz", "biz", ""},
 	}
 	testCfg := New("contourtest")
 	for _, test := range tests {
-		switch test.typ {
-		case "cfgbool":
-			testCfg.RegisterBoolEnvVar(test.name, test.origValue.(bool))
-		case "cfgint":
-			testCfg.RegisterIntEnvVar(test.name, test.origValue.(int))
-		case "cfgstring":
-			testCfg.RegisterStringEnvVar(test.name, test.origValue.(string))
-		case "flagbool":
-			testCfg.RegisterBoolFlag(test.name, "", test.origValue.(bool), "", "")
-		case "flagint":
-			testCfg.RegisterIntFlag(test.name, "", test.origValue.(int), "", "")
-		case "flagstring":
-			testCfg.RegisterStringFlag(test.name, "", test.origValue.(string), "", "")
+		switch test.sTyp {
+		case ConfFileVar:
+			testCfg.registerConfFileVar(test.dTyp, test.name, test.origValue, test.origString)
+		case EnvVar:
+			testCfg.registerEnvVar(test.dTyp, test.name, test.origValue, test.origString)
+		case Flag:
+			testCfg.registerFlag(test.dTyp, test.name, "", test.origValue, test.origString, "")
+		}
+		if test.sTyp == ConfFileVar { // ConfFileVars cannot be environment variables.
+			continue
 		}
 		os.Setenv(strings.ToUpper(fmt.Sprintf("%s_%s", testCfg.Name(), test.name)), test.envValue)
 	}
 	testCfg.SetFromEnvVars()
 	for _, test := range tests {
 		tmp := testCfg.Get(test.name)
-		switch test.typ {
-		case "cfgbool", "flagbool":
+		switch test.dTyp {
+		case _bool:
 			if test.expValue != tmp.(bool) {
 				t.Errorf("expected %v, got %v", test.expValue, tmp)
 			}
-		case "cfgint", "flagint":
+		case _int:
 			if test.expValue != tmp.(int) {
 				t.Errorf("expected %v, got %v", test.expValue, tmp)
 			}
-		case "cfgstring", "flagstring":
+		case _string:
 			if test.expValue != tmp.(string) {
 				t.Errorf("expected %v, got %v", test.expValue, tmp)
 			}
