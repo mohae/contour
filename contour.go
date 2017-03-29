@@ -1,24 +1,50 @@
 // Copyright 2016, Joel Scoble. All rights reserved.
 // Licensed under the MIT License. See the included LICENSE file.
 
-// Package contour: a package for settings.
+// Package contour: a package for storing settings. These settings may be
+// configuration settings or application settings.
 //
-// Contour supports application settings, loading settings from a configuration
-// file, environment variables, and flags. Where a setting can be set from is
-// configurable at the per setting level. In addition to setting's
-// overridability being configurable, the Settings behavior is also
-// configurable.
+// Application settings are either Core or Basic settings. Core settings cannot
+// be modified once Added with AddCore functions. Basic settings are set by
+// Add functions and can be updated with Update functions. These settings are
+// not exposed as configuration file variables, environment variables, or
+// flags. They cannot be modified by any of them.
 //
-// Application settings can either be core settings, not updateable once set,
-// or they can be settings that can only be updated within the application
-// using the Update methods; these settings are not exposed to configuration
-// files, environment variables, or flags and cannot be modified by them.
+// Configuration settings are settings that are updateable by one or more of
+// the following, depending on what type of configuration setting they are, in
+// order of override precedence: configuration file variable, environment
+// variable, and flag. Configuration settings are registered. They are
+// registered with default values and are overridable according to their
+// configuration setting type. For custom override properties, e.g. can be
+// set by either a configuration file or a flag but not by an environment
+// variable, use the Register function.
 //
-// For flags, short flag aliases are also supported.
+// The configuration file, and the format that it is in, can be specified. The
+// supported formats are: JSON, TOML, and YAML. A Contour Settings can also
+// be configured to search the PATH for the configuration file. For situations
+// where the configuration file is optional, contour can be set to not generate
+// an error when it cannot be found.
 //
-// The package global Settings uses the application's name as its name.
+// Contour only saves the top level keys of configuration files as settings.
+// For configuration file settings that are arrays, maps, or objects, their
+// values will be saved as an interface{}.
+//
+// Environment variables are UPPER CASE and use a NAME_KEY as the variable
+// name, where NAME is the name of the Settings, the executable name for
+// the package global Settings, and KEY is the name, or key, of the setting.
+//
+// Flags can be registered with either a short flag or alias using the short
+// parameter of Register Flag functions.
 //
 // All operations are thread-safe.
+//
+// The workflow for application configurations is:
+//    Register all configuration settings.
+//    Call the Set() function.
+//    Call the ParseFlags() function.
+//
+// Non-configuration application settings, Core and Basic, can be added at
+// anytime.
 package contour
 
 import (
