@@ -27,7 +27,7 @@ import "strconv"
 // true.
 //
 // When IsCore is true, nothing can modify the setting's value once it is
-// registered.
+// registered; usage of AddCore functions should be preferred.
 //
 // If the setting can be updated by a configuration file, environment variable
 // or a flag, the IsConfFileVar, IsEnv, and IsFlag bools should be set to true
@@ -36,12 +36,14 @@ import "strconv"
 // updateable from an environment variable.
 //
 // If IsCore, IsConfFileVar, IsEnv, and IsFlag are all false, the setting will
-// only be modifiable from application code via Update methods. The setting
-// will not be exposed to the configuration file, environment variables, or
-// as flags. These settings, along with Core settings are best added using Add
-// and AddCore methods.
+// only be modifiable from application code via Update methods; usage of Add
+// functions should be preferred. The setting will not be exposed to the
+// configuration file, environment variables, or as flags.
 //
 // For non string, bool, int, and int64 types, the type must be "interface{}"
+// TODO: should typ be allowed be a custom string and treat all unknown
+// values as an interface{}, e.g. typ=Foo and the Setting's type would be
+// Foo even though returning the Setting's value would result in interface{}.
 func RegisterSetting(typ, name, short string, value interface{}, dflt, usage string, IsCore, IsConfFileVar, IsEnv, IsFlag bool) error {
 	return settings.RegisterSetting(typ, name, short, value, dflt, usage, IsCore, IsConfFileVar, IsEnv, IsFlag)
 }
@@ -61,7 +63,7 @@ func RegisterSetting(typ, name, short string, value interface{}, dflt, usage str
 // true.
 //
 // When IsCore is true, nothing can modify the setting's value once it is
-// registered.
+// registered; usage of AddCore functions should be preferred.
 //
 // If the setting can be updated by a configuration file, environment variable
 // or a flag, the IsConfFileVar, IsEnv, and IsFlag bools should be set to true
@@ -70,10 +72,9 @@ func RegisterSetting(typ, name, short string, value interface{}, dflt, usage str
 // updateable from an environment variable.
 //
 // If IsCore, IsConfFileVar, IsEnv, and IsFlag are all false, the setting will
-// only be modifiable from application code via Update methods. The setting
-// will not be exposed to the configuration file, environment variables, or
-// as flags. These settings, along with Core settings are best added using Add
-// and AddCore methods.
+// only be modifiable from application code via Update methods; usage of Add
+// functions should be preferred. The setting will not be exposed to the
+// configuration file, environment variables, or as flags.
 //
 // For non string, bool, int, and int64 types, the type must be "interface{}"
 func (s *Settings) RegisterSetting(typ, name, short string, value interface{}, dflt, usage string, IsCore, IsConfFileVar, IsEnvVar, IsFlag bool) error {
@@ -227,11 +228,108 @@ func (s *Settings) registerConfFileVar(typ dataType, k string, v interface{}, df
 	return s.registerSetting(ConfFileVar, typ, k, "", v, dflt, "", false, true, true, false)
 }
 
-// Flag settings are settable from the config file and as command-line flags.
-// If there is a short value, that will be the short flag alias for the
-// setting. Only settings that are of type ConfFileVar, EnvVar, and Flag can be
-// set by a flag. A flag can be set by configuration variable, environment
-// variable, and command-line argument.
+// EnvVar settings are settable from the config file and environment variables.
+
+// RegisterBoolEnvVar registers a bool setting with the key k and value v. The
+// value of this setting can only be changed by a configuration file or an
+// environment variable. If a setting with the same key k exists a
+// SettingExistsErr will be returned. If k is empty, an ErrNoSettingName will
+// be returned.
+func RegisterBoolEnvVar(k string, v bool) error { return settings.RegisterBoolEnvVar(k, v) }
+
+// RegisterBoolEnvVar registers a bool setting with the key k and value v. The
+// value of this setting can only be changed by a configuration file or an
+// environment variable. If a setting with the same key k exists a
+// SettingExistsErr will be returned. If k is empty, an ErrNoSettingName will
+// be returned.
+func (s *Settings) RegisterBoolEnvVar(k string, v bool) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.registerBoolEnvVar(k, v)
+}
+
+// assumes the lock has been obtained. Unexported register methods always
+// return an error.
+func (s *Settings) registerBoolEnvVar(k string, v bool) error {
+	return s.registerEnvVar(_bool, k, v, strconv.FormatBool(v))
+}
+
+// RegisterIntEnvVar registers an int setting with the key k and value v. The
+// value of this setting can only be changed by a configuration file or an
+// environment variable. If a setting with the same key k exists a
+// SettingExistsErr will be returned. If k is empty, an ErrNoSettingName will
+// be returned.
+func RegisterIntEnvVar(k string, v int) error { return settings.RegisterIntEnvVar(k, v) }
+
+// RegisterIntEnvVar registers an int setting with the key k and value v. The
+// value of this setting can only be changed by a configuration file or an
+// environment variable. If a setting with the same key k exists a
+// SettingExistsErr will be returned. If k is empty, an ErrNoSettingName will
+// be returned.
+func (s *Settings) RegisterIntEnvVar(k string, v int) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.registerIntEnvVar(k, v)
+}
+
+// assumes the lock has been obtained.
+func (s *Settings) registerIntEnvVar(k string, v int) error {
+	return s.registerEnvVar(_int, k, v, strconv.Itoa(v))
+}
+
+// RegisterInt64EnvVar registers an int64 setting with the key k and value v.
+// The value of this setting can only be changed by a configuration file or an
+// environment variable. If a setting with the same key k exists a
+// SettingExistsErr will be returned. If k is empty, an ErrNoSettingName will
+// be returned.
+func RegisterInt64EnvVar(k string, v int64) error { return settings.RegisterInt64EnvVar(k, v) }
+
+// RegisterInt64EnvVar registers an int64 setting with the key k and value v.
+// The value of this setting can only be changed by a configuration file or an
+// environment variable. If a setting with the same key k exists a
+// SettingExistsErr will be returned. If k is empty, an ErrNoSettingName will
+// be returned.
+func (s *Settings) RegisterInt64EnvVar(k string, v int64) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.registerInt64EnvVar(k, v)
+}
+
+// assumes the lock has been obtained.
+func (s *Settings) registerInt64EnvVar(k string, v int64) error {
+	return s.registerEnvVar(_int64, k, v, strconv.FormatInt(v, 10))
+}
+
+// RegisterStringEnvVar registers a string setting with the key k and value v.
+// The value of this setting can only be changed by a configuration file or an
+// environment variable. If a setting with the same key k exists a
+// SettingExistsErr will be returned. If k is empty, an ErrNoSettingName will
+// be returned.
+func RegisterStringEnvVar(k, v string) error { return settings.RegisterStringEnvVar(k, v) }
+
+// RegisterStringEnvVar registers a string setting with the key k and value v.
+// The value of this setting can only be changed by a configuration file or an
+// environment variable. If a setting with the same key k exists a
+// SettingExistsErr will be returned. If k is empty, an ErrNoSettingName will
+// be returned.
+func (s *Settings) RegisterStringEnvVar(k, v string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.registerStringEnvVar(k, v)
+}
+
+// assumes the lock has been obtained.
+func (s *Settings) registerStringEnvVar(k, v string) error {
+	return s.registerEnvVar(_string, k, v, v)
+}
+
+func (s *Settings) registerEnvVar(typ dataType, k string, v interface{}, dflt string) error {
+	return s.registerSetting(EnvVar, typ, k, "", v, dflt, "", false, true, true, false)
+}
+
+// Flag settings are settable from a configuration file, environment variable,
+// and flags. If there is a short value, that will be the short flag alias for
+// the setting.
 
 // RegisterBoolFlag registers a bool setting with the key k and value v. Flag
 // settings can be updated by configuration files, environment variables, and
