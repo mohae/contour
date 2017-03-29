@@ -203,6 +203,21 @@ func init() {
 	settings = New(app)
 }
 
+// SettingExistsErr occurs when a setting being Added or Registered already
+// exists under the same name (k).
+type SettingExistsErr struct {
+	typ SettingType
+	k   string
+}
+
+func (e SettingExistsErr) Error() string {
+	// if typ is unknown or basic, don't include it in the o utput.
+	if e.typ <= 1 {
+		return fmt.Sprintf("%s: setting exists", e.k)
+	}
+	return fmt.Sprintf("%s: %s setting exists", e.k, e.typ)
+}
+
 // SettingNotFoundErr occurs when a setting isn't found.
 type SettingNotFoundErr struct {
 	settingType SettingType

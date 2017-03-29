@@ -470,6 +470,20 @@ func newTestSettings() *Settings {
 	}
 }
 
+func TestSettingExistsErr(t *testing.T) {
+	tests := []basic{
+		basic{name: "test1", value: "dinosaur", expected: "", expectedErr: "dinosaur: setting exists"},
+		basic{name: "test2", settingType: Core, value: "swallow", expected: "", expectedErr: "swallow: core setting exists"},
+	}
+
+	for _, test := range tests {
+		err := error(SettingExistsErr{typ: test.settingType, k: test.value})
+		if err.Error() != test.expectedErr {
+			t.Errorf("%s: expected %q got %q", test.name, test.expectedErr, err)
+		}
+	}
+}
+
 func TestSettingNotFoundErr(t *testing.T) {
 	tests := []basic{
 		basic{name: "notFoundErr test1", value: "dinosaur", expected: "", expectedErr: "dinosaur: setting not found"},
