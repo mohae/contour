@@ -621,8 +621,8 @@ func TestExists(t *testing.T) {
 		{"z", true},
 	}
 	appCfg := newTestSettings()
-	appCfg.RegisterInt("y", 11)
-	appCfg.RegisterInt("z", 42)
+	appCfg.AddInt("y", 11)
+	appCfg.AddInt("z", 42)
 	for i, test := range tests {
 		exists := appCfg.Exists(test.k)
 		if exists != test.exists {

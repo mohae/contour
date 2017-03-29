@@ -1,10 +1,8 @@
 package contour
 
-import (
-	"testing"
-)
+import "testing"
 
-func TestRegisterCfgSettings(t *testing.T) {
+func TestAddCoreSettings(t *testing.T) {
 	tests := []struct {
 		name          string
 		typ           dataType
@@ -18,30 +16,30 @@ func TestRegisterCfgSettings(t *testing.T) {
 		IsFlag        bool
 	}{
 		{"", _bool, true, true, "registration failed: setting name was empty", false, false, false, false, false},
-		{"cfgbool", _bool, true, true, "", true, false, true, true, false},
-		{"cfgbool", _bool, false, true, "cfgbool: registration failed: setting exists", true, false, true, true, false},
+		{"corebool", _bool, true, true, "", true, true, false, false, false},
+		{"corebool", _bool, true, true, "corebool: registration failed: setting exists", true, true, false, false, false},
 		{"", _int, 42, 42, "registration failed: setting name was empty", false, false, false, false, false},
-		{"cfgint", _int, 42, 42, "", true, false, true, true, false},
-		{"cfgint", _int, 84, 42, "cfgint: registration failed: setting exists", true, false, true, true, false},
+		{"coreint", _int, 42, 42, "", true, true, false, false, false},
+		{"coreint", _int, 84, 42, "coreint: registration failed: setting exists", true, true, false, false, false},
 		{"", _int64, int64(42), int64(42), "registration failed: setting name was empty", false, false, false, false, false},
-		{"cfgint64", _int64, int64(42), int64(42), "", true, false, true, true, false},
-		{"cfgint64", _int64, int64(84), int64(42), "cfgint64: registration failed: setting exists", true, false, true, true, false},
+		{"coreint64", _int64, int64(42), int64(42), "", true, true, false, false, false},
+		{"coreint64", _int64, int64(84), int64(42), "coreint64: registration failed: setting exists", true, true, false, false, false},
 		{"", _string, "bar", "bar", "registration failed: setting name was empty", false, false, false, false, false},
-		{"cfgstring", _string, "bar", "bar", "", true, false, true, true, false},
-		{"cfgstring", _string, "baz", "bar", "cfgstring: registration failed: setting exists", true, false, true, true, false},
+		{"corestring", _string, "bar", "bar", "", true, true, false, false, false},
+		{"corestring", _string, "baz", "bar", "corestring: registration failed: setting exists", true, true, false, false, false},
 	}
 	tstSettings := New("test register")
 	var err error
 	for i, test := range tests {
 		switch test.typ {
 		case _bool:
-			err = tstSettings.RegisterBoolConfFileVar(test.name, test.value.(bool))
+			err = tstSettings.AddBoolCore(test.name, test.value.(bool))
 		case _int:
-			err = tstSettings.RegisterIntConfFileVar(test.name, test.value.(int))
+			err = tstSettings.AddIntCore(test.name, test.value.(int))
 		case _int64:
-			err = tstSettings.RegisterInt64ConfFileVar(test.name, test.value.(int64))
+			err = tstSettings.AddInt64Core(test.name, test.value.(int64))
 		case _string:
-			err = tstSettings.RegisterStringConfFileVar(test.name, test.value.(string))
+			err = tstSettings.AddStringCore(test.name, test.value.(string))
 		default:
 			t.Errorf("%d: unsupported typ: %s", i, test.typ)
 			continue
@@ -72,10 +70,9 @@ func TestRegisterCfgSettings(t *testing.T) {
 	}
 }
 
-func TestRegisterFlagSettings(t *testing.T) {
+func TestAddSettings(t *testing.T) {
 	tests := []struct {
 		name          string
-		short         string
 		typ           dataType
 		value         interface{}
 		expected      interface{}
@@ -86,31 +83,31 @@ func TestRegisterFlagSettings(t *testing.T) {
 		IsEnvVar      bool
 		IsFlag        bool
 	}{
-		{"", "", _bool, true, true, "registration failed: setting name was empty", false, false, false, false, false},
-		{"flagbool", "b", _bool, true, true, "", true, false, true, true, true},
-		{"flagbool", "", _bool, false, true, "flagbool: registration failed: setting exists", true, false, true, true, true},
-		{"", "", _int, 42, 42, "registration failed: setting name was empty", false, false, false, false, false},
-		{"flagint", "i", _int, 42, 42, "", true, false, true, true, true},
-		{"flagint", "", _int, 84, 42, "flagint: registration failed: setting exists", true, false, true, true, true},
-		{"", "", _int64, int64(42), int64(42), "registration failed: setting name was empty", false, false, false, false, false},
-		{"flagint64", "6", _int64, int64(42), int64(42), "", true, false, true, true, true},
-		{"flagint64", "", _int64, int64(84), int64(42), "flagint64: registration failed: setting exists", true, false, true, true, true},
-		{"", "", _string, "bar", "bar", "registration failed: setting name was empty", false, false, false, false, false},
-		{"flagstring", "s", _string, "bar", "bar", "", true, false, true, true, true},
-		{"flagstring", "", _string, "baz", "bar", "flagstring: registration failed: setting exists", true, false, true, true, true},
+		{"", _bool, true, true, "add setting failed: setting name was empty", false, false, false, false, false},
+		{"bool", _bool, true, true, "", true, false, false, false, false},
+		{"bool", _bool, true, true, "bool: add setting failed: setting exists", true, false, false, false, false},
+		{"", _int, 42, 42, "add setting failed: setting name was empty", false, false, false, false, false},
+		{"int", _int, 42, 42, "", true, false, false, false, false},
+		{"int", _int, 84, 42, "int: add setting failed: setting exists", true, false, false, false, false},
+		{"", _int64, int64(42), int64(42), "add setting failed: setting name was empty", false, false, false, false, false},
+		{"int64", _int64, int64(42), int64(42), "", true, false, false, false, false},
+		{"int64", _int64, int64(84), int64(42), "int64: add setting failed: setting exists", true, false, false, false, false},
+		{"", _string, "bar", "bar", "add setting failed: setting name was empty", false, false, false, false, false},
+		{"string", _string, "bar", "bar", "", true, false, false, false, false},
+		{"string", _string, "baz", "bar", "string: add setting failed: setting exists", true, false, false, false, false},
 	}
-	tstSettings := New("test register")
+	tstSettings := New("test add")
 	var err error
 	for i, test := range tests {
 		switch test.typ {
 		case _bool:
-			err = tstSettings.RegisterBoolFlag(test.name, test.short, test.value.(bool), "", "usage")
+			err = tstSettings.AddBool(test.name, test.value.(bool))
 		case _int:
-			err = tstSettings.RegisterIntFlag(test.name, test.short, test.value.(int), "", "usage")
+			err = tstSettings.AddInt(test.name, test.value.(int))
 		case _int64:
-			err = tstSettings.RegisterInt64Flag(test.name, test.short, test.value.(int64), "", "usage")
+			err = tstSettings.AddInt64(test.name, test.value.(int64))
 		case _string:
-			err = tstSettings.RegisterStringFlag(test.name, test.short, test.value.(string), "", "usage")
+			err = tstSettings.AddString(test.name, test.value.(string))
 		default:
 			t.Errorf("%d: unsupported typ: %s", i, test.typ)
 			continue
