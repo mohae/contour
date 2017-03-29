@@ -164,7 +164,7 @@ func (s *Settings) RegisterBoolConfFileVar(k string, v bool) error {
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
 func (s *Settings) registerBoolConfFileVar(k string, v bool) error {
-	return s.registerSetting(_bool, k, "", v, strconv.FormatBool(v), "", false, true, true, false)
+	return s.registerConfFileVar(_bool, k, v, strconv.FormatBool(v))
 }
 
 // RegisterIntConfFileVar registers an int setting with the key k and value v.
@@ -184,7 +184,7 @@ func (s *Settings) RegisterIntConfFileVar(k string, v int) error {
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
 func (s *Settings) registerIntConfFileVar(k string, v int) error {
-	return s.registerSetting(_int, k, "", v, strconv.Itoa(v), "", false, true, true, false)
+	return s.registerConfFileVar(_int, k, v, strconv.Itoa(v))
 }
 
 // RegisterInt64ConfFileVar registers an int64 setting with the key k and value
@@ -204,7 +204,7 @@ func (s *Settings) RegisterInt64ConfFileVar(k string, v int64) error {
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
 func (s *Settings) registerInt64ConfFileVar(k string, v int64) error {
-	return s.registerSetting(_int64, k, "", v, strconv.FormatInt(v, 10), "", false, true, true, false)
+	return s.registerConfFileVar(_int64, k, v, strconv.FormatInt(v, 10))
 }
 
 // RegisterStringConfFileVar registers a string setting with the key k and
@@ -226,7 +226,11 @@ func (s *Settings) RegisterStringConfFileVar(k, v string) error {
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
 func (s *Settings) registerStringConfFileVar(k, v string) error {
-	return s.registerSetting(_string, k, "", v, v, "", false, true, true, false)
+	return s.registerConfFileVar(_string, k, v, v)
+}
+
+func (s *Settings) registerConfFileVar(typ dataType, k string, v interface{}, dflt string) error {
+	return s.registerSetting(typ, k, "", v, dflt, "", false, true, true, false)
 }
 
 // Flag settings are settable from the config file and as command-line flags.
@@ -254,7 +258,7 @@ func (s *Settings) RegisterBoolFlag(k, short string, v bool, dflt, usage string)
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
 func (s *Settings) registerBoolFlag(k, short string, v bool, dflt, usage string) error {
-	return s.registerSetting(_bool, k, short, v, dflt, usage, false, true, true, true)
+	return s.registerFlag(_bool, k, short, v, dflt, usage)
 }
 
 // RegisterIntFlag registers an int setting with the key k and value v. The
@@ -276,7 +280,7 @@ func (s *Settings) RegisterIntFlag(k, short string, v int, dflt, usage string) e
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
 func (s *Settings) registerIntFlag(k, short string, v int, dflt, usage string) error {
-	return s.registerSetting(_int, k, short, v, dflt, usage, false, true, true, true)
+	return s.registerFlag(_int, k, short, v, dflt, usage)
 }
 
 // RegisterInt64Flag registers an int64 setting with the key k and value v. The
@@ -298,7 +302,7 @@ func (s *Settings) RegisterInt64Flag(k, short string, v int64, dflt, usage strin
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
 func (s *Settings) registerInt64Flag(k, short string, v int64, dflt, usage string) error {
-	return s.registerSetting(_int64, k, short, v, dflt, usage, false, true, true, true)
+	return s.registerFlag(_int64, k, short, v, dflt, usage)
 }
 
 // RegisterStringFlag registers a string setting with the key k and value v.
@@ -322,5 +326,9 @@ func (s *Settings) RegisterStringFlag(k, short, v, dflt, usage string) error {
 // assumes the lock has been obtained. Unexported register methods always
 // return an error.
 func (s *Settings) registerStringFlag(k, short, v, dflt, usage string) error {
-	return s.registerSetting(_string, k, short, v, dflt, usage, false, true, true, true)
+	return s.registerFlag(_string, k, short, v, dflt, usage)
+}
+
+func (s *Settings) registerFlag(typ dataType, k, short string, v interface{}, dflt, usage string) error {
+	return s.registerSetting(typ, k, short, v, dflt, usage, false, true, true, true)
 }
