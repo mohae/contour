@@ -22,6 +22,7 @@
 package contour
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -202,6 +203,8 @@ var settings *Settings
 func init() {
 	settings = New(app)
 }
+
+var ErrNoSettingName = errors.New("no setting name provided")
 
 // SettingExistsErr occurs when a setting being Added or Registered already
 // exists under the same name (k).
