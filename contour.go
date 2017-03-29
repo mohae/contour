@@ -221,6 +221,18 @@ func (e SettingExistsErr) Error() string {
 	return fmt.Sprintf("%s: %s setting exists", e.k, e.typ)
 }
 
+// ShortFlagExistsErr occurs when registering a flag whose short flag already
+// exists/
+type ShortFlagExistsErr struct {
+	k         string
+	short     string
+	shortName string
+}
+
+func (e ShortFlagExistsErr) Error() string {
+	return fmt.Sprintf("%s: short flag %q already exists for %q", e.k, e.short, e.shortName)
+}
+
 // SettingNotFoundErr occurs when a setting isn't found.
 type SettingNotFoundErr struct {
 	settingType SettingType

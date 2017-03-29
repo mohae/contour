@@ -484,6 +484,14 @@ func TestSettingExistsErr(t *testing.T) {
 	}
 }
 
+func TestShortFlagErr(t *testing.T) {
+	err := ShortFlagExistsErr{k: "bar", short: "b", shortName: "biz"}
+	exp := "bar: short flag \"b\" already exists for \"biz\""
+	if err.Error() != exp {
+		t.Errorf("got %s; want %s", err.Error(), exp)
+	}
+}
+
 func TestSettingNotFoundErr(t *testing.T) {
 	tests := []basic{
 		basic{name: "notFoundErr test1", value: "dinosaur", expected: "", expectedErr: "dinosaur: setting not found"},
