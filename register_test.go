@@ -17,18 +17,20 @@ func TestRegisterCfgSettings(t *testing.T) {
 		IsEnvVar      bool
 		IsFlag        bool
 	}{
-		{"", _bool, true, true, "registration failed: setting name was empty", false, false, false, false, false},
+		{"", _bool, true, true, "no setting name provided", false, false, false, false, false},
 		{"cfgbool", _bool, true, true, "", true, false, true, true, false},
-		{"cfgbool", _bool, false, true, "cfgbool: registration failed: setting exists", true, false, true, true, false},
-		{"", _int, 42, 42, "registration failed: setting name was empty", false, false, false, false, false},
+		{"cfgbool", _bool, false, true, "cfgbool: configuration file var setting exists", true, false, true, true, false},
+		{"", _int, 42, 42, "no setting name provided", false, false, false, false, false},
 		{"cfgint", _int, 42, 42, "", true, false, true, true, false},
-		{"cfgint", _int, 84, 42, "cfgint: registration failed: setting exists", true, false, true, true, false},
-		{"", _int64, int64(42), int64(42), "registration failed: setting name was empty", false, false, false, false, false},
+
+		{"cfgint", _int, 84, 42, "cfgint: configuration file var setting exists", true, false, true, true, false},
+		{"", _int64, int64(42), int64(42), "no setting name provided", false, false, false, false, false},
 		{"cfgint64", _int64, int64(42), int64(42), "", true, false, true, true, false},
-		{"cfgint64", _int64, int64(84), int64(42), "cfgint64: registration failed: setting exists", true, false, true, true, false},
-		{"", _string, "bar", "bar", "registration failed: setting name was empty", false, false, false, false, false},
+		{"cfgint64", _int64, int64(84), int64(42), "cfgint64: configuration file var setting exists", true, false, true, true, false},
+		{"", _string, "bar", "bar", "no setting name provided", false, false, false, false, false},
+
 		{"cfgstring", _string, "bar", "bar", "", true, false, true, true, false},
-		{"cfgstring", _string, "baz", "bar", "cfgstring: registration failed: setting exists", true, false, true, true, false},
+		{"cfgstring", _string, "baz", "bar", "cfgstring: configuration file var setting exists", true, false, true, true, false},
 	}
 	tstSettings := New("test register")
 	var err error
@@ -86,18 +88,20 @@ func TestRegisterFlagSettings(t *testing.T) {
 		IsEnvVar      bool
 		IsFlag        bool
 	}{
-		{"", "", _bool, true, true, "registration failed: setting name was empty", false, false, false, false, false},
+		{"", "", _bool, true, true, "no setting name provided", false, false, false, false, false},
 		{"flagbool", "b", _bool, true, true, "", true, false, true, true, true},
-		{"flagbool", "", _bool, false, true, "flagbool: registration failed: setting exists", true, false, true, true, true},
-		{"", "", _int, 42, 42, "registration failed: setting name was empty", false, false, false, false, false},
+		{"flagbool", "", _bool, false, true, "flagbool: flag setting exists", true, false, true, true, true},
+		{"", "", _int, 42, 42, "no setting name provided", false, false, false, false, false},
 		{"flagint", "i", _int, 42, 42, "", true, false, true, true, true},
-		{"flagint", "", _int, 84, 42, "flagint: registration failed: setting exists", true, false, true, true, true},
-		{"", "", _int64, int64(42), int64(42), "registration failed: setting name was empty", false, false, false, false, false},
+
+		{"flagint", "", _int, 84, 42, "flagint: flag setting exists", true, false, true, true, true},
+		{"", "", _int64, int64(42), int64(42), "no setting name provided", false, false, false, false, false},
 		{"flagint64", "6", _int64, int64(42), int64(42), "", true, false, true, true, true},
-		{"flagint64", "", _int64, int64(84), int64(42), "flagint64: registration failed: setting exists", true, false, true, true, true},
-		{"", "", _string, "bar", "bar", "registration failed: setting name was empty", false, false, false, false, false},
+		{"flagint64", "", _int64, int64(84), int64(42), "flagint64: flag setting exists", true, false, true, true, true},
+		{"", "", _string, "bar", "bar", "no setting name provided", false, false, false, false, false},
+
 		{"flagstring", "s", _string, "bar", "bar", "", true, false, true, true, true},
-		{"flagstring", "", _string, "baz", "bar", "flagstring: registration failed: setting exists", true, false, true, true, true},
+		{"flagstring", "", _string, "baz", "bar", "flagstring: flag setting exists", true, false, true, true, true},
 	}
 	tstSettings := New("test register")
 	var err error

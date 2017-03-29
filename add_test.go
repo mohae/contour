@@ -15,18 +15,18 @@ func TestAddCoreSettings(t *testing.T) {
 		IsEnvVar      bool
 		IsFlag        bool
 	}{
-		{"", _bool, true, true, "registration failed: setting name was empty", false, false, false, false, false},
+		{"", _bool, true, true, "no setting name provided", false, false, false, false, false},
 		{"corebool", _bool, true, true, "", true, true, false, false, false},
-		{"corebool", _bool, true, true, "corebool: registration failed: setting exists", true, true, false, false, false},
-		{"", _int, 42, 42, "registration failed: setting name was empty", false, false, false, false, false},
+		{"corebool", _bool, true, true, "corebool: core setting exists", true, true, false, false, false},
+		{"", _int, 42, 42, "no setting name provided", false, false, false, false, false},
 		{"coreint", _int, 42, 42, "", true, true, false, false, false},
-		{"coreint", _int, 84, 42, "coreint: registration failed: setting exists", true, true, false, false, false},
-		{"", _int64, int64(42), int64(42), "registration failed: setting name was empty", false, false, false, false, false},
+		{"coreint", _int, 84, 42, "coreint: core setting exists", true, true, false, false, false},
+		{"", _int64, int64(42), int64(42), "no setting name provided", false, false, false, false, false},
 		{"coreint64", _int64, int64(42), int64(42), "", true, true, false, false, false},
-		{"coreint64", _int64, int64(84), int64(42), "coreint64: registration failed: setting exists", true, true, false, false, false},
-		{"", _string, "bar", "bar", "registration failed: setting name was empty", false, false, false, false, false},
+		{"coreint64", _int64, int64(84), int64(42), "coreint64: core setting exists", true, true, false, false, false},
+		{"", _string, "bar", "bar", "no setting name provided", false, false, false, false, false},
 		{"corestring", _string, "bar", "bar", "", true, true, false, false, false},
-		{"corestring", _string, "baz", "bar", "corestring: registration failed: setting exists", true, true, false, false, false},
+		{"corestring", _string, "baz", "bar", "corestring: core setting exists", true, true, false, false, false},
 	}
 	tstSettings := New("test register")
 	var err error
@@ -83,18 +83,18 @@ func TestAddSettings(t *testing.T) {
 		IsEnvVar      bool
 		IsFlag        bool
 	}{
-		{"", _bool, true, true, "add setting failed: setting name was empty", false, false, false, false, false},
+		{"", _bool, true, true, "no setting name provided", false, false, false, false, false},
 		{"bool", _bool, true, true, "", true, false, false, false, false},
-		{"bool", _bool, true, true, "bool: add setting failed: setting exists", true, false, false, false, false},
-		{"", _int, 42, 42, "add setting failed: setting name was empty", false, false, false, false, false},
+		{"bool", _bool, true, true, "bool: setting exists", true, false, false, false, false},
+		{"", _int, 42, 42, "no setting name provided", false, false, false, false, false},
 		{"int", _int, 42, 42, "", true, false, false, false, false},
-		{"int", _int, 84, 42, "int: add setting failed: setting exists", true, false, false, false, false},
-		{"", _int64, int64(42), int64(42), "add setting failed: setting name was empty", false, false, false, false, false},
+		{"int", _int, 84, 42, "int: setting exists", true, false, false, false, false},
+		{"", _int64, int64(42), int64(42), "no setting name provided", false, false, false, false, false},
 		{"int64", _int64, int64(42), int64(42), "", true, false, false, false, false},
-		{"int64", _int64, int64(84), int64(42), "int64: add setting failed: setting exists", true, false, false, false, false},
-		{"", _string, "bar", "bar", "add setting failed: setting name was empty", false, false, false, false, false},
+		{"int64", _int64, int64(84), int64(42), "int64: setting exists", true, false, false, false, false},
+		{"", _string, "bar", "bar", "no setting name provided", false, false, false, false, false},
 		{"string", _string, "bar", "bar", "", true, false, false, false, false},
-		{"string", _string, "baz", "bar", "string: add setting failed: setting exists", true, false, false, false, false},
+		{"string", _string, "baz", "bar", "string: setting exists", true, false, false, false, false},
 	}
 	tstSettings := New("test add")
 	var err error

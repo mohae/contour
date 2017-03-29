@@ -10,34 +10,18 @@ package contour
 // These should be called at app startup to register all configuration
 // Settings that the application uses.
 
-import (
-	"fmt"
-	"strconv"
-)
-
-// RegistrationErr provides information on errors that occurred during the
-// registration of a setting.
-type RegistrationErr struct {
-	name string
-	slug string
-}
-
-func (e RegistrationErr) Error() string {
-	if e.slug == "" {
-		return fmt.Sprintf("%s: registration failed", e.name)
-	}
-	if e.name == "" {
-		return fmt.Sprintf("registration failed: %s", e.slug)
-	}
-	return fmt.Sprintf("%s: registration failed: %s", e.name, e.slug)
-}
+import "strconv"
 
 // RegisterSetting registers a setting. For most settings, the data and setting
-// type specific registration should be used. If an error occurs, a
-// RegistrationErr will be returned. The exception would be when you want to
-// customize what can override a setting: e.g. allow updates from env vars and
-// flags only. If updating this setting, in some manner, is to be allowed,
-// IsCore must be false as that will take precedence over any other type.
+// type specific registration and add functions should be used. The exception
+// would be when you want to customize what can override a setting: e.g. allow
+// updates from env vars and flags only. If updating this setting, in some
+// manner, is to be allowed, IsCore must be false as that will take precedence
+// over any other type.
+//
+// If a setting with the same name already exists, a SettingExistsErr will be
+// returned. If the name is an empty string an ErrNoSettingName will be
+// returned.
 //
 // The short, dflt, and usage parms only apply to settings with IsFlag set to
 // true.
@@ -63,11 +47,15 @@ func RegisterSetting(typ, name, short string, value interface{}, dflt, usage str
 }
 
 // RegisterSetting registers a setting. For most settings, the data and setting
-// type specific registration should be used. If an error occurs, a
-// RegistrationErr will be returned. The exception would be when you want to
-// customize what can override a setting: e.g. allow updates from env vars and
-// flags only. If updating this setting, in some manner, is to be allowed,
-// IsCore must be false as that will take precedence over any other type.
+// type specific registration and add functions should be used. The exception
+// would be when you want to customize what can override a setting: e.g. allow
+// updates from env vars and flags only. If updating this setting, in some
+// manner, is to be allowed, IsCore must be false as that will take precedence
+// over any other type.
+//
+// If a setting with the same name already exists, a SettingExistsErr will be
+// returned. If the name is an empty string an ErrNoSettingName will be
+// returned.
 //
 // The short, dflt, and usage parms only apply to settings with IsFlag set to
 // true.
@@ -92,17 +80,17 @@ func (s *Settings) RegisterSetting(typ, name, short string, value interface{}, d
 	dType := parseDataType(typ)
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.registerSetting(dType, name, short, value, dflt, usage, IsCore, IsConfFileVar, IsEnvVar, IsFlag)
+	return s.registerSetting(0, dType, name, short, value, dflt, usage, IsCore, IsConfFileVar, IsEnvVar, IsFlag)
 }
 
-func (s *Settings) registerSetting(typ dataType, name, short string, value interface{}, dflt, usage string, IsCore, IsConfFileVar, IsEnvVar, IsFlag bool) error {
+func (s *Settings) registerSetting(sTyp SettingType, typ dataType, name, short string, value interface{}, dflt, usage string, IsCore, IsConfFileVar, IsEnvVar, IsFlag bool) error {
 	if name == "" {
-		return RegistrationErr{slug: "setting name was empty"}
+		return ErrNoSettingName
 	}
 	_, ok := s.settings[name]
 	if ok {
 		// Settings can't be re-registered.
-		return RegistrationErr{name: name, slug: "setting exists"}
+		return SettingExistsErr{typ: sTyp, k: name}
 	}
 
 	// Add the setting
@@ -124,9 +112,9 @@ func (s *Settings) registerSetting(typ dataType, name, short string, value inter
 	}
 	// mapping shortcodes make lookup easier
 	if short != "" && IsFlag {
-		_, ok := s.shortFlags[short]
+		v, ok := s.shortFlags[short]
 		if ok {
-			return RegistrationErr{name: name, slug: fmt.Sprintf("a setting using short flag %s exists; they must be unique", short)}
+			return ShortFlagExistsErr{k: name, short: short, shortName: v}
 		}
 		s.shortFlags[short] = name
 	}
@@ -149,12 +137,14 @@ func (s *Settings) registerSetting(typ dataType, name, short string, value inter
 
 // RegisterBoolConfFileVar registers a bool setting with the key k and value v.
 // The value of this setting can only be changed by a configuration once it is
-// registered. If an error occurs, a RegistrationErr will be returned.
+// registered. If a setting with the same key k exists a SettingExistsErr will
+// be returned. If k is empty, an ErrNoSettingName will be returned.
 func RegisterBoolConfFileVar(k string, v bool) error { return settings.RegisterBoolConfFileVar(k, v) }
 
 // RegisterBoolConfFileVar registers a bool setting with the key k and value v.
 // The value of this setting can only be changed by a configuration once it is
-// registered. If an error occurs, a RegistrationErr will be returned.
+// registered. If a setting with the same key k exists a SettingExistsErr will
+// be returned. If k is empty, an ErrNoSettingName will be returned.
 func (s *Settings) RegisterBoolConfFileVar(k string, v bool) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -169,12 +159,14 @@ func (s *Settings) registerBoolConfFileVar(k string, v bool) error {
 
 // RegisterIntConfFileVar registers an int setting with the key k and value v.
 // The value of this setting can only be changed by a configuration once it is
-// registered. If an error occurs, a RegistrationErr will be returned.
+// registered. If a setting with the same key k exists a SettingExistsErr will
+// be returned. If k is empty, an ErrNoSettingName will be returned.
 func RegisterIntConfFileVar(k string, v int) error { return settings.RegisterIntConfFileVar(k, v) }
 
 // RegisterIntConfFileVar registers an int setting with the key k and value v.
 // The value of this setting can only be changed by a configuration once it is
-// registered. If an error occurs, a RegistrationErr will be returned.
+// registered. If a setting with the same key k exists a SettingExistsErr will
+// be returned. If k is empty, an ErrNoSettingName will be returned.
 func (s *Settings) RegisterIntConfFileVar(k string, v int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -189,12 +181,14 @@ func (s *Settings) registerIntConfFileVar(k string, v int) error {
 
 // RegisterInt64ConfFileVar registers an int64 setting with the key k and value
 // The value of this setting can only be changed by a configuration once it is
-// registered. If an error occurs, a RegistrationErr will be returned.
+// registered. If a setting with the same key k exists a SettingExistsErr will
+// be returned. If k is empty, an ErrNoSettingName will be returned.
 func RegisterInt64ConfFileVar(k string, v int64) error { return settings.RegisterInt64ConfFileVar(k, v) }
 
 // RegisterInt64ConfFileVar registers an int64 setting with the key k and value
 // The value of this setting can only be changed by a configuration once it is
-// registered. If an error occurs, a RegistrationErr will be returned.
+// registered. If a setting with the same key k exists a SettingExistsErr will
+// be returned. If k is empty, an ErrNoSettingName will be returned.
 func (s *Settings) RegisterInt64ConfFileVar(k string, v int64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -208,15 +202,15 @@ func (s *Settings) registerInt64ConfFileVar(k string, v int64) error {
 }
 
 // RegisterStringConfFileVar registers a string setting with the key k and
-// value v. The value of this setting can only be changed by a configuration
-// once it is registered. If an error occurs, a RegistrationErr will be
-// returned.
+// The value of this setting can only be changed by a configuration once it is
+// registered. If a setting with the same key k exists a SettingExistsErr will
+// be returned. If k is empty, an ErrNoSettingName will be returned.
 func RegisterStringConfFileVar(k, v string) error { return settings.RegisterStringConfFileVar(k, v) }
 
 // RegisterStringConfFileVar registers a string setting with the key k and
-// value v. The value of this setting can only be changed by a configuration
-// once it is registered. If an error occurs, a RegistrationErr will be
-// returned.
+// The value of this setting can only be changed by a configuration once it is
+// registered. If a setting with the same key k exists a SettingExistsErr will
+// be returned. If k is empty, an ErrNoSettingName will be returned.
 func (s *Settings) RegisterStringConfFileVar(k, v string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -230,7 +224,7 @@ func (s *Settings) registerStringConfFileVar(k, v string) error {
 }
 
 func (s *Settings) registerConfFileVar(typ dataType, k string, v interface{}, dflt string) error {
-	return s.registerSetting(typ, k, "", v, dflt, "", false, true, true, false)
+	return s.registerSetting(ConfFileVar, typ, k, "", v, dflt, "", false, true, true, false)
 }
 
 // Flag settings are settable from the config file and as command-line flags.
@@ -239,16 +233,24 @@ func (s *Settings) registerConfFileVar(typ dataType, k string, v interface{}, df
 // set by a flag. A flag can be set by configuration variable, environment
 // variable, and command-line argument.
 
-// RegisterBoolFlag registers a bool setting with the key k and value v. The
-// value of this setting can be changed by a configuration file, environment
-// variable, or a flag. If an error occurs, a RegistrationErr will be returned.
+// RegisterBoolFlag registers a bool setting with the key k and value v. Flag
+// settings can be updated by configuration files, environment variables, and
+// flags. If a setting with the same key k exists a SettingExistsErr will
+// be returned. If k is empty, an ErrNoSettingName will be returned. If the
+// short value already is registered a ShortFlagExistsErr will be returend.
+// This error includes the name of the setting that the short value is already
+// registered to.
 func RegisterBoolFlag(k, short string, v bool, dflt, usage string) error {
 	return settings.RegisterBoolFlag(k, short, v, dflt, usage)
 }
 
-// RegisterBoolFlag registers a bool setting with the key k and value v. The
-// value of this setting can be changed by a configuration file, environment
-// variable, or a flag. If an error occurs, a RegistrationErr will be returned.
+// RegisterBoolFlag registers a bool setting with the key k and value v. Flag
+// settings can be updated by configuration files, environment variables, and
+// flags. If a setting with the same key k exists a SettingExistsErr will
+// be returned. If k is empty, an ErrNoSettingName will be returned. If the
+// short value already is registered a ShortFlagExistsErr will be returend.
+// This error includes the name of the setting that the short value is already
+// registered to.
 func (s *Settings) RegisterBoolFlag(k, short string, v bool, dflt, usage string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -261,16 +263,24 @@ func (s *Settings) registerBoolFlag(k, short string, v bool, dflt, usage string)
 	return s.registerFlag(_bool, k, short, v, dflt, usage)
 }
 
-// RegisterIntFlag registers an int setting with the key k and value v. The
-// value of this setting can be changed by a configuration file, environment
-// variable, or a flag. If an error occurs, a RegistrationErr will be returned.
+// RegisterIntFlag registers an int setting with the key k and value v. Flag
+// settings can be updated by configuration files, environment variables, and
+// flags. If a setting with the same key k exists a SettingExistsErr will
+// be returned. If k is empty, an ErrNoSettingName will be returned. If the
+// short value already is registered a ShortFlagExistsErr will be returend.
+// This error includes the name of the setting that the short value is already
+// registered to.
 func RegisterIntFlag(k, short string, v int, dflt, usage string) error {
 	return settings.RegisterIntFlag(k, short, v, dflt, usage)
 }
 
-// RegisterIntFlag registers an int setting with the key k and value v. The
-// value of this setting can be changed by a configuration file, environment
-// variable, or a flag. If an error occurs, a RegistrationErr will be returned.
+// RegisterIntFlag registers an int setting with the key k and value v. Flag
+// settings can be updated by configuration files, environment variables, and
+// flags. If a setting with the same key k exists a SettingExistsErr will
+// be returned. If k is empty, an ErrNoSettingName will be returned. If the
+// short value already is registered a ShortFlagExistsErr will be returend.
+// This error includes the name of the setting that the short value is already
+// registered to.
 func (s *Settings) RegisterIntFlag(k, short string, v int, dflt, usage string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -283,16 +293,24 @@ func (s *Settings) registerIntFlag(k, short string, v int, dflt, usage string) e
 	return s.registerFlag(_int, k, short, v, dflt, usage)
 }
 
-// RegisterInt64Flag registers an int64 setting with the key k and value v. The
-// value of this setting can be changed by a configuration file, environment
-// variable, or a flag. If an error occurs, a RegistrationErr will be returned.
+// RegisterInt64Flag registers an int64 setting with the key k and value v. Flag
+// settings can be updated by configuration files, environment variables, and
+// flags. If a setting with the same key k exists a SettingExistsErr will
+// be returned. If k is empty, an ErrNoSettingName will be returned. If the
+// short value already is registered a ShortFlagExistsErr will be returend.
+// This error includes the name of the setting that the short value is already
+// registered to.
 func RegisterInt64Flag(k, short string, v int64, dflt, usage string) error {
 	return settings.RegisterInt64Flag(k, short, v, dflt, usage)
 }
 
-// RegisterInt64Flag registers an int64 setting with the key k and value v. The
-// value of this setting can be changed by a configuration file, environment
-// variable, or a flag. If an error occurs, a RegistrationErr will be returned.
+// RegisterInt64Flag registers an int64 setting with the key k and value v. Flag
+// settings can be updated by configuration files, environment variables, and
+// flags. If a setting with the same key k exists a SettingExistsErr will
+// be returned. If k is empty, an ErrNoSettingName will be returned. If the
+// short value already is registered a ShortFlagExistsErr will be returend.
+// This error includes the name of the setting that the short value is already
+// registered to.
 func (s *Settings) RegisterInt64Flag(k, short string, v int64, dflt, usage string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -306,17 +324,23 @@ func (s *Settings) registerInt64Flag(k, short string, v int64, dflt, usage strin
 }
 
 // RegisterStringFlag registers a string setting with the key k and value v.
-// The value of this setting can be changed by a configuration file,
-// environment variable, or a flag. If an error occurs, a RegistrationErr will
-// be returned.
+// Flag settings can be updated by configuration files, environment variables,
+// and flags. If a setting with the same key k exists a SettingExistsErr will
+// be returned. If k is empty, an ErrNoSettingName will be returned. If the
+// short value already is registered a ShortFlagExistsErr will be returend.
+// This error includes the name of the setting that the short value is already
+// registered to.
 func RegisterStringFlag(k, short, v, dflt, usage string) error {
 	return settings.RegisterStringFlag(k, short, v, dflt, usage)
 }
 
 // RegisterStringFlag registers a string setting with the key k and value v.
-// The value of this setting can be changed by a configuration file,
-// environment variable, or a flag. If an error occurs, a RegistrationErr will
-// be returned.
+// Flag settings can be updated by configuration files, environment variables,
+// and flags. If a setting with the same key k exists a SettingExistsErr will
+// be returned. If k is empty, an ErrNoSettingName will be returned. If the
+// short value already is registered a ShortFlagExistsErr will be returend.
+// This error includes the name of the setting that the short value is already
+// registered to.
 func (s *Settings) RegisterStringFlag(k, short, v, dflt, usage string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -330,5 +354,5 @@ func (s *Settings) registerStringFlag(k, short, v, dflt, usage string) error {
 }
 
 func (s *Settings) registerFlag(typ dataType, k, short string, v interface{}, dflt, usage string) error {
-	return s.registerSetting(typ, k, short, v, dflt, usage, false, true, true, true)
+	return s.registerSetting(Flag, typ, k, short, v, dflt, usage, false, true, true, true)
 }
