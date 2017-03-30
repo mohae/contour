@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -245,7 +246,7 @@ func (s *Settings) setFromConfFile() error {
 		return fmt.Errorf("set from file: %s", err)
 	}
 
-	b, err := ioutil.ReadFile(n)
+	b, err := s.readConfigurationFile(n)
 	if err != nil {
 		return fmt.Errorf("set from file: %s", err)
 	}
@@ -267,6 +268,37 @@ func (s *Settings) setFromConfFile() error {
 		}
 	}
 	return nil
+}
+
+// readConfigurationFile reads the configuration file n. If n doesn't exist
+// and
+func (s *Settings) readConfigurationFile(n string) (b []byte, err error) {
+	b, err = ioutil.ReadFile(n)
+	if err == nil {
+		return b, nil
+	}
+	// if !search path; return err
+	if !s.searchPath {
+		return nil, err
+	}
+
+	// load the PATH
+	p := os.Getenv("PATH")
+	ps := strings.Split(p, string(os.PathListSeparator))
+	for i := range ps {
+		ps[i] = os.ExpandEnv(ps[i])
+	}
+	// get the filename part of n
+	n = filepath.Base(n)
+	for _, v := range ps {
+		tmp := filepath.Join(v, n)
+		f, err := os.Open(tmp)
+		if err == nil {
+			defer f.Close()
+			return ioutil.ReadAll(f)
+		}
+	}
+	return nil, &os.PathError{Op: "open file", Path: n, Err: os.ErrNotExist}
 }
 
 // ErrOnMissingConfFile returns whether a missing config file should result in
