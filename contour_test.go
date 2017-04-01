@@ -191,7 +191,7 @@ var xmlExample = []byte(`<cfg>
 
 var emptySettings map[string]Settings
 var testSettings = map[string]Settings{
-	app:     Settings{settings: map[string]setting{}},
+	Exe:     Settings{settings: map[string]setting{}},
 	"test1": Settings{settings: map[string]setting{}},
 }
 

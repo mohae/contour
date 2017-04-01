@@ -56,7 +56,8 @@ import (
 	"github.com/mohae/appname"
 )
 
-var app = appname.Get()
+// Exe: the name of the running executable.
+var Exe = appname.Get()
 
 const (
 	// Unsupported configuration encoding format.
@@ -227,7 +228,7 @@ func (t SettingType) String() string {
 var settings *Settings
 
 func init() {
-	settings = New(app)
+	settings = New(Exe)
 }
 
 var ErrNoSettingName = errors.New("no setting name provided")
