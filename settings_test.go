@@ -1,6 +1,7 @@
 package contour
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -92,33 +93,49 @@ func TestLoadEnv(t *testing.T) {
 	}
 }
 
-func TestCfgBools(t *testing.T) {
-	bTests := []struct {
-		val      bool
-		expected bool
-	}{
-		{true, true},
-		{false, false},
-		{true, true},
-	}
-	tstSettings := New("test")
-	for _, test := range bTests {
-		tstSettings.SetErrOnMissingConfFile(test.val)
-		b := tstSettings.ErrOnMissingConfFile()
-		if b != test.expected {
-			t.Errorf("ErrOnMissingCfg:  expected %v, got %v", test.expected, b)
-		}
-		tstSettings.SetSearchPath(test.val)
-		b = tstSettings.SearchPath()
-		if b != test.expected {
-			t.Errorf("SearchPath:  expected %v, got %v", test.expected, b)
+func TestCheckPaths(t *testing.T) {
+	fname := "abc.xyz"
+	paths := []string{"aaaaa", "bbbbb", "ccccc"}
+	cfg := New("test")
+	b, err := cfg.checkPaths(fname, paths)
+	if b != nil {
+		t.Errorf("got %v; want nil", b)
+	} else {
+		if err != os.ErrNotExist {
+			t.Errorf("got %s; want %s", err, os.ErrNotExist)
 		}
 	}
 }
 
-//func TestSetFromCfg(t *testing.T) {
-//
-//}
+func TestConfFilePaths(t *testing.T) {
+	tests := [][]string{
+		{"testpath", "/test/path"},
+		nil,
+		{"path"},
+	}
+	cfg := New("test")
+	for _, v := range tests {
+		cfg.ConfFilePaths(v)
+		if !reflect.DeepEqual(v, cfg.confFilePaths) {
+			t.Errorf("got %v; want %v", cfg.confFilePaths, v)
+		}
+	}
+}
+
+func TestConfFileEnvVars(t *testing.T) {
+	tests := [][]string{
+		{"CONTOURPATH"},
+		nil,
+		{"CONTOURPATH", "ZPATH"},
+	}
+	cfg := New("test")
+	for _, v := range tests {
+		cfg.ConfFilePathEnvVars(v)
+		if !reflect.DeepEqual(v, cfg.confFilePathEnvVars) {
+			t.Errorf("got %v; want %v", cfg.confFilePathEnvVars, v)
+		}
+	}
+}
 
 func TestCfgProcessed(t *testing.T) {
 	tests := []struct {
@@ -439,6 +456,7 @@ func TestSetCfg(t *testing.T) {
 	tstCfg.name = "rancher"
 	tstCfg.SetConfFilename(tests[5].fullPath)
 	for i, test := range tests {
+		tstCfg.confFileVarsSet = false
 		tstCfg.useConfFile = test.useCfg
 		tstCfg.useEnvVars = test.useEnvVars
 		os.Setenv(EnvVarName(test.name), test.envValue)
@@ -456,7 +474,132 @@ func TestSetCfg(t *testing.T) {
 	}
 }
 
-// Testing
+func TestSetFromConfFile(t *testing.T) {
+	tmpDir, err := ioutil.TempDir("", "contourTest")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+	pathVars := []string{"ABCPATH", "DEFPATH"}
+	pathVarStr := "$ABCPATH; $DEFPATH; $PATH"
+	badJSON := []byte(`{"var1": true, var2: false}`)
+	goodJSON := []byte(`
+{
+	"var1": true,
+	"var2": 42,
+	"var3": "pan-galactic gargle blaster",
+	"var4": [
+		11,
+		42
+	],
+	"var5": {
+		"log": true
+	}
+}
+`)
+	tests := []struct {
+		fname            string
+		writeConfFile    bool
+		data             []byte
+		isSet            bool
+		settings         map[string]setting
+		expectedErr      error
+		expectedSettings map[string]setting
+	}{
+		{"", false, nil, false, nil, nil, nil},
+		{"contour_test.txt", false, nil, false, nil, UnsupportedFormatErr{"txt"}, nil},
+		{"contour_test.json", false, nil, false, nil, error(&os.PathError{Op: "open file", Path: fmt.Sprintf("%s: %s", filepath.Join(tmpDir, "contour_test.json"), pathVarStr), Err: os.ErrNotExist}), nil},
+		{
+			"contour_test.json", true, badJSON, false, nil,
+			fmt.Errorf("%s: invalid character 'v' looking for beginning of object key string", filepath.Join(tmpDir, "contour_test.json")),
+			nil,
+		},
+		{"countour_test.json", true, goodJSON, true,
+			map[string]setting{
+				"var1": setting{Type: _bool, Name: "var1", IsConfFileVar: true},
+				"var2": setting{Type: _int, Name: "var2", IsConfFileVar: true},
+				"var3": setting{Type: _string, Name: "var3", IsConfFileVar: true},
+				"var4": setting{Type: _interface, Name: "var4", IsConfFileVar: true},
+				"var5": setting{Type: _interface, Name: "var5", IsConfFileVar: true},
+				"var6": setting{Type: _int, Name: "var6", Value: interface{}(11), IsConfFileVar: false},
+			},
+			nil,
+			map[string]setting{
+				"var1": setting{Type: _bool, Name: "var1", Value: interface{}(true), IsConfFileVar: true},
+				"var2": setting{Type: _int, Name: "var2", Value: interface{}(42), IsConfFileVar: true},
+				"var3": setting{Type: _string, Name: "var3", Value: interface{}("pan-galactic gargle blaster"), IsConfFileVar: true},
+				"var4": setting{Type: _interface, Name: "var4", Value: interface{}([]int{11, 42}), IsConfFileVar: true},
+				"var5": setting{Type: _interface, Name: "var5", Value: interface{}(map[string]bool{"log": true}), IsConfFileVar: true},
+				"var6": setting{Type: _int, Name: "var6", Value: interface{}(11), IsConfFileVar: false},
+			},
+		},
+	}
+
+	cfg := New("abcdef")
+	cfg.confFilePathEnvVars = pathVars
+	cfg.useConfFile = true
+	cfg.confFileVarsSet = true
+	cfg.settings = nil
+	var fname string
+	for i, test := range tests {
+		cfg.confFileVarsSet = false
+		if test.fname == "" {
+			fname = ""
+		} else {
+			fname = filepath.Join(tmpDir, test.fname)
+		}
+		cfg.confFilename = fname
+		cfg.settings = test.settings
+		if test.writeConfFile {
+			err = ioutil.WriteFile(fname, test.data, 0777)
+			if err != nil {
+				t.Fatalf("%d: write test conf file: %s", i, err)
+			}
+		}
+
+		err = cfg.SetFromConfFile()
+		if err != nil {
+			if test.expectedErr == nil {
+				t.Errorf("%d: got no error; want %q", i, err)
+			} else {
+				if err.Error() != test.expectedErr.Error() {
+					t.Errorf("%d: got %q; want %q", i, err.Error(), test.expectedErr.Error())
+				}
+			}
+			continue
+		}
+		if test.expectedErr != nil {
+			t.Errorf("%d: got no error; want %q", i, test.expectedErr)
+			continue
+		}
+		got, _ := json.MarshalIndent(cfg.settings, "", "\t")
+		want, _ := json.MarshalIndent(test.expectedSettings, "", "\t")
+		if string(got) != string(want) {
+			t.Errorf("%d: got\n%s\n; want\n%s", i, got, want)
+			continue
+		}
+		// check set flags
+		if cfg.confFileVarsSet != test.isSet {
+			t.Errorf("%d: got %v; want %v", i, cfg.confFileVarsSet, test.isSet)
+		}
+	}
+}
+
+func TestReadConfFile(t *testing.T) {
+	cfg := New("abcdef")
+	cfg.confFilePaths = []string{"testpath", "another/path"}
+	cfg.confFilePathEnvVars = []string{"ABCPATH", "DEFPATH"}
+	_, err := cfg.readConfFile("does.not.exist.json")
+	if err == nil {
+		t.Errorf("expected an error; got none")
+	} else {
+		expected := error(&os.PathError{Op: "open file", Path: "does.not.exist.json: testpath; another/path; $ABCPATH; $DEFPATH; $PATH", Err: os.ErrNotExist})
+		if !reflect.DeepEqual(err, expected) {
+			t.Errorf("got %q; want %q", err, expected)
+		}
+	}
+}
+
 func TestFormatFromFilename(t *testing.T) {
 	tests := []basic{
 		{"an empty cfgfilename", 0, "", "", "no configuration filename"},
@@ -665,4 +808,25 @@ func TestVisited(t *testing.T) {
 	if !reflect.DeepEqual(tst.Visited(), expected) {
 		t.Errorf("visited: got %v; want %v", tst.Visited(), expected)
 	}
+}
+
+func TestGetEnvVarPaths(t *testing.T) {
+	tests := []struct {
+		parts    []string
+		expected []string
+	}{
+		{[]string{""}, nil},
+		{[]string{"path"}, []string{"path"}},
+		{[]string{"path", "another/path"}, []string{"path", "another/path"}},
+		{[]string{"path", "another/path", "yellow/brick/road"}, []string{"path", "another/path", "yellow/brick/road"}},
+	}
+
+	for _, test := range tests {
+		v := strings.Join(test.parts, string(os.PathListSeparator))
+		p := getEnvVarPaths(v)
+		if !reflect.DeepEqual(p, test.expected) {
+			t.Errorf("got %v; want %v", p, test.expected)
+		}
+	}
+
 }

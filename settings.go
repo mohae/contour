@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/BurntSushi/toml"
+	"github.com/kardianos/osext"
 	"github.com/mohae/cjson"
 	"gopkg.in/yaml.v2"
 )
@@ -23,6 +24,23 @@ import (
 // The name of the Settings is used for environment variable naming, if
 // applicable.
 //
+// If the configuration filename is set, an attempt will be made to laod
+// setting information from the configuration file. Where to look for the file
+// is configurable. Depending on the information provided and booleans set,
+// Settings will look for the configuration file in those locations until the
+// file is either found or all paths to check have been exhausted, which will
+// result in an os.PathError containing an os.ErrNotExist being returned.
+// Settings will look for the configuration file in the following order:
+//
+//    ConfFilePaths: in the order provided
+//    ConfFilePathEnvVars: in the order provided
+//    Working Directory: if set to true
+//    Application Directory: if set to true
+//    PATH environment variables: if set to search the $PATH
+//
+// The PathEnvVars will be checked using the values provided, they will not be
+// prefixed with Settings name.
+//
 // There will always be a package global Settings whose name is the
 // application's name.
 type Settings struct {
@@ -34,10 +52,6 @@ type Settings struct {
 	// the name of the configuration filename variable: defaults to the
 	// ConfFilenameSettingVarName constant.
 	confFilenameVarName string
-	// search the path env var, in addition to wd & executalbe dir, for the conf
-	// file. The path env var is assumed to be NAMEPATH where name is
-	// Settings.name
-	searchPath bool
 	// file is the name of the configuration file
 	confFilename string
 	// Encoding is what encoding scheme is used for this config.
@@ -49,6 +63,20 @@ type Settings struct {
 	useConfFile bool
 	// If the settings have been updated from configuration file.
 	confFileVarsSet bool
+	// confFilePaths is a list of paths in which to check for the configuration
+	// file
+	confFilePaths []string
+	// confFilePathEnvVars is a list of environment variables to check for path
+	// information in which to check for the configuration file.
+	confFilePathEnvVars []string
+	// Look in the working directory for the configuration file.
+	checkWD bool
+	// look in the executabledir for the configuration file
+	checkExeDir bool
+	// search the path env var, in addition to wd & executalbe dir, for the conf
+	// file. The path env var is assumed to be NAMEPATH where name is
+	// Settings.name
+	searchPath bool
 	// If settings should be loaded from environment variables. Environment
 	// variable names will be in the form of NAME_VARNAME where NAME is this
 	// Setting's name.
@@ -207,6 +235,23 @@ func (s *Settings) updateFromEnvVars() error {
 // found in the configuration file if there is one. If Settings is not set to
 // use a configuration file, if the configuration filename is not set, or if it
 // has already been set, nothing is done and no error is returned.
+//
+// Settings may look for the configuration file according to how it's been
+// configured if the file isn't found using the provided ConfFilename. When
+// looking for the configuration file, Settings will extract the filename
+// from the provided ConfFilename, if the information includes a path, and
+// look for the configuration file according to its configuration:
+//
+// confFilePaths + filename
+// confFileEnvVars + filename (each env var may have multiple path elements)
+// working directory + filename
+// executable directory + filename
+// $PATH element + filename (PATH may have multiple path elements)
+//
+// Any of the above elements that are either empty or false are skipped.
+//
+// If the file cannot be found, an os.PathError with an os.ErrNotExist and
+// a list of all paths checked is returned.
 func SetFromConfFile() error {
 	return settings.SetFromConfFile()
 }
@@ -215,6 +260,23 @@ func SetFromConfFile() error {
 // found in the configuration file if there is one. If Settings is not set to
 // use a configuration file, if the configuration filename is not set, or if it
 // has already been set, nothing is done and no error is returned.
+//
+// Settings may look for the configuration file according to how it's been
+// configured if the file isn't found using the provided ConfFilename. When
+// looking for the configuration file, Settings will extract the filename
+// from the provided ConfFilename, if the information includes a path, and
+// look for the configuration file according to its configuration:
+//
+// confFilePaths + filename
+// confFileEnvVars + filename (each env var may have multiple path elements)
+// working directory + filename
+// executable directory + filename
+// $PATH element + filename (PATH may have multiple path elements)
+//
+// Any of the above elements that are either empty or false are skipped.
+//
+// If the file cannot be found, an os.PathError with an os.ErrNotExist and
+// a list of all paths checked is returned.
 func (s *Settings) SetFromConfFile() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -224,35 +286,26 @@ func (s *Settings) SetFromConfFile() error {
 // setFromFile set's Conf, Env, and Flag settings from the information found in
 // the configuration file, if there is one. This assumes the caller already
 // holds the lock.
+// TODO:
+//	add a confFileRequired flag
 func (s *Settings) setFromConfFile() error {
-	if !s.useConfFile || s.confFileVarsSet {
-		return nil
-	}
-	setting, ok := s.settings[s.confFilenameVarName]
-	if !ok {
-		// Wasn't configured, nothing to do. Not an error.
-		return nil
-	}
-	n := setting.Value.(string)
-	if n == "" {
-		// This isn't an error as config file is allowed to not exist
-		// TODO:
-		//	Possible add a confFileRequired flag
+	if !s.useConfFile || s.confFilename == "" {
 		return nil
 	}
 	// get the file's format from the extension
-	f, err := formatFromFilename(n)
+	f, err := formatFromFilename(s.confFilename)
 	if err != nil {
-		return fmt.Errorf("set from file: %s", err)
+		return err
 	}
 
-	b, err := s.readConfigurationFile(n)
+	b, err := s.readConfFile(s.confFilename)
 	if err != nil {
-		return fmt.Errorf("set from file: %s", err)
+		return err
 	}
+
 	cnf, err := unmarshalConfBytes(f, b)
 	if err != nil {
-		return fmt.Errorf("set from file: %s: %s", n, err)
+		return fmt.Errorf("%s: %s", s.confFilename, err)
 	}
 
 	// if nothing was returned and no error, nothing to do
@@ -267,38 +320,102 @@ func (s *Settings) setFromConfFile() error {
 			return fmt.Errorf("update setting: %s", err)
 		}
 	}
+	s.confFileVarsSet = true
 	return nil
 }
 
-// readConfigurationFile reads the configuration file n. If n doesn't exist
-// and
-func (s *Settings) readConfigurationFile(n string) (b []byte, err error) {
+// readConfFile reads the configuration file n.
+func (s *Settings) readConfFile(n string) (b []byte, err error) {
 	b, err = ioutil.ReadFile(n)
 	if err == nil {
 		return b, nil
 	}
-	// if !search path; return err
-	if !s.searchPath {
-		return nil, err
+
+	// get the filename part of n
+	fname := filepath.Base(n)
+
+	var (
+		ps   []string
+		errS string // accumulates info for the error if nothing is found
+	)
+
+	if len(s.confFilePaths) > 0 {
+		b, err = s.checkPaths(fname, s.confFilePaths)
+		if err == nil { // was found
+			return b, nil
+		}
+		errS = "; " + strings.Join(s.confFilePaths, "; ")
 	}
 
-	// load the PATH
-	p := os.Getenv("PATH")
-	ps := strings.Split(p, string(os.PathListSeparator))
-	for i := range ps {
-		ps[i] = os.ExpandEnv(ps[i])
+	if len(s.confFilePathEnvVars) > 0 {
+		for _, v := range s.confFilePathEnvVars {
+			p := os.Getenv(v)
+			tmp := getEnvVarPaths(p)
+			if len(tmp) == 0 {
+				continue
+			}
+			ps = append(ps, tmp...)
+		}
+		b, err = s.checkPaths(fname, ps)
+		if err == nil {
+			return b, nil
+		}
+		ps = ps[0:0]
+		errS += "; $" + strings.Join(s.confFilePathEnvVars, "; $")
 	}
-	// get the filename part of n
-	n = filepath.Base(n)
-	for _, v := range ps {
-		tmp := filepath.Join(v, n)
+
+	if s.checkWD {
+		d, err := os.Getwd()
+		if err != nil {
+			return nil, fmt.Errorf("load conf file %s: get wd: %s", n, err)
+		}
+		ps = append(ps, d)
+		b, err = s.checkPaths(fname, ps)
+		if err == nil {
+			return b, nil
+		}
+		ps = ps[0:0]
+		errS += "; " + d
+	}
+
+	if s.checkExeDir {
+		d, err := osext.ExecutableFolder()
+		if err != nil {
+			return nil, fmt.Errorf("load conf file %s: get wd: %s", n, err)
+		}
+		ps = append(ps, d)
+		b, err = s.checkPaths(fname, ps)
+		if err == nil {
+			return b, nil
+		}
+		ps = ps[0:0]
+		errS += "; " + d
+	}
+
+	// search the path, if applicable
+	if s.searchPath {
+		v := os.Getenv("PATH")
+		ps = getEnvVarPaths(v)
+		b, err = s.checkPaths(fname, ps)
+		if err == nil {
+			return b, nil
+		}
+		errS += "; $PATH"
+	}
+
+	return nil, &os.PathError{Op: "open file", Path: fmt.Sprintf("%s: %s", n, errS[2:len(errS)]), Err: os.ErrNotExist}
+}
+
+func (s *Settings) checkPaths(fname string, paths []string) (b []byte, err error) {
+	for _, v := range paths {
+		tmp := filepath.Join(v, fname)
 		f, err := os.Open(tmp)
 		if err == nil {
 			defer f.Close()
 			return ioutil.ReadAll(f)
 		}
 	}
-	return nil, &os.PathError{Op: "open file", Path: n, Err: os.ErrNotExist}
+	return nil, os.ErrNotExist
 }
 
 // ErrOnMissingConfFile returns whether a missing config file should result in
@@ -319,25 +436,68 @@ func (s *Settings) SetErrOnMissingConfFile(b bool) {
 	s.mu.Unlock()
 }
 
-// SearchPath returns whether or not the Path environment variable should be
-// searched when looking for the configuration file.
-func SearchPath() bool { return settings.SearchPath() }
-
-// SearchPath returns whether or not the Path environment variable should be
-// searched when looking for the configuration file.
-func (s *Settings) SearchPath() bool {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return s.searchPath
+// ConfFilePaths sets the paths that should be checked when looking for the
+// configuration file. The paths will be checked in the order provided.
+func ConfFilePaths(paths []string) {
+	settings.ConfFilePaths(paths)
 }
 
-// SetSearchPath set's whether or not the user's PATH env variable should be
-// searched for the configuratiom file.
-func SetSearchPath(b bool) { settings.SetSearchPath(b) }
+// ConfFilePaths sets the paths that should be checked when looking for the
+// configuration file. The paths will be checked in the order provided.
+func (s *Settings) ConfFilePaths(paths []string) {
+	s.mu.Lock()
+	s.confFilePaths = paths
+	s.mu.Unlock()
+}
 
-// SetSearchPath set's whether or not the user's PATH env variable should be
-// searched for the configuratiom file.
-func (s *Settings) SetSearchPath(b bool) {
+// ConfFilePathEnvVars sets the names of the environment variables that have
+// paths that should be checked when looking for the configuration file. The
+// environment variables will be checked in the order provided.
+func ConfFilePathEnvVars(envVars []string) {
+	settings.ConfFilePathEnvVars(envVars)
+}
+
+// ConfFilePathEnvVars sets the names of the environment variables that have
+// paths that should be checked when looking for the configuration file. The
+// environment variables will be checked in the order provided.
+func (s *Settings) ConfFilePathEnvVars(envVars []string) {
+	s.mu.Lock()
+	s.confFilePathEnvVars = envVars
+	s.mu.Unlock()
+}
+
+// CheckWD: if Settings should check the working directory for the
+// configuration file.
+func CheckWD() { settings.CheckWD() }
+
+// CheckWD: if Settings should check the working directory for the
+// configuration file.
+func (s *Settings) CheckWD() {
+	s.mu.RLock()
+	s.checkWD = true
+	defer s.mu.RUnlock()
+}
+
+// CheckExeDir: if Settings should check the executable directory for the
+// configuration file.
+func CheckExeDir() { settings.CheckExeDir() }
+
+// CheckExeDir: if Settings should check the executable directory for the
+// configuration file.
+func (s *Settings) CheckExeDir() {
+	s.mu.RLock()
+	s.checkExeDir = true
+	defer s.mu.RUnlock()
+
+}
+
+// SearchPath: if Settings should use the user's PATH environment variable to
+// check for the configuratiom file.
+func SearchPath(b bool) { settings.SearchPath(b) }
+
+// SearchPath: if Settings should use the user's PATH environment variable to
+// check for the configuratiom file.
+func (s *Settings) SearchPath(b bool) {
 	s.mu.Lock()
 	s.searchPath = b
 	s.mu.Unlock()
@@ -614,4 +774,18 @@ func unmarshalConfBytes(f Format, buff []byte) (interface{}, error) {
 	default:
 		return nil, UnsupportedFormatErr{f.String()}
 	}
+}
+
+// get the value of an env var that is assumed to have path info; split it
+// into its path elements and expand them.
+func getEnvVarPaths(s string) []string {
+	if s == "" {
+		return nil
+	}
+
+	p := strings.Split(s, string(os.PathListSeparator))
+	for i := range p {
+		p[i] = os.ExpandEnv(p[i])
+	}
+	return p
 }
