@@ -17,10 +17,10 @@ func TestGetBoolFilter(t *testing.T) {
 		err      string
 	}{
 		{"", "", false, false, ""},
-		{"corebool", "c", true, true, ""},
-		{"bool", "b", false, false, ""},
+		{"corebool", "", true, true, ""},
+		{"bool", "", false, false, ""},
 		{"cfgbool", "", true, true, ""},
-		{"flagbool", "f", false, false, ""},
+		{"flagbool", "b", false, false, ""},
 		{"cb", "", false, false, ""},
 	}
 	_ = tests
@@ -31,7 +31,7 @@ func TestGetBoolFilter(t *testing.T) {
 		t.Errorf("flags that weren't present in the args should be nil, flagbool-test wasn't")
 	}
 
-	args, err := appCfg.ParseFlags([]string{"-flagbool=false", "-fake", "command"})
+	args, err := appCfg.ParseFlags([]string{"cmdname", "-flagbool=false", "-fake", "command"})
 	if err != nil {
 		if !strings.HasPrefix(err.Error(), "parse of command-line arguments failed: flag provided but not defined: -fake") {
 			t.Errorf("expected \" parse of command-line arguments failed: flag provided but not defined: -fake\", got %q", err.Error())
@@ -98,7 +98,8 @@ func TestParseFlags(t *testing.T) {
 		return
 	}
 	if len(vals) != 1 {
-		t.Errorf("expected 1 arg to be returned, got %d", len(vals))
+		t.Errorf("expected 1 arg to be returned, got %d: %v", len(vals), vals)
+		t.Errorf("visited: %v", tst.Visited())
 		return
 	}
 	if vals[0] != "cmd" {
