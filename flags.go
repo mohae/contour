@@ -7,18 +7,6 @@ import (
 	"sort"
 )
 
-// ParseFlags parses the command-line args from os.Args[1:]. Only settings of
-// type Flag can be set via ParseFlags. Flags have the highest precedence.
-// After parsing, any non-flag args are returned to the caller and a list of
-// flags in the args is cached.
-//
-// If the flags have already been parsed or Settings is set to not use flags,
-// nothing will be done and nothing will be returned.
-//
-// If this is called, the Settings should already have all of its settings
-// registered.
-func ParseFlags() ([]string, error) { return settings.ParseFlags(os.Args[1:]) }
-
 // ParseFlags parses the args. Only settings of type Flag can be set via
 // ParseFlags. Flags have the highest precedence. After parsing, any non-flag
 // args are returned to the caller and a list of flags in the args is cached.
@@ -119,14 +107,7 @@ func (s *Settings) setFlags() {
 
 // Visited returns the names of all flags that were set during argument
 // parsing in lexical order.
-func Visited() []string { return settings.Visited() }
-
-// Visited returns the names of all flags that were set during argument
-// parsing in lexical order.
 func (s *Settings) Visited() []string { return s.parsedFlags }
-
-// WasVisited returns if a flag was parsed in the processing of args.
-func WasVisited(k string) bool { return settings.WasVisited(k) }
 
 // WasVisited returns if a flag was parsed in the processing of args.
 func (s *Settings) WasVisited(k string) bool {
@@ -137,3 +118,22 @@ func (s *Settings) WasVisited(k string) bool {
 	}
 	return false
 }
+
+// ParseFlags parses the command-line args from os.Args[1:]. Only settings of
+// type Flag can be set via ParseFlags. Flags have the highest precedence.
+// After parsing, any non-flag args are returned to the caller and a list of
+// flags in the args is cached.
+//
+// If the flags have already been parsed or Settings is set to not use flags,
+// nothing will be done and nothing will be returned.
+//
+// If this is called, the Settings should already have all of its settings
+// registered.
+func ParseFlags() ([]string, error) { return settings.ParseFlags(os.Args[1:]) }
+
+// Visited returns the names of all flags that were set during argument
+// parsing in lexical order.
+func Visited() []string { return settings.Visited() }
+
+// WasVisited returns if a flag was parsed in the processing of args.
+func WasVisited(k string) bool { return settings.WasVisited(k) }

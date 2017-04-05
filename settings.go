@@ -118,7 +118,6 @@ func New(name string) *Settings {
 // SetConfFilename sets the Settings' configuration filename and configures
 // settings to use a configuration file. If the filename is empty, an error is
 // returned.
-func SetConfFilename(v string) error { return settings.SetConfFilename(v) }
 func (s *Settings) SetConfFilename(v string) error {
 	if v == "" {
 		return fmt.Errorf("set configuration filename failed: no name provided")
@@ -137,7 +136,6 @@ func (s *Settings) SetConfFilename(v string) error {
 // that order of precedence. This is only run once; subsequent calls will
 // result in no changes. Only settings that are of type ConfFileVar or EnvVar
 // will be affected. This does not handle flags.
-func Set() error { return settings.Set() }
 func (s *Settings) Set() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -157,19 +155,6 @@ func (s *Settings) Set() error {
 	}
 	return nil
 }
-
-// SetFromEnvVars sets the settings that are of type EnvVar from env vars if
-// the Settings is set to use env vars. If any settings are registered as an
-// EnvVar settings, the use env vars flag will be set to true. This can be
-// overridden.
-//
-// Once a Settings has been set from environment variables they will not be
-// updated again on subsequent calls.
-//
-// A setting's env var name is a concatonation of the setting's name, an
-// underscore, (_), and the Settings' name, e.g. a Settings with the name
-// 'foo' and a setting whose name is 'bar' will result in 'FOO_BAR'.
-func SetFromEnvVars() error { return settings.SetFromEnvVars() }
 
 // SetFromEnvVars sets the settings that are of type EnvVars from env vars if
 // the Settings is set to use env vars. If any settings are registered as an
@@ -229,31 +214,6 @@ func (s *Settings) updateFromEnvVars() error {
 	// Rlock isn't sufficient for updating to close it and get a Lock() for update.
 	s.envVarsSet = true
 	return nil
-}
-
-// SetFromConfFile set's the Conf, Env, and Flag settings from the information
-// found in the configuration file if there is one. If Settings is not set to
-// use a configuration file, if the configuration filename is not set, or if it
-// has already been set, nothing is done and no error is returned.
-//
-// Settings may look for the configuration file according to how it's been
-// configured if the file isn't found using the provided ConfFilename. When
-// looking for the configuration file, Settings will extract the filename
-// from the provided ConfFilename, if the information includes a path, and
-// look for the configuration file according to its configuration:
-//
-// confFilePaths + filename
-// confFileEnvVars + filename (each env var may have multiple path elements)
-// working directory + filename
-// executable directory + filename
-// $PATH element + filename (PATH may have multiple path elements)
-//
-// Any of the above elements that are either empty or false are skipped.
-//
-// If the file cannot be found, an os.PathError with an os.ErrNotExist and
-// a list of all paths checked is returned.
-func SetFromConfFile() error {
-	return settings.SetFromConfFile()
 }
 
 // SetFromConfFile set's the Conf, Env, and Flag settings from the information
@@ -420,7 +380,6 @@ func (s *Settings) checkPaths(fname string, paths []string) (b []byte, err error
 
 // ErrOnMissingConfFile returns whether a missing config file should result in
 // an error. This only applies when useConf == true
-func ErrOnMissingConfFile() bool { return settings.ErrOnMissingConfFile() }
 func (s *Settings) ErrOnMissingConfFile() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -429,17 +388,10 @@ func (s *Settings) ErrOnMissingConfFile() bool {
 
 // SetErrOnMissingConfFile returns whether a missing config file should result
 // in an error. This only applies when useFile == true
-func SetErrOnMissingConfFile(b bool) { settings.SetErrOnMissingConfFile(b) }
 func (s *Settings) SetErrOnMissingConfFile(b bool) {
 	s.mu.Lock()
 	s.errOnMissingConfFile = b
 	s.mu.Unlock()
-}
-
-// ConfFilePaths sets the paths that should be checked when looking for the
-// configuration file. The paths will be checked in the order provided.
-func ConfFilePaths(paths []string) {
-	settings.ConfFilePaths(paths)
 }
 
 // ConfFilePaths sets the paths that should be checked when looking for the
@@ -468,19 +420,11 @@ func (s *Settings) ConfFilePathEnvVars(envVars []string) {
 
 // CheckWD: if Settings should check the working directory for the
 // configuration file.
-func CheckWD() { settings.CheckWD() }
-
-// CheckWD: if Settings should check the working directory for the
-// configuration file.
 func (s *Settings) CheckWD() {
 	s.mu.RLock()
 	s.checkWD = true
 	defer s.mu.RUnlock()
 }
-
-// CheckExeDir: if Settings should check the executable directory for the
-// configuration file.
-func CheckExeDir() { settings.CheckExeDir() }
 
 // CheckExeDir: if Settings should check the executable directory for the
 // configuration file.
@@ -493,19 +437,11 @@ func (s *Settings) CheckExeDir() {
 
 // SearchPath: if Settings should use the user's PATH environment variable to
 // check for the configuratiom file.
-func SearchPath(b bool) { settings.SearchPath(b) }
-
-// SearchPath: if Settings should use the user's PATH environment variable to
-// check for the configuratiom file.
 func (s *Settings) SearchPath(b bool) {
 	s.mu.Lock()
 	s.searchPath = b
 	s.mu.Unlock()
 }
-
-// UseConfFile returns if ConfFileVar settings are to be updated from a
-// configuration file.
-func UseConfFile() bool { return settings.UseConfFile() }
 
 // UseConfFile returns if ConfFileVar settings are to be updated from a
 // configuration file.
@@ -516,18 +452,11 @@ func (s *Settings) UseConfFile() bool {
 }
 
 // UseEnvVars returns whether or not environment variables are used.
-func UseEnvVars() bool { return settings.useEnvVars }
-
-// UseEnvVars returns whether or not environment variables are used.
 func (s *Settings) UseEnvVars() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.useEnvVars
 }
-
-// IsSet returns if the Settings has been set from all of its configured
-// inputs, as applicable: env vars, configuration file, and flags.
-func IsSet() bool { return settings.IsSet() }
 
 // IsSet returns if the Settings has been set from all of its configured
 // inputs, as applicable: env vars, configuration file, and flags.
@@ -548,9 +477,6 @@ func (s *Settings) IsSet() bool {
 }
 
 // SetUsage sets the Usage func.
-func SetUsage(f func()) { settings.SetUsage(f) }
-
-// SetUsage sets the Usage func.
 func (s *Settings) SetUsage(f func()) {
 	s.mu.Lock()
 	s.flagSet.Usage = f
@@ -558,16 +484,9 @@ func (s *Settings) SetUsage(f func()) {
 }
 
 // Name returns the Settings' name.
-func Name() string { return settings.Name() }
-
-// Name returns the Settings' name.
 func (s *Settings) Name() string {
 	return s.name
 }
-
-// IsCoreE returns if setting k is a Core setting. If setting k doesn't exist,
-// a SettingNotFoundErr will be returned.
-func IsCoreE(k string) (bool, error) { return settings.IsCoreE(k) }
 
 // IsCoreE returns if setting k is a Core setting. If setting k doesn't exist,
 // a SettingNotFoundErr will be returned.
@@ -587,18 +506,10 @@ func (s *Settings) isCore(k string) (bool, error) {
 
 // IsCore returns if setting k is a Core setting. If setting k doesn't exist,
 // a false will be returned.
-func IsCore(k string) bool { return settings.IsCore(k) }
-
-// IsCore returns if setting k is a Core setting. If setting k doesn't exist,
-// a false will be returned.
 func (s *Settings) IsCore(k string) bool {
 	b, _ := s.IsCoreE(k)
 	return b
 }
-
-// IsConfFileVarE returns if setting k is a ConfFileVar setting. If setting k
-// doesn't exist, a SettingNotFoundErr will be returned.
-func IsConfFileVarE(k string) (bool, error) { return settings.IsConfFileVarE(k) }
 
 // IsConfFileVarE returns if setting k is a ConfFileVar setting. If setting k
 // doesn't exist, a SettingNotFoundErr will be returned.
@@ -618,18 +529,10 @@ func (s *Settings) isConfFileVar(k string) (bool, error) {
 
 // IsConfFileVar returns if setting k is a ConfFileVar setting. If setting k
 // doesn't exist, a false will be returned.
-func IsConfFileVar(k string) bool { return settings.IsConfFileVar(k) }
-
-// IsConfFileVar returns if setting k is a ConfFileVar setting. If setting k
-// doesn't exist, a false will be returned.
 func (s *Settings) IsConfFileVar(k string) bool {
 	b, _ := s.IsConfFileVarE(k)
 	return b
 }
-
-// IsEnvVarE returns if setting k is an EnvVar setting. If setting k doesn't
-// exist, a SettingNotFoundErr will be returned.
-func IsEnvVarE(k string) (bool, error) { return settings.IsEnvVarE(k) }
 
 // IsEnvVarE returns if setting k is an EnvVar setting. If setting k doesn't
 // exist, a SettingNotFoundErr will be returned.
@@ -649,18 +552,10 @@ func (s *Settings) isEnvVar(k string) (bool, error) {
 
 // IsEnvVar returns if setting k is an EnvVar setting. If setting k doesn't
 // exist, a false will be returned.
-func IsEnvVar(k string) bool { return settings.IsEnvVar(k) }
-
-// IsEnvVar returns if setting k is an EnvVar setting. If setting k doesn't
-// exist, a false will be returned.
 func (s *Settings) IsEnvVar(k string) bool {
 	b, _ := s.IsEnvVarE(k)
 	return b
 }
-
-// IsFlagE returns if setting k is a Flag setting. If setting k doesn't exist,
-// a SettingNotFoundErr will be returned.
-func IsFlagE(k string) (bool, error) { return settings.IsFlagE(k) }
 
 // IsFlagE returns if setting k is a Flag setting. If setting k doesn't exist,
 // a SettingNotFoundErr will be returned.
@@ -680,10 +575,6 @@ func (s *Settings) isFlag(k string) (bool, error) {
 
 // IsFlag returns if setting k is a Flag setting. If setting k doesn't exist,
 // a false will be returned.
-func IsFlag(k string) bool { return settings.IsFlag(k) }
-
-// IsFlag returns if setting k is a Flag setting. If setting k doesn't exist,
-// a false will be returned.
 func (s *Settings) IsFlag(k string) bool {
 	b, _ := s.IsFlagE(k)
 	return b
@@ -692,17 +583,9 @@ func (s *Settings) IsFlag(k string) bool {
 // EnvVarName returns the environment variable name for k. This will be
 // NAME_K, where K is k and NAME is the name of Settings. For the pkg global
 // Settings, this will be the executable name.
-func EnvVarName(k string) string { return settings.EnvVarName(k) }
-
-// EnvVarName returns the environment variable name for k. This will be
-// NAME_K, where K is k and NAME is the name of Settings. For the pkg global
-// Settings, this will be the executable name.
 func (s *Settings) EnvVarName(k string) string {
 	return strings.ToUpper(fmt.Sprintf("%s_%s", s.name, k))
 }
-
-// Exists returns if setting k exists.
-func Exists(k string) bool { return settings.Exists(k) }
 
 // Exists returns if setting k exists.
 func (s *Settings) Exists(k string) bool {
@@ -789,3 +672,136 @@ func getEnvVarPaths(s string) []string {
 	}
 	return p
 }
+
+// SetConfFilename sets the Settings' configuration filename and configures
+// settings to use a configuration file. If the filename is empty, an error is
+// returned.
+func SetConfFilename(v string) error { return settings.SetConfFilename(v) }
+
+// Set sets the registered settings according to Settings' configuration: it
+// can be updated using a configuration file and/or environment variables; in
+// that order of precedence. This is only run once; subsequent calls will
+// result in no changes. Only settings that are of type ConfFileVar or EnvVar
+// will be affected. This does not handle flags.
+func Set() error { return settings.Set() }
+
+// SetFromEnvVars sets the settings that are of type EnvVar from env vars if
+// the Settings is set to use env vars. If any settings are registered as an
+// EnvVar settings, the use env vars flag will be set to true. This can be
+// overridden.
+//
+// Once a Settings has been set from environment variables they will not be
+// updated again on subsequent calls.
+//
+// A setting's env var name is a concatonation of the setting's name, an
+// underscore, (_), and the Settings' name, e.g. a Settings with the name
+// 'foo' and a setting whose name is 'bar' will result in 'FOO_BAR'.
+func SetFromEnvVars() error { return settings.SetFromEnvVars() }
+
+// SetFromConfFile set's the Conf, Env, and Flag settings from the information
+// found in the configuration file if there is one. If Settings is not set to
+// use a configuration file, if the configuration filename is not set, or if it
+// has already been set, nothing is done and no error is returned.
+//
+// Settings may look for the configuration file according to how it's been
+// configured if the file isn't found using the provided ConfFilename. When
+// looking for the configuration file, Settings will extract the filename
+// from the provided ConfFilename, if the information includes a path, and
+// look for the configuration file according to its configuration:
+//
+// confFilePaths + filename
+// confFileEnvVars + filename (each env var may have multiple path elements)
+// working directory + filename
+// executable directory + filename
+// $PATH element + filename (PATH may have multiple path elements)
+//
+// Any of the above elements that are either empty or false are skipped.
+//
+// If the file cannot be found, an os.PathError with an os.ErrNotExist and
+// a list of all paths checked is returned.
+func SetFromConfFile() error {
+	return settings.SetFromConfFile()
+}
+
+// ErrOnMissingConfFile returns whether a missing config file should result in
+// an error. This only applies when useConf == true
+func ErrOnMissingConfFile() bool { return settings.ErrOnMissingConfFile() }
+
+// SetErrOnMissingConfFile returns whether a missing config file should result
+// in an error. This only applies when useFile == true
+func SetErrOnMissingConfFile(b bool) { settings.SetErrOnMissingConfFile(b) }
+
+// ConfFilePaths sets the paths that should be checked when looking for the
+// configuration file. The paths will be checked in the order provided.
+func ConfFilePaths(paths []string) {
+	settings.ConfFilePaths(paths)
+}
+
+// CheckWD: if Settings should check the working directory for the
+// configuration file.
+func CheckWD() { settings.CheckWD() }
+
+// CheckExeDir: if Settings should check the executable directory for the
+// configuration file.
+func CheckExeDir() { settings.CheckExeDir() }
+
+// SearchPath: if Settings should use the user's PATH environment variable to
+// check for the configuratiom file.
+func SearchPath(b bool) { settings.SearchPath(b) }
+
+// UseConfFile returns if ConfFileVar settings are to be updated from a
+// configuration file.
+func UseConfFile() bool { return settings.UseConfFile() }
+
+// UseEnvVars returns whether or not environment variables are used.
+func UseEnvVars() bool { return settings.useEnvVars }
+
+// IsSet returns if the Settings has been set from all of its configured
+// inputs, as applicable: env vars, configuration file, and flags.
+func IsSet() bool { return settings.IsSet() }
+
+// SetUsage sets the Usage func.
+func SetUsage(f func()) { settings.SetUsage(f) }
+
+// Name returns the Settings' name.
+func Name() string { return settings.Name() }
+
+// IsCoreE returns if setting k is a Core setting. If setting k doesn't exist,
+// a SettingNotFoundErr will be returned.
+func IsCoreE(k string) (bool, error) { return settings.IsCoreE(k) }
+
+// IsCore returns if setting k is a Core setting. If setting k doesn't exist,
+// a false will be returned.
+func IsCore(k string) bool { return settings.IsCore(k) }
+
+// IsConfFileVarE returns if setting k is a ConfFileVar setting. If setting k
+// doesn't exist, a SettingNotFoundErr will be returned.
+func IsConfFileVarE(k string) (bool, error) { return settings.IsConfFileVarE(k) }
+
+// IsConfFileVar returns if setting k is a ConfFileVar setting. If setting k
+// doesn't exist, a false will be returned.
+func IsConfFileVar(k string) bool { return settings.IsConfFileVar(k) }
+
+// IsEnvVarE returns if setting k is an EnvVar setting. If setting k doesn't
+// exist, a SettingNotFoundErr will be returned.
+func IsEnvVarE(k string) (bool, error) { return settings.IsEnvVarE(k) }
+
+// IsEnvVar returns if setting k is an EnvVar setting. If setting k doesn't
+// exist, a false will be returned.
+func IsEnvVar(k string) bool { return settings.IsEnvVar(k) }
+
+// IsFlagE returns if setting k is a Flag setting. If setting k doesn't exist,
+// a SettingNotFoundErr will be returned.
+func IsFlagE(k string) (bool, error) { return settings.IsFlagE(k) }
+
+// IsFlag returns if setting k is a Flag setting. If setting k doesn't exist,
+// a false will be returned.
+func IsFlag(k string) bool { return settings.IsFlag(k) }
+
+// EnvVarName returns the environment variable name for k. This will be
+// NAME_K, where K is k and NAME is the name of Settings. For the pkg global
+// Settings, this will be the executable name.
+func EnvVarName(k string) string { return settings.EnvVarName(k) }
+
+// Exists returns if setting k exists.
+func Exists(k string) bool { return settings.Exists(k) }
