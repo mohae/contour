@@ -282,3 +282,9 @@ type UnsupportedFormatErr struct {
 func (e UnsupportedFormatErr) Error() string {
 	return fmt.Sprintf("%s: unsupported configuration format", e.v)
 }
+
+// NewUnsupportedFormatErr returns an UnsupportedFormatErr using the provided
+// s.
+func NewUnsupportedFormatErr(s string) UnsupportedFormatErr {
+	return UnsupportedFormatErr{s}
+}
