@@ -7,15 +7,15 @@ import (
 	"sort"
 )
 
-// ParseFlags parses the args. Only settings of type Flag can be set via
-// ParseFlags. Flags have the highest precedence. After parsing, any non-flag
-// args are returned to the caller and a list of flags in the args is cached.
+// ParseFlags parses the args for the settings. Only settings of type Flag can
+// be set via ParseFlags. Flags have the highest precedence. After parsing, any
+// non-flag args are returned to the caller and a list of flags in the args is
+// cached.
 //
-// If the flags have already been parsed or Settings is set to not use flags,
-// nothing will be done and nothing will be returned.
+// If the settings has already parsed the flags or settings is set to not use
+// flags, nothing will be done and nothing will be returned.
 //
-// If this is called, the Settings should already have all of its settings
-// registered.
+// All of settings' flags must be registered prior to calling ParseFlags.
 func (s *Settings) ParseFlags(args []string) ([]string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -105,11 +105,11 @@ func (s *Settings) setFlags() {
 	}
 }
 
-// Visited returns the names of all flags that were set during argument
-// parsing in lexical order.
+// Visited returns the names of all settings' flags that were set during flag
+// parsing, in lexical order.
 func (s *Settings) Visited() []string { return s.parsedFlags }
 
-// WasVisited returns if a flag was parsed in the processing of args.
+// WasVisited returns if settings' flag k was processed during flag parsing.
 func (s *Settings) WasVisited(k string) bool {
 	for i := range s.parsedFlags {
 		if s.parsedFlags[i] == k {
@@ -124,16 +124,16 @@ func (s *Settings) WasVisited(k string) bool {
 // After parsing, any non-flag args are returned to the caller and a list of
 // flags in the args is cached.
 //
-// If the flags have already been parsed or Settings is set to not use flags,
-// nothing will be done and nothing will be returned.
+// If the standard settings has already parsed the flags or standard settings
+// is set to not use flags, nothing will be done and nothing will be returned.
 //
-// If this is called, the Settings should already have all of its settings
-// registered.
-func ParseFlags() ([]string, error) { return settings.ParseFlags(os.Args[1:]) }
+// All of standard settings' flags must be registered prior to calling.
+func ParseFlags() ([]string, error) { return std.ParseFlags(os.Args[1:]) }
 
-// Visited returns the names of all flags that were set during argument
-// parsing in lexical order.
-func Visited() []string { return settings.Visited() }
+// Visited returns the names of all standard settings' flags that were set
+// during flag parsing, in lexical order.
+func Visited() []string { return std.Visited() }
 
-// WasVisited returns if a flag was parsed in the processing of args.
-func WasVisited(k string) bool { return settings.WasVisited(k) }
+// WasVisited returns if a standard settings flag k was parsed in the
+// processing of args.
+func WasVisited(k string) bool { return std.WasVisited(k) }

@@ -6,10 +6,10 @@ import "strconv"
 // command-line flags. They cannot be modified in any way once they have been
 // registered.
 
-// AddBoolCore adds a Core bool setting with the key k and value v. The value
-// of this setting cannot be changed once it is added. If a setting with the
-// same name, k, exists, a SettingExistsErr will be returned. If k is empty,
-// an ErrNoSettingName will be returned.
+// AddBoolCore adds a Core bool setting to the settings with the key k and
+// value v. The value of this setting cannot be changed once it is added. If a
+// setting with the same name, k, exists, a SettingExistsErr will be returned.
+// If k is empty, an ErrNoSettingName will be returned.
 func (s *Settings) AddBoolCore(k string, v bool) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -21,10 +21,10 @@ func (s *Settings) addBoolCore(k string, v bool) error {
 	return s.addCoreSetting(_bool, k, v, strconv.FormatBool(v))
 }
 
-// AddIntCore adds a Core int setting with the key k and value v. The value
-// of this setting cannot be changed once it is added. If a setting with the
-// same name, k, exists, a SettingExistsErr will be returned. If k is empty,
-// an ErrNoSettingName will be returned.
+// AddIntCore adds a Core int setting to the settings with the key k and value
+// v. The value of this setting cannot be changed once it is added. If a
+// setting with the same name, k, exists, a SettingExistsErr will be returned.
+// If k is empty, an ErrNoSettingName will be returned.
 func (s *Settings) AddIntCore(k string, v int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -36,10 +36,10 @@ func (s *Settings) addIntCore(k string, v int) error {
 	return s.addCoreSetting(_int, k, v, strconv.Itoa(v))
 }
 
-// AddInt64Core adds a Core int64 setting with the key k and value v. The value
-// of this setting cannot be changed once it is added. If a setting with the
-// same name, k, exists, a SettingExistsErr will be returned. If k is empty,
-// an ErrNoSettingName will be returned.
+// AddInt64Core adds a Core int64 setting to the settings with the key k and
+// value v. The value of this setting cannot be changed once it is added. If a
+// setting with the same name, k, exists, a SettingExistsErr will be returned.
+// If k is empty, an ErrNoSettingName will be returned.
 func (s *Settings) AddInt64Core(k string, v int64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -51,10 +51,10 @@ func (s *Settings) addInt64Core(k string, v int64) error {
 	return s.addCoreSetting(_int64, k, v, strconv.FormatInt(v, 10))
 }
 
-// AddStringCore adds a Core string setting with the key k and value v. The
-// value of this setting cannot be changed once it is added. If a setting with
-// the same name, k, exists, a SettingExistsErr will be returned. If k is
-// empty, an ErrNoSettingName will be returned.
+// AddStringCore adds a Core string setting to the settings with the key k and
+// value v. The value of this setting cannot be changed once it is added. If a
+// setting with the same name, k, exists, a SettingExistsErr will be returned.
+// If k is empty, an ErrNoSettingName will be returned.
 func (s *Settings) AddStringCore(k, v string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -69,10 +69,10 @@ func (s *Settings) addCoreSetting(typ dataType, k string, v interface{}, dflt st
 	return s.registerSetting(Core, typ, k, "", v, dflt, "", true, false, false, false)
 }
 
-// AddBool adds a bool setting with they key k and value f. This can be only be
-// updated using the Update functions. If a setting with the same name, k,
-// exists, a SettingExistsErr will be returned. If k is empty, an
-// ErrNoSettingName will be returned
+// AddBool adds a bool setting to the settings with they key k and value f.
+// This can be only be updated using the Update functions. If a setting with
+// the same name, k, exists, a SettingExistsErr will be returned. If k is
+// empty, an ErrNoSettingName will be returned
 func (s *Settings) AddBool(k string, v bool) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -84,10 +84,10 @@ func (s *Settings) addBool(k string, v bool) error {
 	return s.addSetting(_bool, k, v, strconv.FormatBool(v))
 }
 
-// AddInt adds an int setting with they key k and value f. This can be only be
-// updated using the Update functions. If a setting with the same name, k,
-// exists, a SettingExistsErr will be returned. If k is empty, an
-// ErrNoSettingName will be returned
+// AddInt adds an int setting to the settings with they key k and value f. This
+// can be only be updated using the Update functions. If a setting with the
+// same name, k, exists, a SettingExistsErr will be returned. If k is empty,
+// an ErrNoSettingName will be returned
 func (s *Settings) AddInt(k string, v int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -99,9 +99,9 @@ func (s *Settings) addInt(k string, v int) error {
 	return s.addSetting(_int, k, v, strconv.Itoa(v))
 }
 
-// AddInt64 adds an int64 setting with they key k and value f. This can be only
-// updated using the Update functions. If a setting with the same name, k,
-// exists, a SettingExistsErr will be returned. If k is empty, an
+// AddInt64 adds an int64 setting to the settings with they key k and value f.
+// This can be only updated using the Update functions. If a setting with the
+// same name, k, exists, a SettingExistsErr will be returned. If k is empty, an
 // ErrNoSettingName will be returned
 func (s *Settings) AddInt64(k string, v int64) error {
 	s.mu.Lock()
@@ -114,9 +114,9 @@ func (s *Settings) addInt64(k string, v int64) error {
 	return s.addSetting(_int64, k, v, strconv.FormatInt(v, 10))
 }
 
-// AddString adds a string setting with they key k and value f. This can be
-// updated using the Update functions. If a setting with the same name, k,
-// exists, a SettingExistsErr will be returned. If k is empty, an
+// AddString adds a string setting to the settings with they key k and value f.
+// This can be updated using the Update functions. If a setting with the same
+// name, k, exists, a SettingExistsErr will be returned. If k is empty, an
 // ErrNoSettingName will be returned
 func (s *Settings) AddString(k, v string) error {
 	s.mu.Lock()
@@ -133,50 +133,50 @@ func (s *Settings) addSetting(typ dataType, k string, v interface{}, dflt string
 	return s.registerSetting(Basic, typ, k, "", v, dflt, "", false, false, false, false)
 }
 
-// AddBoolCore adds a Core bool setting with the key k and value v. The value
-// of this setting cannot be changed once it is added. If a setting with the
-// same name, k, exists, a SettingExistsErr will be returned. If k is empty,
-// an ErrNoSettingName will be returned.
-func AddBoolCore(k string, v bool) error { return settings.AddBoolCore(k, v) }
+// AddBoolCore adds a Core bool setting to the standard settings with the key k
+// and value v. The value of this setting cannot be changed once it is added.
+// If a setting with the same name, k, exists, a SettingExistsErr will be
+// returned. If k is empty, an ErrNoSettingName will be returned.
+func AddBoolCore(k string, v bool) error { return std.AddBoolCore(k, v) }
 
-// AddIntCore adds a Core int setting with the key k and value v. The value
-// of this setting cannot be changed once it is added. If a setting with the
-// same name, k, exists, a SettingExistsErr will be returned. If k is empty,
-// an ErrNoSettingName will be returned.
-func AddIntCore(k string, v int) error { return settings.AddIntCore(k, v) }
+// AddIntCore adds a Core int setting to the standard settings with the key k
+// and value v. The value of this setting cannot be changed once it is added.
+// If a setting with the same name, k, exists, a SettingExistsErr will be
+// returned. If k is empty, an ErrNoSettingName will be returned.
+func AddIntCore(k string, v int) error { return std.AddIntCore(k, v) }
 
-// AddInt64Core adds a Core int64 setting with the key k and value v. The value
-// of this setting cannot be changed once it is added. If a setting with the
-// same name, k, exists, a SettingExistsErr will be returned. If k is empty,
-// an ErrNoSettingName will be returned.
-func AddInt64Core(k string, v int64) error { return settings.AddInt64Core(k, v) }
+// AddInt64Core adds a Core int64 setting to the standard settings with the key
+// k and value v. The value of this setting cannot be changed once it is added.
+// If a setting with the same name, k, exists, a SettingExistsErr will be
+// returned. If k is empty, an ErrNoSettingName will be returned.
+func AddInt64Core(k string, v int64) error { return std.AddInt64Core(k, v) }
 
-// AddStringCore adds a Core string setting with the key k and value v. The
-// value of this setting cannot be changed once it is added. If a setting with
+// AddStringCore adds a Core string setting to the standard settings with the
+// key k and value v. The value of this setting cannot be changed once it is
+// added. If a setting with the same name, k, exists, a SettingExistsErr will
+// be returned. If k is empty, an ErrNoSettingName will be returned.
+func AddStringCore(k, v string) error { return std.AddStringCore(k, v) }
+
+// AddBool adds a bool setting to the standard settings with they key k and
+// value f. This can be only be updated using the Update functions. If a
+// setting with the same name, k, exists, a SettingExistsErr will be returned.
+// If k is empty, an ErrNoSettingName will be returned
+func AddBool(k string, v bool) error { return std.AddBool(k, v) }
+
+// AddInt adds an int setting to the standard settings with they key k and
+// value f. This can be only be updated using the Update functions. If a
+// setting with the same name, k, exists, a SettingExistsErr will be returned.
+// If k is empty, an ErrNoSettingName will be returned
+func AddInt(k string, v int) error { return std.AddInt(k, v) }
+
+// AddInt64 adds an int64 setting to the standard settings with they key k and
+// value f. This can be only updated using the Update functions. If a setting
+// with the same name, k, exists, a SettingExistsErr will be returned. If k is
+// empty, an ErrNoSettingName will be returned
+func AddInt64(k string, v int64) error { return std.AddInt64(k, v) }
+
+// AddString adds a string setting to the standard settings with they key k and
+// value f. This can be updated using the Update functions. If a setting with
 // the same name, k, exists, a SettingExistsErr will be returned. If k is
-// empty, an ErrNoSettingName will be returned.
-func AddStringCore(k, v string) error { return settings.AddStringCore(k, v) }
-
-// AddBool adds a bool setting with they key k and value f. This can be only be
-// updated using the Update functions. If a setting with the same name, k,
-// exists, a SettingExistsErr will be returned. If k is empty, an
-// ErrNoSettingName will be returned
-func AddBool(k string, v bool) error { return settings.AddBool(k, v) }
-
-// AddInt adds an int setting with they key k and value f. This can be only be
-// updated using the Update functions. If a setting with the same name, k,
-// exists, a SettingExistsErr will be returned. If k is empty, an
-// ErrNoSettingName will be returned
-func AddInt(k string, v int) error { return settings.AddInt(k, v) }
-
-// AddInt64 adds an int64 setting with they key k and value f. This can be only
-// updated using the Update functions. If a setting with the same name, k,
-// exists, a SettingExistsErr will be returned. If k is empty, an
-// ErrNoSettingName will be returned
-func AddInt64(k string, v int64) error { return settings.AddInt64(k, v) }
-
-// AddString adds a string setting with they key k and value f. This can be
-// updated using the Update functions. If a setting with the same name, k,
-// exists, a SettingExistsErr will be returned. If k is empty, an
-// ErrNoSettingName will be returned
-func AddString(k, v string) error { return settings.AddString(k, v) }
+// empty, an ErrNoSettingName will be returned
+func AddString(k, v string) error { return std.AddString(k, v) }

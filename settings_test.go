@@ -25,14 +25,14 @@ func TestSettings(t *testing.T) {
 			t.Errorf("Expected true got %v", s.UseEnvVars())
 		}
 	}
-	if settings == nil {
+	if std == nil {
 		t.Errorf("global Settings was nil")
 	} else {
-		if settings.name != "contour.test" {
-			t.Errorf("Expected contour.test got %s", settings.name)
+		if std.name != "contour.test" {
+			t.Errorf("Expected contour.test got %s", std.name)
 		}
-		if settings.UseEnvVars() != false {
-			t.Errorf("Expected true got %v", settings.UseEnvVars())
+		if std.UseEnvVars() != false {
+			t.Errorf("Expected true got %v", std.UseEnvVars())
 		}
 	}
 }

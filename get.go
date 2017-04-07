@@ -7,8 +7,8 @@ import "reflect"
 // E versions return an error if one occurs. Non-E versions return the zero
 // value if an error occurs.
 
-// GetE returns the key's Value as an interface{}. An SettingNotFoundErr is
-// returned if the key doesn't exist.
+// GetE returns settings' value for k as an interface{}. A SettingNotFoundErr
+// is returned if k doesn't exist.
 func (s *Settings) GetE(k string) (interface{}, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -26,16 +26,16 @@ func (s *Settings) get(k string) (interface{}, error) {
 	return s.settings[k].Value, nil
 }
 
-// Get returns the key's value as an interface{}. A nil is returned if the key
-// doesn't exist.
+// Get returns the settings' value for k as an interface{}. A nil is returned
+// if k doesn't exist.
 func (s *Settings) Get(k string) interface{} {
 	v, _ := s.GetE(k)
 	return v
 }
 
-// BoolE returns the key's value as a bool. A SettingNotFoundErr is returned
-// if the key doesn't exist. A DataTypeErr will be returned if the setting's
-// type is not bool.
+// BoolE returns the settings' value for k as a bool. A SettingNotFoundErr is
+// returned if k doesn't exist. A DataTypeErr will be returned if the value is
+// is not bool.
 func (s *Settings) BoolE(k string) (bool, error) {
 	v, err := s.GetE(k)
 	if err != nil {
@@ -51,16 +51,16 @@ func (s *Settings) BoolE(k string) (bool, error) {
 	return false, DataTypeErr{k: k, is: reflect.TypeOf(v).String(), not: _bool}
 }
 
-// Bool returns the key's value as a bool. A false will be returned if the key
-// either doesn't exist or the setting's type is not bool.
+// Bool returns the settings' value for k as a bool. A false will be returned
+// if k either doesn't exist or if its value is not a bool.
 func (s *Settings) Bool(k string) bool {
 	v, _ := s.BoolE(k)
 	return v
 }
 
-// IntE returns the key's value as an int. A SettingNotFoundErr is returned if
-// the key doesn't exist. A DataTypeErr will be returned if the setting's type
-// is not int.
+// IntE returns the settings' value for k as an int. A SettingNotFoundErr is
+// returned if k doesn't exist. A DataTypeErr will be returned if the value is
+// not int.
 func (s *Settings) IntE(k string) (int, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -85,16 +85,16 @@ func (s *Settings) int(k string) (int, error) {
 	return 0, DataTypeErr{k: k, is: reflect.TypeOf(v).String(), not: _int}
 }
 
-// Int returns the key's value as an int. A 0 will be returned if the key
-// either doesn't exist or is not an int setting.
+// Int returns the settings' value for k as an int. A 0 will be returned if k
+// either doesn't exist or if its value is nat an int.
 func (s *Settings) Int(k string) int {
 	v, _ := s.IntE(k)
 	return v
 }
 
-// Int64E returns the key's value as an int64. A SettingNotFoundErr is returned
-// if the key doesn't exist. A DataTypeErr will be returned if the setting's
-// type is neither an int64 nor an int.
+// Int64E returns the settings value for k as an int64. A SettingNotFoundErr is
+// returned if k doesn't exist. A DataTypeErr will be returned if the value is
+// neither an int64 nor an int.
 func (s *Settings) Int64E(k string) (int64, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -123,16 +123,16 @@ func (s *Settings) int64(k string) (int64, error) {
 	return 0, DataTypeErr{k: k, is: reflect.TypeOf(v).String(), not: _int64}
 }
 
-// Int64 returns the key's value as an int64. A 0 will be returned if the key
-// either doesn't exist or is neither an int64 nor an int setting.
+// Int64 returns the settings value for k as an int64. A 0 will be returned if
+// k doesn't exist or if its value is neither an int64 nor an int.
 func (s *Settings) Int64(k string) int64 {
 	v, _ := s.Int64E(k)
 	return v
 }
 
-// StringE returns the key's value as a string. A SettingNotFoundErr is
-// returned if the key doesn't exist. A DataTypeErr will be returned if the
-// setting's type is not a string.
+// StringE returns the settings value for k as a string. A SettingNotFoundErr
+// is returned if k doesn't exist. A DataTypeErr will be returned if the value
+// is not a string.
 func (s *Settings) StringE(k string) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -157,63 +157,55 @@ func (s *Settings) string(k string) (string, error) {
 	return "", DataTypeErr{k: k, is: reflect.TypeOf(v).String(), not: _string}
 }
 
-// String returns the key's value as a string. An empty string, "", will be
-// returned if the key either doesn't exist or is not a string setting.
+// String returns the settings value for k as a string. An empty string, "",
+// will be returned if k either doesn't exist or if its value is not a string.
 func (s *Settings) String(k string) string {
 	v, _ := s.StringE(k)
 	return v
 }
 
-// ConfFilename returns the configuration filename.
-func (s *Settings) ConfFilename() string {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	return s.confFilename
-}
+// GetE returns the standard settings' value for k as an interface{}. A
+// SettingNotFoundErr is returned if k doesn't exist.
+func GetE(k string) (interface{}, error) { return std.GetE(k) }
 
-// GetE returns the key's Value as an interface{}. An SettingNotFoundErr is
-// returned if the key doesn't exist.
-func GetE(k string) (interface{}, error) { return settings.GetE(k) }
+// Get returns the standard settings' value for k as an interface{}. A nil is
+// returned if k doesn't exist.
+func Get(k string) interface{} { return std.Get(k) }
 
-// Get returns the key's value as an interface{}. A nil is returned if the key
-// doesn't exist.
-func Get(k string) interface{} { return settings.Get(k) }
+// BoolE returns the standard settings' value for k as a bool. A
+//vSettingNotFoundErr is returned if k doesn't exist. A DataTypeErr will be
+// returned if the value is not bool.
+func BoolE(k string) (bool, error) { return std.BoolE(k) }
 
-// BoolE returns the key's value as a bool. A SettingNotFoundErr is returned
-// if the key doesn't exist. A DataTypeErr will be returned if the setting's
-// type is not bool.
-func BoolE(k string) (bool, error) { return settings.BoolE(k) }
+// Bool returns the standard settings' value for k as a bool. A false will be
+// returned if k doesn't exist or if its value is not a bool.
+func Bool(k string) bool { return std.Bool(k) }
 
-// Bool returns the key's value as a bool. A false will be returned if the key
-// either doesn't exist or the setting's type is not bool.
-func Bool(k string) bool { return settings.Bool(k) }
+// IntE returns the standard settings' value for k as an int. A
+// SettingNotFoundErr is returned if k doesn't exist. A DataTypeErr will be
+// returned if the value is not an int.
+func IntE(k string) (int, error) { return std.IntE(k) }
 
-// IntE returns the key's value as an int. A SettingNotFoundErr is returned if
-// the key doesn't exist. A DataTypeErr will be returned if the setting's type
-// is not int.
-func IntE(k string) (int, error) { return settings.IntE(k) }
+// Int returns the standard settings' value for k as an int. A 0 will be
+// returned if k doesn't exist or if its value is not an int.
+func Int(k string) int { return std.Int(k) }
 
-// Int returns the key's value as an int. A 0 will be returned if the key
-// either doesn't exist or is not an int setting.
-func Int(k string) int { return settings.Int(k) }
+// Int64E returns the standard settings' value for k as an int64. A
+// SettingNotFoundErr is returned if k doesn't exist in. A DataTypeErr will be
+// returned if the value is neither an int64 nor an int.
+func Int64E(k string) (int64, error) { return std.Int64E(k) }
 
-// Int64E returns the key's value as an int64. A SettingNotFoundErr is returned
-// if the key doesn't exist. A DataTypeErr will be returned if the setting's
-// type is neither an int64 nor an int.
-func Int64E(k string) (int64, error) { return settings.Int64E(k) }
+// Int64 returns the standard settings' value for k as an int64. A 0 will be
+// returned if k doesn't exist or if its value is neither an int64 nor an int
+// setting.
+func Int64(k string) int64 { return std.Int64(k) }
 
-// Int64 returns the key's value as an int64. A 0 will be returned if the key
-// either doesn't exist or is neither an int64 nor an int setting.
-func Int64(k string) int64 { return settings.Int64(k) }
+// StringE returns the standard settings' value for k as a string. A
+// SettingNotFoundErr is returned if k doesn't exist. A DataTypeErr will be
+// returned if the value is not a string.
+func StringE(k string) (string, error) { return std.StringE(k) }
 
-// StringE returns the key's value as a string. A SettingNotFoundErr is
-// returned if the key doesn't exist. A DataTypeErr will be returned if the
-// setting's type is not a string.
-func StringE(k string) (string, error) { return settings.StringE(k) }
-
-// String returns the key's value as a string. An empty string, "", will be
-// returned if the key either doesn't exist or is not a string setting.
-func String(k string) string { return settings.String(k) }
-
-// ConfFilename returns the configuration filename.
-func ConfFilename() string { return settings.ConfFilename() }
+// String returns the standard settings' value for k as a string. An empty
+// string, "", will be returned if k doesn't exist or if its value is not a
+// string.
+func String(k string) string { return std.String(k) }

@@ -45,6 +45,9 @@
 //
 // Non-configuration application settings, Core and Basic, can be added at
 // anytime.
+//
+// For convenience, there's a predefined 'standard' Settings, whose name is the
+// executable's name.
 package contour
 
 import (
@@ -58,6 +61,13 @@ import (
 
 // Exe: the name of the running executable.
 var Exe = appname.Get()
+
+// std: contour's global Settinngs set; contour functions operate on this.
+var std *Settings
+
+func init() {
+	std = New(Exe)
+}
 
 const (
 	// Unsupported configuration encoding format.
@@ -222,13 +232,6 @@ func (t SettingType) String() string {
 	default:
 		return "unknown"
 	}
-}
-
-// settings: contour's global Settinngs set; contour functions operate on this.
-var settings *Settings
-
-func init() {
-	settings = New(Exe)
 }
 
 var ErrNoSettingName = errors.New("no setting name provided")

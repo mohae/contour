@@ -15,8 +15,8 @@ func (e updateErr) Error() string {
 	return fmt.Sprintf("update of %s failed: %s", e.k, e.slug)
 }
 
-// UpdateErr: when an Update operation results in an error that isn't neither a
-// SettingNotFoundErr nor a CoreUpdateErr.
+// UpdateErr records information about an Update operation that results in an
+// error that isn't neither a SettingNotFoundErr nor a CoreUpdateErr.
 type UpdateErr struct {
 	typ string
 	k   string
@@ -26,8 +26,7 @@ func (e UpdateErr) Error() string {
 	return fmt.Sprintf("%s: %s settings cannot be updated", e.k, e.typ)
 }
 
-// CoreUpdateErr happens when there's an attempt to do a core update, which
-// should never occur, or update a Core setting.
+// CoreUpdateErr happens when there's an attempt to update a Core setting.
 type CoreUpdateErr struct {
 	k string
 }
@@ -50,9 +49,9 @@ func (s *Settings) update(typ SettingType, k string, v interface{}) error {
 	return nil
 }
 
-// UpdateBool updates a bool setting. If the setting k doesn't exist, both a
-// false and a SettingNotFoundErr will be returned. If the setting k is not
-// updateable, both a false and either a CoreUpdateErr or an UpdateErr will
+// UpdateBool updates k with a boo, v. If settings does not have a setting k,
+// both a false and a SettingNotFoundErr will be returned. If the setting k is
+// not updateable, both a false and either a CoreUpdateErr or an UpdateErr will
 // be returned.
 func (s *Settings) UpdateBool(k string, v bool) error {
 	s.mu.Lock()
@@ -65,9 +64,9 @@ func (s *Settings) updateBool(typ SettingType, k string, v bool) error {
 	return s.update(typ, k, v)
 }
 
-// UpdateInt updates an int setting. If the setting k doesn't exist, both a
-// false and a SettingNotFoundErr will be returned. If the setting k is not
-// updateable, both a false and either a CoreUpdateErr or an UpdateErr will
+// UpdateInt updates k with aan int, v. If settings does not have a setting k,
+// both a false and a SettingNotFoundErr will be returned. If the setting k is
+// not updateable, both a false and either a CoreUpdateErr or an UpdateErr will
 // be returned.
 func (s *Settings) UpdateInt(k string, v int) error {
 	s.mu.Lock()
@@ -80,10 +79,10 @@ func (s *Settings) updateInt(typ SettingType, k string, v int) error {
 	return s.update(typ, k, v)
 }
 
-// UpdateInt64 updates an int64 setting. If the setting k doesn't exist, both a
-// false and a SettingNotFoundErr will be returned. If the setting k is not
-// updateable, both a false and either a CoreUpdateErr or an UpdateErr will
-// be returned.
+// UpdateInt64 updates k with an int64, v. If settings does not have a setting
+// k, both a false and a SettingNotFoundErr will be returned. If the setting k
+// is not updateable, both a false and either a CoreUpdateErr or an UpdateErr
+// will be returned.
 func (s *Settings) UpdateInt64(k string, v int64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -95,10 +94,10 @@ func (s *Settings) updateInt64(typ SettingType, k string, v int64) error {
 	return s.update(typ, k, v)
 }
 
-// UpdateString updates a string setting. If the setting k doesn't exist, both
-// a false and a SettingNotFoundErr will be returned. If the setting k is not
-// updateable, both a false and either a CoreUpdateErr or an UpdateErr will
-// be returned.
+// UpdateString updates k with a string, v. If settings does not have a setting
+// k, both a false and a SettingNotFoundErr will be returned. If the setting k
+// is not updateable, both a false and either a CoreUpdateErr or an UpdateErr
+// will be returned.
 func (s *Settings) UpdateString(k, v string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -216,26 +215,26 @@ func (s *Settings) canUpdate(typ SettingType, k string) (can bool, err error) {
 	return false, updateErr{typ: typ, k: k, slug: "invalid update type"}
 }
 
-// UpdateBool updates a bool setting. If the setting k doesn't exist, both a
-// false and a SettingNotFoundErr will be returned. If the setting k is not
-// updateable, both a false and either a CoreUpdateErr or an UpdateErr will
-// be returned.
-func UpdateBool(k string, v bool) error { return settings.UpdateBool(k, v) }
+// UpdateBool updates k with a boo, v. If the standard settings does not have a
+// setting k, both a false and a SettingNotFoundErr will be returned. If the
+// setting k is not updateable, both a false and either a CoreUpdateErr or an
+// UpdateErr will be returned.
+func UpdateBool(k string, v bool) error { return std.UpdateBool(k, v) }
 
-// UpdateInt updates an int setting. If the setting k doesn't exist, both a
-// false and a SettingNotFoundErr will be returned. If the setting k is not
-// updateable, both a false and either a CoreUpdateErr or an UpdateErr will
-// be returned.
-func UpdateInt(k string, v int) error { return settings.UpdateInt(k, v) }
+// UpdateInt updates k with aan int, v. If the standard settings does not have
+// a setting k, both a false and a SettingNotFoundErr will be returned. If the
+// setting k is not updateable, both a false and either a CoreUpdateErr or an
+// UpdateErr will be returned.
+func UpdateInt(k string, v int) error { return std.UpdateInt(k, v) }
 
-// UpdateInt64 updates an int64 setting. If the setting k doesn't exist, both a
-// false and a SettingNotFoundErr will be returned. If the setting k is not
-// updateable, both a false and either a CoreUpdateErr or an UpdateErr will
-// be returned.
-func UpdateInt64(k string, v int64) error { return settings.UpdateInt64(k, v) }
+// UpdateInt64 updates k with an int64, v. If the standard settings does not
+// have a setting k, both a false and a SettingNotFoundErr will be returned. If
+// the setting k is not updateable, both a false and either a CoreUpdateErr or
+// an UpdateErr will be returned.
+func UpdateInt64(k string, v int64) error { return std.UpdateInt64(k, v) }
 
-// UpdateString updates a string setting. If the setting k doesn't exist, both
-// a false and a SettingNotFoundErr will be returned. If the setting k is not
-// updateable, both a false and either a CoreUpdateErr or an UpdateErr will
-// be returned.
-func UpdateString(k string, v string) error { return settings.UpdateString(k, v) }
+// UpdateString updates a string setting. If the standard setting k doesn't
+// exist, both a false and a SettingNotFoundErr will be returned. If the
+// setting k is not updateable, both a false and either a CoreUpdateErr or an
+// UpdateErr will be returned.
+func UpdateString(k string, v string) error { return std.UpdateString(k, v) }
