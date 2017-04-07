@@ -1,10 +1,16 @@
 package contour
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
 	"sort"
+)
+
+var (
+	ErrFlagsParsed   = errors.New("flags have already been parsed")
+	ErrUseFlagsFalse = errors.New("not set to use flags")
 )
 
 // ParseFlags parses the args for the settings. Only settings of type Flag can
@@ -12,8 +18,9 @@ import (
 // non-flag args are returned to the caller and a list of flags in the args is
 // cached.
 //
-// If the settings has already parsed the flags or settings is set to not use
-// flags, nothing will be done and nothing will be returned.
+// If settings is not set to use flags, the args will be returned along with an
+// ErrUseFlagsFalse. If settings has already parsed flags, the args are
+// returned along with an ErrFlagsParsed.
 //
 // All of settings' flags must be registered prior to calling ParseFlags.
 func (s *Settings) ParseFlags(args []string) ([]string, error) {
@@ -25,10 +32,13 @@ func (s *Settings) ParseFlags(args []string) ([]string, error) {
 // assume that the lock has already been obtained.
 func (s *Settings) parseFlags(args []string) ([]string, error) {
 	// nothing to do
-	if !s.useFlags || s.flagsParsed {
-		return nil, nil
+	if !s.useFlags {
+		return args, ErrUseFlagsFalse
 	}
 
+	if s.flagsParsed {
+		return args, ErrFlagsParsed
+	}
 	// Get the flag information and set the flagSet
 	s.setFlags()
 
