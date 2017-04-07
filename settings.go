@@ -417,21 +417,36 @@ func (s *Settings) ConfFilePathEnvVars(envVars []string) {
 	s.mu.Unlock()
 }
 
-// CheckWD: if Settings should check the working directory for the
+// CheckWD returns if settings should check the working directory for the
 // configuration file.
-func (s *Settings) CheckWD() {
+func (s *Settings) CheckWD() bool {
 	s.mu.RLock()
-	s.checkWD = true
 	defer s.mu.RUnlock()
+	return s.checkWD
 }
 
-// CheckExeDir: if Settings should check the executable directory for the
+// SetCheckWD sets if settings should check the working directory for the
 // configuration file.
-func (s *Settings) CheckExeDir() {
-	s.mu.RLock()
-	s.checkExeDir = true
-	defer s.mu.RUnlock()
+func (s *Settings) SetCheckWD(b bool) {
+	s.mu.Lock()
+	s.checkWD = b
+	s.mu.Unlock()
+}
 
+// CheckExeDir returns if Settings should check the executable directory for the
+// configuration file.
+func (s *Settings) CheckExeDir() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.checkExeDir
+}
+
+// SetCheckExeDir sets if Settings should check the executable directory for
+// the configuration file.
+func (s *Settings) SetCheckExeDir(b bool) {
+	s.mu.Lock()
+	s.checkExeDir = b
+	s.mu.Unlock()
 }
 
 // SearchPath sets if settings should use the user's PATH environment variable
@@ -752,13 +767,21 @@ func ConfFilePathEnvVars(envVars []string) {
 	std.ConfFilePathEnvVars(envVars)
 }
 
-// CheckWD: if Settings should check the working directory for the
+// CheckWD returns if settings should check the working directory for the
 // configuration file.
-func CheckWD() { std.CheckWD() }
+func CheckWD() bool { return std.CheckWD() }
 
-// CheckExeDir: if Settings should check the executable directory for the
+// SetCheckWD sets if settings should check the working directory for the
 // configuration file.
-func CheckExeDir() { std.CheckExeDir() }
+func SetCheckWD(b bool) { std.SetCheckWD(b) }
+
+// CheckExeDir returns if Settings should check the executable directory for the
+// configuration file.
+func CheckExeDir() bool { return std.CheckExeDir() }
+
+// SetCheckExeDir sets if the standard settings should check the executable
+// directory for the configuration file.
+func SetCheckExeDir(b bool) { std.SetCheckExeDir(b) }
 
 // SearchPath sets if the standard settings should use the user's PATH
 // environment variable to check for the configuratiom file.
