@@ -470,14 +470,14 @@ func newTestSettings() *Settings {
 	}
 }
 
-func TestSettingExistsErr(t *testing.T) {
+func TestSettingExistsError(t *testing.T) {
 	tests := []basic{
 		basic{name: "test1", value: "dinosaur", expected: "", expectedErr: "dinosaur: setting exists"},
 		basic{name: "test2", settingType: Core, value: "swallow", expected: "", expectedErr: "swallow: core setting exists"},
 	}
 
 	for _, test := range tests {
-		err := error(SettingExistsErr{typ: test.settingType, k: test.value})
+		err := error(SettingExistsError{typ: test.settingType, k: test.value})
 		if err.Error() != test.expectedErr {
 			t.Errorf("%s: expected %q got %q", test.name, test.expectedErr, err)
 		}
@@ -485,21 +485,21 @@ func TestSettingExistsErr(t *testing.T) {
 }
 
 func TestShortFlagErr(t *testing.T) {
-	err := ShortFlagExistsErr{k: "bar", short: "b", shortName: "biz"}
+	err := ShortFlagExistsError{k: "bar", short: "b", shortName: "biz"}
 	exp := "bar: short flag \"b\" already exists for \"biz\""
 	if err.Error() != exp {
 		t.Errorf("got %s; want %s", err.Error(), exp)
 	}
 }
 
-func TestSettingNotFoundErr(t *testing.T) {
+func TestSettingNotFoundError(t *testing.T) {
 	tests := []basic{
 		basic{name: "notFoundErr test1", value: "dinosaur", expected: "", expectedErr: "dinosaur: setting not found"},
 		basic{name: "notFoundErr test2", settingType: Core, value: "swallow", expected: "", expectedErr: "swallow: core setting not found"},
 	}
 
 	for _, test := range tests {
-		err := error(SettingNotFoundErr{settingType: test.settingType, k: test.value})
+		err := error(SettingNotFoundError{settingType: test.settingType, k: test.value})
 		if err.Error() != test.expectedErr {
 			t.Errorf("%s: expected %q got %q", test.name, test.expectedErr, err)
 		}
@@ -589,10 +589,10 @@ func TestParseFilename(t *testing.T) {
 		format Format
 		err    error
 	}{
-		{"", Unsupported, UnsupportedFormatErr{""}},
-		{"file", Unsupported, UnsupportedFormatErr{""}},
-		{"file.xml", Unsupported, UnsupportedFormatErr{"xml"}},
-		{"file.jpeg", Unsupported, UnsupportedFormatErr{"jpeg"}},
+		{"", Unsupported, UnsupportedFormatError{""}},
+		{"file", Unsupported, UnsupportedFormatError{""}},
+		{"file.xml", Unsupported, UnsupportedFormatError{"xml"}},
+		{"file.jpeg", Unsupported, UnsupportedFormatError{"jpeg"}},
 		{"file.json", JSON, nil},
 		{"file.jsn", JSON, nil},
 		{"file.cjson", JSON, nil},

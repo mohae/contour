@@ -499,7 +499,7 @@ func (s *Settings) IsCoreE(k string) (bool, error) {
 func (s *Settings) isCore(k string) (bool, error) {
 	val, ok := s.settings[k]
 	if !ok {
-		return false, SettingNotFoundErr{settingType: Core, k: k}
+		return false, SettingNotFoundError{settingType: Core, k: k}
 	}
 	return val.IsCore, nil
 }
@@ -522,7 +522,7 @@ func (s *Settings) IsConfFileVarE(k string) (bool, error) {
 func (s *Settings) isConfFileVar(k string) (bool, error) {
 	val, ok := s.settings[k]
 	if !ok {
-		return false, SettingNotFoundErr{settingType: ConfFileVar, k: k}
+		return false, SettingNotFoundError{settingType: ConfFileVar, k: k}
 	}
 	return val.IsConfFileVar, nil
 }
@@ -545,7 +545,7 @@ func (s *Settings) IsEnvVarE(k string) (bool, error) {
 func (s *Settings) isEnvVar(k string) (bool, error) {
 	val, ok := s.settings[k]
 	if !ok {
-		return false, SettingNotFoundErr{settingType: EnvVar, k: k}
+		return false, SettingNotFoundError{settingType: EnvVar, k: k}
 	}
 	return val.IsEnvVar, nil
 }
@@ -568,7 +568,7 @@ func (s *Settings) IsFlagE(k string) (bool, error) {
 func (s *Settings) isFlag(k string) (bool, error) {
 	val, ok := s.settings[k]
 	if !ok {
-		return false, SettingNotFoundErr{settingType: Flag, k: k}
+		return false, SettingNotFoundError{settingType: Flag, k: k}
 	}
 	return val.IsFlag, nil
 }
@@ -654,7 +654,7 @@ func unmarshalConfBytes(f Format, buff []byte) (interface{}, error) {
 		}
 		return ret, nil
 	default:
-		return nil, UnsupportedFormatErr{f.String()}
+		return nil, UnsupportedFormatError{f.String()}
 	}
 }
 

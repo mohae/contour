@@ -8,7 +8,7 @@ import "strconv"
 // setting is needed. This method allows Is[ConfFileVar|EnvVar|Flag] bools to
 // be set independently.
 //
-// If a setting with the key k already exists, a SettingExistsErr will be
+// If a setting with the key k already exists, a SettingExistsError will be
 // returned. If k is an empty string an ErrNoSettingName will be returned.
 //
 // The short, dflt, and usage parms only apply to settings whose IsFlag bool
@@ -45,7 +45,7 @@ func (s *Settings) registerSetting(sTyp SettingType, typ dataType, name, short s
 	_, ok := s.settings[name]
 	if ok {
 		// Settings can't be re-registered.
-		return SettingExistsErr{typ: sTyp, k: name}
+		return SettingExistsError{typ: sTyp, k: name}
 	}
 
 	// Add the setting
@@ -69,7 +69,7 @@ func (s *Settings) registerSetting(sTyp SettingType, typ dataType, name, short s
 	if short != "" && IsFlag {
 		v, ok := s.shortFlags[short]
 		if ok {
-			return ShortFlagExistsErr{k: name, short: short, shortName: v}
+			return ShortFlagExistsError{k: name, short: short, shortName: v}
 		}
 		s.shortFlags[short] = name
 	}
@@ -88,7 +88,7 @@ func (s *Settings) registerSetting(sTyp SettingType, typ dataType, name, short s
 
 // RegisterBoolConfFileVar registers a bool setting using k for its key and v
 // for its value. Once registered, the value of this setting can only be
-// updated from a configuration file. If k already exists a SettingExistsErr
+// updated from a configuration file. If k already exists a SettingExistsError
 // will be returned. If k is empty, an ErrNoSettingName will be returned.
 func (s *Settings) RegisterBoolConfFileVar(k string, v bool) error {
 	s.mu.Lock()
@@ -104,7 +104,7 @@ func (s *Settings) registerBoolConfFileVar(k string, v bool) error {
 
 // RegisterIntConfFileVar registers an int setting using k for its key and v
 // for its value. Once registered, the value of this setting can only be
-// updated from a configuration file. If k already exists a SettingExistsErr
+// updated from a configuration file. If k already exists a SettingExistsError
 // will be returned. If k is empty, an ErrNoSettingName will be returned.
 func (s *Settings) RegisterIntConfFileVar(k string, v int) error {
 	s.mu.Lock()
@@ -120,7 +120,7 @@ func (s *Settings) registerIntConfFileVar(k string, v int) error {
 
 // RegisterInt64ConfFileVar registers an int64 setting using k for its key and
 // v for its value. Once registered, the value of this setting can only be
-// updated from a configuration file. If k already exists a SettingExistsErr
+// updated from a configuration file. If k already exists a SettingExistsError
 // will be returned. If k is empty, an ErrNoSettingName will be returned.
 func (s *Settings) RegisterInt64ConfFileVar(k string, v int64) error {
 	s.mu.Lock()
@@ -136,7 +136,7 @@ func (s *Settings) registerInt64ConfFileVar(k string, v int64) error {
 
 // RegisterStringConfFileVar registers a string setting using k for its key and
 // v for its value. Once registered, the value of this setting can only be
-// updated from a configuration file. If k already exists a SettingExistsErr
+// updated from a configuration file. If k already exists a SettingExistsError
 // will be returned. If k is empty, an ErrNoSettingName will be returned.
 func (s *Settings) RegisterStringConfFileVar(k, v string) error {
 	s.mu.Lock()
@@ -154,11 +154,11 @@ func (s *Settings) registerConfFileVar(typ dataType, k string, v interface{}, df
 	return s.registerSetting(ConfFileVar, typ, k, "", v, dflt, "", false, true, false, false)
 }
 
-// RegisterBoolEnvVar registers a bool setting using k for its key and v
-// for its value. Once registered, the value of this setting can only be
-// updated from a configuration file or an environment variable. If k already
-// exists a SettingExistsErr will be returned. If k is empty, an
-// ErrNoSettingName will be returned.
+// RegisterBoolEnvVar registers a bool setting using k for its key and v for
+// its value. Once registered, the value of this setting can only be updated
+// from a configuration file or an environment variable. If k already exists a
+// SettingExistsError will be returned. If k is empty, an ErrNoSettingName will
+// be returned.
 func (s *Settings) RegisterBoolEnvVar(k string, v bool) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -171,11 +171,11 @@ func (s *Settings) registerBoolEnvVar(k string, v bool) error {
 	return s.registerEnvVar(_bool, k, v, strconv.FormatBool(v))
 }
 
-// RegisterIntEnvVar registers an int setting using k for its key and v
-// for its value. Once registered, the value of this setting can only be
-// updated from a configuration file or an environment variable. If k already
-// exists a SettingExistsErr will be returned. If k is empty, an
-// ErrNoSettingName will be returned.
+// RegisterIntEnvVar registers an int setting using k for its key and v for its
+// value. Once registered, the value of this setting can only be updated from a
+// configuration file or an environment variable. If k already exists a
+// SettingExistsError will be returned. If k is empty, an ErrNoSettingName will
+// be returned.
 func (s *Settings) RegisterIntEnvVar(k string, v int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -187,11 +187,11 @@ func (s *Settings) registerIntEnvVar(k string, v int) error {
 	return s.registerEnvVar(_int, k, v, strconv.Itoa(v))
 }
 
-// RegisterInt64EnvVar registers an int64 setting using k for its key and v
-// for its value. Once registered, the value of this setting can only be
-// updated from a configuration file or an environment variable. If k already
-// exists a SettingExistsErr will be returned. If k is empty, an
-// ErrNoSettingName will be returned.
+// RegisterInt64EnvVar registers an int64 setting using k for its key and v for
+// its value. Once registered, the value of this setting can only be updated
+// from a configuration file or an environment variable. If k already exists a
+// SettingExistsError will be returned. If k is empty, an ErrNoSettingName will
+// be returned.
 func (s *Settings) RegisterInt64EnvVar(k string, v int64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -206,7 +206,7 @@ func (s *Settings) registerInt64EnvVar(k string, v int64) error {
 // RegisterStringEnvVar registers a string setting using k for its key and v
 // for its value. Once registered, the value of this setting can only be
 // updated from a configuration file or an environment variable. If k already
-// exists a SettingExistsErr will be returned. If k is empty, an
+// exists a SettingExistsError will be returned. If k is empty, an
 // ErrNoSettingName will be returned.
 func (s *Settings) RegisterStringEnvVar(k, v string) error {
 	s.mu.Lock()
@@ -223,11 +223,11 @@ func (s *Settings) registerEnvVar(typ dataType, k string, v interface{}, dflt st
 	return s.registerSetting(EnvVar, typ, k, "", v, dflt, "", false, true, true, false)
 }
 
-// RegisterBoolFlag registers a bool setting using k for its key and v
-// for its value. Once registered, the value of this setting can be updated
-// from a configuration file, an environment variable, or a flag. If k already
-// exists a SettingExistsErr will be returned. If k is empty, an
-// ErrNoSettingName will be returned.
+// RegisterBoolFlag registers a bool setting using k for its key and v for its
+// value. Once registered, the value of this setting can be updated from a
+// configuration file, an environment variable, or a flag. If k already exists
+// a SettingExistsError will be returned. If k is empty, an ErrNoSettingName
+// will be returned.
 func (s *Settings) RegisterBoolFlag(k, short string, v bool, dflt, usage string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -240,11 +240,11 @@ func (s *Settings) registerBoolFlag(k, short string, v bool, dflt, usage string)
 	return s.registerFlag(_bool, k, short, v, dflt, usage)
 }
 
-// RegisterIntFlag registers an int setting using k for its key and v
-// for its value. Once registered, the value of this setting can be updated
-// from a configuration file, an environment variable, or a flag. If k already
-// exists a SettingExistsErr will be returned. If k is empty, an
-// ErrNoSettingName will be returned
+// RegisterIntFlag registers an int setting using k for its key and v for its
+// value. Once registered, the value of this setting can be updated from a
+// configuration file, an environment variable, or a flag. If k already exists
+// a SettingExistsError will be returned. If k is empty, an ErrNoSettingName
+// will be returned
 func (s *Settings) RegisterIntFlag(k, short string, v int, dflt, usage string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -257,11 +257,11 @@ func (s *Settings) registerIntFlag(k, short string, v int, dflt, usage string) e
 	return s.registerFlag(_int, k, short, v, dflt, usage)
 }
 
-// RegisterInt64Flag registers an int64 setting using k for its key and v
-// for its value. Once registered, the value of this setting can be updated
-// from a configuration file, an environment variable, or a flag. If k already
-// exists a SettingExistsErr will be returned. If k is empty, an
-// ErrNoSettingName will be returned
+// RegisterInt64Flag registers an int64 setting using k for its key and v for
+// its value. Once registered, the value of this setting can be updated from a
+// configuration file, an environment variable, or a flag. If k already exists
+// a SettingExistsError will be returned. If k is empty, an ErrNoSettingName
+// will be returned
 func (s *Settings) RegisterInt64Flag(k, short string, v int64, dflt, usage string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -274,11 +274,11 @@ func (s *Settings) registerInt64Flag(k, short string, v int64, dflt, usage strin
 	return s.registerFlag(_int64, k, short, v, dflt, usage)
 }
 
-// RegisterStringFlag registers a string setting using k for its key and v
-// for its value. Once registered, the value of this setting can be updated
-// from a configuration file, an environment variable, or a flag. If k already
-// exists a SettingExistsErr will be returned. If k is empty, an
-// ErrNoSettingName will be returned
+// RegisterStringFlag registers a string setting using k for its key and v for
+// its value. Once registered, the value of this setting can be updated from a
+// configuration file, an environment variable, or a flag. If k already exists
+// a SettingExistsError will be returned. If k is empty, an ErrNoSettingName
+// will be returned
 func (s *Settings) RegisterStringFlag(k, short, v, dflt, usage string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -301,11 +301,11 @@ func (s *Settings) registerFlag(typ dataType, k, short string, v interface{}, df
 // can update a registered setting is needed. This method allows
 // Is[ConfFileVar|EnvVar|Flag] bools to be set independently.
 //
-// If a setting with the key k already exists, a SettingExistsErr will be
+// If a setting with the key k already exists, a SettingExistsError will be
 // returned. If k is an empty string an ErrNoSettingName will be returned.
 //
-// The short, dflt, and usage parms only apply to settings whose IsFlag bool
-// is true.
+// The short, dflt, and usage parms only apply to settings whose IsFlag bool is
+// true.
 //
 // For non-Core settings, IsCore must be false. If IsCore is true, k's value
 // cannot be changed after registration, regardless of the truthiness of
@@ -331,72 +331,72 @@ func RegisterSetting(typ, name, short string, value interface{}, dflt, usage str
 // RegisterBoolConfFileVar registers a bool setting with the standard settings
 // using k for its key and v for its value. Once registered, the value of this
 // setting can only be updated from a configuration file. If k already exists a
-// SettingExistsErr will be returned. If k is empty, an ErrNoSettingName will
+// SettingExistsError will be returned. If k is empty, an ErrNoSettingName will
 // be returned.
 func RegisterBoolConfFileVar(k string, v bool) error { return std.RegisterBoolConfFileVar(k, v) }
 
 // RegisterIntConfFileVar registers an int setting with the standard settings
 // using k for its key and v for its value. Once registered, the value of this
 // setting can only be updated from a configuration file. If k already exists a
-// SettingExistsErr will be returned. If k is empty, an ErrNoSettingName will
+// SettingExistsError will be returned. If k is empty, an ErrNoSettingName will
 // be returned.
 func RegisterIntConfFileVar(k string, v int) error { return std.RegisterIntConfFileVar(k, v) }
 
-// RegisterInt64ConfFileVar registers an int64 setting with the standard settings
-// using k for its key and v for its value. Once registered, the value of this
-// setting can only be updated from a configuration file. If k already exists a
-// SettingExistsErr will be returned. If k is empty, an ErrNoSettingName will
-// be returned.
+// RegisterInt64ConfFileVar registers an int64 setting with the standard
+// settings using k for its key and v for its value. Once registered, the value
+// of this setting can only be updated from a configuration file. If k already
+// exists a SettingExistsError will be returned. If k is empty, an
+// ErrNoSettingName will be returned.
 func RegisterInt64ConfFileVar(k string, v int64) error { return std.RegisterInt64ConfFileVar(k, v) }
 
-// RegisterStringConfFileVar registers a string setting with the standard settings
-// using k for its key and v for its value. Once registered, the value of this
-// setting can only be updated from a configuration file. If k already exists a
-// SettingExistsErr will be returned. If k is empty, an ErrNoSettingName will
-// be returned.
+// RegisterStringConfFileVar registers a string setting with the standard
+// settings using k for its key and v for its value. Once registered, the value
+// of this setting can only be updated from a configuration file. If k already
+// exists a SettingExistsError will be returned. If k is empty, an
+// ErrNoSettingName will be returned.
 func RegisterStringConfFileVar(k, v string) error { return std.RegisterStringConfFileVar(k, v) }
 
-// RegisterBoolEnvVar registers a bool setting with the standard settings
-// using k for its key and v for its value. Once registered, the value of this
+// RegisterBoolEnvVar registers a bool setting with the standard settings using
+// k for its key and v for its value. Once registered, the value of this
 // setting can only be updated from a configuration file or an environment
-// variable. If k already exists a SettingExistsErr will be returned. If k is
+// variable. If k already exists a SettingExistsError will be returned. If k is
 // empty, an ErrNoSettingName will be returned.
 func RegisterBoolEnvVar(k string, v bool) error { return std.RegisterBoolEnvVar(k, v) }
 
-// RegisterIntEnvVar registers an int setting with the standard settings
-// using k for its key and v for its value. Once registered, the value of this
+// RegisterIntEnvVar registers an int setting with the standard settings using
+// k for its key and v for its value. Once registered, the value of this
 // setting can only be updated from a configuration file or an environment
-// variable. If k already exists a SettingExistsErr will be returned. If k is
+// variable. If k already exists a SettingExistsError will be returned. If k is
 // empty, an ErrNoSettingName will be returned.
 func RegisterIntEnvVar(k string, v int) error { return std.RegisterIntEnvVar(k, v) }
 
 // RegisterInt64EnvVar registers an int64 setting with the standard settings
 // using k for its key and v for its value. Once registered, the value of this
 // setting can only be updated from a configuration file or an environment
-// variable. If k already exists a SettingExistsErr will be returned. If k is
+// variable. If k already exists a SettingExistsError will be returned. If k is
 // empty, an ErrNoSettingName will be returned.
 func RegisterInt64EnvVar(k string, v int64) error { return std.RegisterInt64EnvVar(k, v) }
 
 // RegisterStringEnvVar registers a string setting with the standard settings
 // using k for its key and v for its value. Once registered, the value of this
 // setting can only be updated from a configuration file or an environment
-// variable. If k already exists a SettingExistsErr will be returned. If k is
+// variable. If k already exists a SettingExistsError will be returned. If k is
 // empty, an ErrNoSettingName will be returned.
 func RegisterStringEnvVar(k, v string) error { return std.RegisterStringEnvVar(k, v) }
 
-// RegisterBoolFlag registers a bool setting with the standard settings
-// using k for its key and v for its value. Once registered, the value of this
-// setting can be updated from a configuration file, an environment variable,
-// or a flag. If k already exists a SettingExistsErr will be returned. If k is
+// RegisterBoolFlag registers a bool setting with the standard settings using k
+// for its key and v for its value. Once registered, the value of this setting
+// can be updated from a configuration file, an environment variable, or a
+// flag. If k already exists a SettingExistsError will be returned. If k is
 // empty, an ErrNoSettingName will be returned.
 func RegisterBoolFlag(k, short string, v bool, dflt, usage string) error {
 	return std.RegisterBoolFlag(k, short, v, dflt, usage)
 }
 
-// RegisterIntFlag registers an int setting with the standard settings
-// using k for its key and v for its value. Once registered, the value of this
-// setting can be updated from a configuration file, an environment variable,
-// or a flag. If k already exists a SettingExistsErr will be returned. If k is
+// RegisterIntFlag registers an int setting with the standard settings using k
+// for its key and v for its value. Once registered, the value of this setting
+// can be updated from a configuration file, an environment variable, or a
+// flag. If k already exists a SettingExistsError will be returned. If k is
 // empty, an ErrNoSettingName will be returned.
 func RegisterIntFlag(k, short string, v int, dflt, usage string) error {
 	return std.RegisterIntFlag(k, short, v, dflt, usage)
@@ -405,7 +405,7 @@ func RegisterIntFlag(k, short string, v int, dflt, usage string) error {
 // RegisterInt64Flag registers an int64 setting with the standard settings
 // using k for its key and v for its value. Once registered, the value of this
 // setting can be updated from a configuration file, an environment variable,
-// or a flag. If k already exists a SettingExistsErr will be returned. If k is
+// or a flag. If k already exists a SettingExistsError will be returned. If k is
 // empty, an ErrNoSettingName will be returned.
 func RegisterInt64Flag(k, short string, v int64, dflt, usage string) error {
 	return std.RegisterInt64Flag(k, short, v, dflt, usage)
@@ -414,7 +414,7 @@ func RegisterInt64Flag(k, short string, v int64, dflt, usage string) error {
 // RegisterStringFlag registers a string setting with the standard settings
 // using k for its key and v for its value. Once registered, the value of this
 // setting can be updated from a configuration file, an environment variable,
-// or a flag. If k already exists a SettingExistsErr will be returned. If k is
+// or a flag. If k already exists a SettingExistsError will be returned. If k is
 // empty, an ErrNoSettingName will be returned.
 func RegisterStringFlag(k, short, v, dflt, usage string) error {
 	return std.RegisterStringFlag(k, short, v, dflt, usage)

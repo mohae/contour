@@ -7,7 +7,7 @@ import "reflect"
 // E versions return an error if one occurs. Non-E versions return the zero
 // value if an error occurs.
 
-// GetE returns settings' value for k as an interface{}. A SettingNotFoundErr
+// GetE returns settings' value for k as an interface{}. A SettingNotFoundError
 // is returned if k doesn't exist.
 func (s *Settings) GetE(k string) (interface{}, error) {
 	s.mu.RLock()
@@ -21,7 +21,7 @@ func (s *Settings) GetE(k string) (interface{}, error) {
 func (s *Settings) get(k string) (interface{}, error) {
 	_, ok := s.settings[k]
 	if !ok {
-		return nil, SettingNotFoundErr{k: k}
+		return nil, SettingNotFoundError{k: k}
 	}
 	return s.settings[k].Value, nil
 }
@@ -33,9 +33,9 @@ func (s *Settings) Get(k string) interface{} {
 	return v
 }
 
-// BoolE returns the settings' value for k as a bool. A SettingNotFoundErr is
-// returned if k doesn't exist. A DataTypeErr will be returned if the value is
-// is not bool.
+// BoolE returns the settings' value for k as a bool. A SettingNotFoundError is
+// returned if k doesn't exist. A DataTypeError will be returned if the value
+// is not a bool.
 func (s *Settings) BoolE(k string) (bool, error) {
 	v, err := s.GetE(k)
 	if err != nil {
@@ -48,7 +48,7 @@ func (s *Settings) BoolE(k string) (bool, error) {
 		return *v.(*bool), nil
 	}
 	// Isn't a bool.
-	return false, DataTypeErr{k: k, is: reflect.TypeOf(v).String(), not: _bool}
+	return false, DataTypeError{k: k, is: reflect.TypeOf(v).String(), not: _bool}
 }
 
 // Bool returns the settings' value for k as a bool. A false will be returned
@@ -58,9 +58,9 @@ func (s *Settings) Bool(k string) bool {
 	return v
 }
 
-// IntE returns the settings' value for k as an int. A SettingNotFoundErr is
-// returned if k doesn't exist. A DataTypeErr will be returned if the value is
-// not int.
+// IntE returns the settings' value for k as an int. A SettingNotFoundError is
+// returned if k doesn't exist. A DataTypeError will be returned if the value
+// is not an int.
 func (s *Settings) IntE(k string) (int, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -82,7 +82,7 @@ func (s *Settings) int(k string) (int, error) {
 	}
 
 	// Isn't an int.
-	return 0, DataTypeErr{k: k, is: reflect.TypeOf(v).String(), not: _int}
+	return 0, DataTypeError{k: k, is: reflect.TypeOf(v).String(), not: _int}
 }
 
 // Int returns the settings' value for k as an int. A 0 will be returned if k
@@ -92,9 +92,9 @@ func (s *Settings) Int(k string) int {
 	return v
 }
 
-// Int64E returns the settings value for k as an int64. A SettingNotFoundErr is
-// returned if k doesn't exist. A DataTypeErr will be returned if the value is
-// neither an int64 nor an int.
+// Int64E returns the settings value for k as an int64. A SettingNotFoundError
+// is returned if k doesn't exist. A DataTypeError will be returned if the
+// value is neither an int64 nor an int.
 func (s *Settings) Int64E(k string) (int64, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -120,7 +120,7 @@ func (s *Settings) int64(k string) (int64, error) {
 	}
 
 	// Is neither an int64 nor an int.
-	return 0, DataTypeErr{k: k, is: reflect.TypeOf(v).String(), not: _int64}
+	return 0, DataTypeError{k: k, is: reflect.TypeOf(v).String(), not: _int64}
 }
 
 // Int64 returns the settings value for k as an int64. A 0 will be returned if
@@ -130,9 +130,9 @@ func (s *Settings) Int64(k string) int64 {
 	return v
 }
 
-// StringE returns the settings value for k as a string. A SettingNotFoundErr
-// is returned if k doesn't exist. A DataTypeErr will be returned if the value
-// is not a string.
+// StringE returns the settings value for k as a string. A SettingNotFoundError
+// is returned if k doesn't exist. A DataTypeError will be returned if the
+// value is not a string.
 func (s *Settings) StringE(k string) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -154,7 +154,7 @@ func (s *Settings) string(k string) (string, error) {
 	}
 
 	// Isn't a string.
-	return "", DataTypeErr{k: k, is: reflect.TypeOf(v).String(), not: _string}
+	return "", DataTypeError{k: k, is: reflect.TypeOf(v).String(), not: _string}
 }
 
 // String returns the settings value for k as a string. An empty string, "",
@@ -165,7 +165,7 @@ func (s *Settings) String(k string) string {
 }
 
 // GetE returns the standard settings' value for k as an interface{}. A
-// SettingNotFoundErr is returned if k doesn't exist.
+// SettingNotFoundError is returned if k doesn't exist.
 func GetE(k string) (interface{}, error) { return std.GetE(k) }
 
 // Get returns the standard settings' value for k as an interface{}. A nil is
@@ -173,7 +173,7 @@ func GetE(k string) (interface{}, error) { return std.GetE(k) }
 func Get(k string) interface{} { return std.Get(k) }
 
 // BoolE returns the standard settings' value for k as a bool. A
-//vSettingNotFoundErr is returned if k doesn't exist. A DataTypeErr will be
+//vSettingNotFoundError is returned if k doesn't exist. A DataTypeError will be
 // returned if the value is not bool.
 func BoolE(k string) (bool, error) { return std.BoolE(k) }
 
@@ -182,7 +182,7 @@ func BoolE(k string) (bool, error) { return std.BoolE(k) }
 func Bool(k string) bool { return std.Bool(k) }
 
 // IntE returns the standard settings' value for k as an int. A
-// SettingNotFoundErr is returned if k doesn't exist. A DataTypeErr will be
+// SettingNotFoundError is returned if k doesn't exist. A DataTypeError will be
 // returned if the value is not an int.
 func IntE(k string) (int, error) { return std.IntE(k) }
 
@@ -191,8 +191,8 @@ func IntE(k string) (int, error) { return std.IntE(k) }
 func Int(k string) int { return std.Int(k) }
 
 // Int64E returns the standard settings' value for k as an int64. A
-// SettingNotFoundErr is returned if k doesn't exist in. A DataTypeErr will be
-// returned if the value is neither an int64 nor an int.
+// SettingNotFoundError is returned if k doesn't exist in. A DataTypeError will
+// be returned if the value is neither an int64 nor an int.
 func Int64E(k string) (int64, error) { return std.Int64E(k) }
 
 // Int64 returns the standard settings' value for k as an int64. A 0 will be
@@ -201,7 +201,7 @@ func Int64E(k string) (int64, error) { return std.Int64E(k) }
 func Int64(k string) int64 { return std.Int64(k) }
 
 // StringE returns the standard settings' value for k as a string. A
-// SettingNotFoundErr is returned if k doesn't exist. A DataTypeErr will be
+// SettingNotFoundError is returned if k doesn't exist. A DataTypeError will be
 // returned if the value is not a string.
 func StringE(k string) (string, error) { return std.StringE(k) }
 

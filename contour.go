@@ -111,7 +111,7 @@ func (f Format) isSupported() bool {
 }
 
 // ParseFormat takes a string and returns the Format it represents or an
-// UnsupportedFormatErr if it can't be matched to a supported format. The
+// UnsupportedFormatError if it can't be matched to a supported format. The
 // string is normalized to lower case before matching.
 func ParseFormat(s string) (Format, error) {
 	ls := strings.ToLower(s)
@@ -123,13 +123,13 @@ func ParseFormat(s string) (Format, error) {
 	case "yaml", "yml":
 		return YAML, nil
 	}
-	return Unsupported, UnsupportedFormatErr{s}
+	return Unsupported, UnsupportedFormatError{s}
 }
 
 // ParseFilenameFormat takes a string that represents a filename and returns
 // the files format based on its extension. If the filename either doesn't have
 // an extension or the extension is not one of a supported file format an
-// UnsupportedFormatErr will be returned.
+// UnsupportedFormatError will be returned.
 func ParseFilenameFormat(s string) (Format, error) {
 	ext := strings.TrimPrefix(filepath.Ext(s), ".")
 	return ParseFormat(ext)
@@ -179,15 +179,15 @@ func parseDataType(s string) dataType {
 	return _interface
 }
 
-// DataTypeErr occurs when the requested setting's data type is different than
-// the type requested.
-type DataTypeErr struct {
+// DataTypeError occurs when the requested setting's data type is different
+// than the type requested.
+type DataTypeError struct {
 	k   string
 	is  string
 	not dataType
 }
 
-func (e DataTypeErr) Error() string {
+func (e DataTypeError) Error() string {
 	return fmt.Sprintf("%s is %s, not %s", e.k, e.is, e.not)
 }
 
@@ -236,14 +236,14 @@ func (t SettingType) String() string {
 
 var ErrNoSettingName = errors.New("no setting name provided")
 
-// SettingExistsErr occurs when a setting being Added or Registered already
+// SettingExistsError occurs when a setting being Added or Registered already
 // exists under the same name (k).
-type SettingExistsErr struct {
+type SettingExistsError struct {
 	typ SettingType
 	k   string
 }
 
-func (e SettingExistsErr) Error() string {
+func (e SettingExistsError) Error() string {
 	// if typ is unknown or basic, don't include it in the o utput.
 	if e.typ <= 1 {
 		return fmt.Sprintf("%s: setting exists", e.k)
@@ -251,43 +251,43 @@ func (e SettingExistsErr) Error() string {
 	return fmt.Sprintf("%s: %s setting exists", e.k, e.typ)
 }
 
-// ShortFlagExistsErr occurs when registering a flag whose short flag already
+// ShortFlagExistsError occurs when registering a flag whose short flag already
 // exists/
-type ShortFlagExistsErr struct {
+type ShortFlagExistsError struct {
 	k         string
 	short     string
 	shortName string
 }
 
-func (e ShortFlagExistsErr) Error() string {
+func (e ShortFlagExistsError) Error() string {
 	return fmt.Sprintf("%s: short flag %q already exists for %q", e.k, e.short, e.shortName)
 }
 
-// SettingNotFoundErr occurs when a setting isn't found.
-type SettingNotFoundErr struct {
+// SettingNotFoundError occurs when a setting isn't found.
+type SettingNotFoundError struct {
 	settingType SettingType
 	k           string
 }
 
-func (e SettingNotFoundErr) Error() string {
+func (e SettingNotFoundError) Error() string {
 	if e.settingType <= 0 {
 		return fmt.Sprintf("%s: setting not found", e.k)
 	}
 	return fmt.Sprintf("%s: %s setting not found", e.k, e.settingType)
 }
 
-// UnsupportedFormatErr occurs when the string cannot be matched to a
+// UnsupportedFormatError occurs when the string cannot be matched to a
 // supported configuration format.
-type UnsupportedFormatErr struct {
+type UnsupportedFormatError struct {
 	v string
 }
 
-func (e UnsupportedFormatErr) Error() string {
+func (e UnsupportedFormatError) Error() string {
 	return fmt.Sprintf("%s: unsupported configuration format", e.v)
 }
 
-// NewUnsupportedFormatErr returns an UnsupportedFormatErr using the provided
+// NewUnsupportedFormatError returns an UnsupportedFormatError using the provided
 // s.
-func NewUnsupportedFormatErr(s string) UnsupportedFormatErr {
-	return UnsupportedFormatErr{s}
+func NewUnsupportedFormatError(s string) UnsupportedFormatError {
+	return UnsupportedFormatError{s}
 }
