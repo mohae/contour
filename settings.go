@@ -41,15 +41,21 @@ import (
 // configuration file, an environment variable, or a flag, but can be updated
 // using an Update method.
 //
-// If the configuration filename is set, an attempt will be made to laod
-// setting information from the configuration file. Settings will look for the
-// configuration file according to the information it has and how it has been
-// configured, e.g. look in additional paths provided to it, look in
-// environment variables for paths, look in the executable directory, search
-// the $PATH, etc. Settings defaults to returning an os.ErrNotExist
-// os.PathError but it can be configured to not return an error if the
-// configuration file is not found. New Settings are configured to search for
-// the confiugration file in the $PATH.
+// If the configuration filename was set using the SetConfFilename method or a
+// setting was registered, an attempt will be made to laod setting information
+// from a configuration file. If the configuration filename wasn't explicitly
+// set, settings will build it using it's name and configured format, which
+// defaults to JSON. The extension of the configuration file will be the
+// format, i.i. JSON's extension will be 'json', TOML's extension will be
+// 'toml', and YAML's extension will be 'yaml'.
+//
+// Settings will look for the configuration file according to the information
+// it has and how it has been configured, e.g. look in additional paths
+// provided to it, look in environment variables for paths, look in the
+// executable directory, search the $PATH, etc. Settings defaults to returning
+// an os.ErrNotExist os.PathError but it can be configured to not return an
+// error if the configuration file is not found. New Settings are configured
+// to search for the confiugration file in the $PATH.
 //
 // If any configuration settings were registered as a Flag or EnvVar setting,
 // Settings will check the setting's corresponding environment variable. A
@@ -249,7 +255,13 @@ func (s *Settings) updateFromEnvVars() error {
 }
 
 // SetFromConfFile updates the settings' configuration from the configuration
-// file.
+// file. If the configuration filename was not set using the SetConfFilename
+// method, settings will look for the configuration file using the settings'
+// name and it's format: name.format.
+//
+// The format, in full, is used as the extension, i.e. JSON's extension will be
+// 'json', TOML's extension will be 'toml', and YAML's extension will be
+// 'yaml'.
 //
 // Once the settings has been set, updated from the configuration file, they
 // will not be updated again from the configuration file; subsequent calls will
@@ -280,8 +292,12 @@ func (s *Settings) SetFromConfFile() error {
 // TODO:
 //	add a confFileRequired flag
 func (s *Settings) setFromConfFile() error {
-	if !s.useConfFile || s.confFilename == "" {
+	if !s.useConfFile {
 		return nil
+	}
+
+	if s.confFilename == "" { // if it wasn't explicitly set, create the name
+		s.confFilename = s.name + "." + s.format.String()
 	}
 
 	// get the file's format from the extension
@@ -788,15 +804,21 @@ func Set() error { return std.Set() }
 // FOO_BAR.
 func SetFromEnvVars() error { return std.SetFromEnvVars() }
 
-// SetFromConfFile updates the standard settings' configuration from the
-// configuration file.
+// SetFromConfFile updates the settings' configuration from the configuration
+// file. If the configuration filename was not set using the SetConfFilename
+// method, settings will look for the configuration file using the settings'
+// name and it's format: name.format.
 //
-// Once the standard settings has been set, updated from the configuration
-// file, they will not be updated again from the configuration file; subsequent
-// calls will result in nothing being done..
+// The format, in full, is used as the extension, i.e. JSON's extension will be
+// 'json', TOML's extension will be 'toml', and YAML's extension will be
+// 'yaml'.
 //
-// The standard settings will look for the configuration file according to how
-// it's been configured.
+// Once the settings has been set, updated from the configuration file, they
+// will not be updated again from the configuration file; subsequent calls will
+// result in nothing being done.
+//
+// The settings will look for the configuration file according to how it's been
+// configured.
 //     filename
 //     confFilePaths + filename
 //     confFileEnvVars + filename (each env var may have multiple path elements)

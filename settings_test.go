@@ -506,7 +506,7 @@ func TestSetFromConfFile(t *testing.T) {
 		expectedErr      error
 		expectedSettings map[string]setting
 	}{
-		{"", false, nil, false, nil, nil, nil},
+		{"", false, nil, false, nil, error(&os.PathError{Op: "open file", Path: fmt.Sprintf("abcdef.json: %s", pathVarStr), Err: os.ErrNotExist}), nil},
 		{"contour_test.txt", false, nil, false, nil, UnsupportedFormatError{"txt"}, nil},
 		{"contour_test.json", false, nil, false, nil, error(&os.PathError{Op: "open file", Path: fmt.Sprintf("%s: %s", filepath.Join(tmpDir, "contour_test.json"), pathVarStr), Err: os.ErrNotExist}), nil},
 		{
@@ -560,7 +560,7 @@ func TestSetFromConfFile(t *testing.T) {
 		err = cfg.SetFromConfFile()
 		if err != nil {
 			if test.expectedErr == nil {
-				t.Errorf("%d: got no error; want %q", i, err)
+				t.Errorf("%d: expected no error; got %q", i, err)
 			} else {
 				if err.Error() != test.expectedErr.Error() {
 					t.Errorf("%d: got %q; want %q", i, err.Error(), test.expectedErr.Error())

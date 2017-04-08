@@ -62,7 +62,7 @@ import (
 var (
 	Exe    = appname.Get() // Exe is the name of the running executable.
 	std    *Settings       // std: contour's global Settinngs set; contour functions operate on this.
-	format Format          // format: the default format
+	format = JSON          // format: the default format
 )
 
 func init() {
