@@ -21,22 +21,53 @@ import (
 // The name of the Settings is used for environment variable naming, if
 // applicable.
 //
+// Configuration settings, settings that can be set from a configuration file,
+// an environment variable, or a flag are registered with their default value.
+// Settings will then update them with the anything it finds using the Set and
+// ParseFlags methods. Configuration settings are updated according to the type
+// that the are registered as; with higher precedence types being updatable
+// from a lower precedence source, e.g. a Flag setting can be updated from a
+// configuration file, an environment variable, or a flag, while a ConfFileVar
+// setting can only be updated by a configuration file. The order of precedence
+// is:
+//    ConfFileVar
+//    EnvVar
+//    Flag
+//
+// In addition to configuration settings there are settings and Core settings.
+// Core settings cannot be changed once they are set; any attempt to update a
+// core setting will result in an error. Core settings are added using addCore
+// methods. Regular settings cannot be updated by an external source, e.g. a
+// configuration file, an environment variable, or a flag, but can be updated
+// using an Update method.
+//
 // If the configuration filename is set, an attempt will be made to laod
-// setting information from the configuration file. Where to look for the file
-// is configurable. Depending on the information provided and booleans set,
-// Settings will look for the configuration file in those locations until the
-// file is either found or all paths to check have been exhausted, which will
-// result in an os.PathError containing an os.ErrNotExist being returned.
-// Settings will look for the configuration file in the following order:
+// setting information from the configuration file. Settings will look for the
+// configuration file according to the information it has and how it has been
+// configured, e.g. look in additional paths provided to it, look in
+// environment variables for paths, look in the executable directory, search
+// the $PATH, etc. Settings defaults to returning an os.ErrNotExist
+// os.PathError but it can be configured to not return an error if the
+// configuration file is not found. New Settings are configured to search for
+// the confiugration file in the $PATH.
 //
-//    ConfFilePaths: in the order provided
-//    ConfFilePathEnvVars: in the order provided
-//    Working Directory: if set to true
-//    Application Directory: if set to true
-//    PATH environment variables: if set to search the $PATH
+// If any configuration settings were registered as a Flag or EnvVar setting,
+// Settings will check the setting's corresponding environment variable. A
+// setting's environment variable is a concatonation of the Settings' name and
+// the setting's key, in UPPER_SNAKE_CASE, e.g. the environmnet variable name
+// for a Settings with the name foo and a setting with the key bar would be
+// FOO_BAR.
 //
-// The PathEnvVars will be checked using the values provided, they will not be
-// prefixed with Settings name.
+// Once a Settings has been updated from a configuration file and environment
+// variables, configuration settings cannot be updated again from those
+// sources, subsequent attempts will result in no error and nothing being done.
+//
+// If any configuration settings were registered as a Flag, ParseFlags should
+// be called. Once the flags have been parsed, subsequent calls to ParseFlags
+// will return an ErrFlagsParsed error. If settings is not configured to use
+// flags, ParseFlags will return an ErrUSeFlagsFalse error.
+//
+// Settings are safe for concurrent use.
 type Settings struct {
 	name string
 	mu   sync.RWMutex
@@ -220,7 +251,7 @@ func (s *Settings) updateFromEnvVars() error {
 //
 // Once the settings has been set, updated from the configuration file, they
 // will not be updated again from the configuration file; subsequent calls will
-// result in nothing being done..
+// result in nothing being done.
 //
 // The settings will look for the configuration file according to how it's been
 // configured.
