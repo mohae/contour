@@ -156,11 +156,18 @@ func (s *Settings) SetConfFilename(v string) error {
 		return fmt.Errorf("set configuration filename failed: no name provided")
 	}
 
+	// get the file's format from the extension
+	f, err := formatFromFilename(s.confFilename)
+	if err != nil {
+		return err
+	}
+
 	// store the key value being used as the configuration setting name by caller
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.confFilename = v
 	s.useConfFile = true
+	s.format = f
 	return nil
 }
 
@@ -300,18 +307,12 @@ func (s *Settings) setFromConfFile() error {
 		s.confFilename = s.name + "." + s.format.String()
 	}
 
-	// get the file's format from the extension
-	f, err := formatFromFilename(s.confFilename)
-	if err != nil {
-		return err
-	}
-
 	b, err := s.readConfFile(s.confFilename)
 	if err != nil {
 		return err
 	}
 
-	cnf, err := unmarshalConfBytes(f, b)
+	cnf, err := unmarshalConfBytes(s.format, b)
 	if err != nil {
 		return fmt.Errorf("%s: %s", s.confFilename, err)
 	}
