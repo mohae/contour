@@ -59,11 +59,11 @@ import (
 	"github.com/mohae/appname"
 )
 
-// Exe: the name of the running executable.
-var Exe = appname.Get()
-
-// std: contour's global Settinngs set; contour functions operate on this.
-var std *Settings
+var (
+	Exe    = appname.Get() // Exe is the name of the running executable.
+	std    *Settings       // std: contour's global Settinngs set; contour functions operate on this.
+	format Format          // format: the default format
+)
 
 func init() {
 	std = New(Exe)

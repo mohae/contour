@@ -69,8 +69,9 @@ import (
 //
 // Settings are safe for concurrent use.
 type Settings struct {
-	name string
-	mu   sync.RWMutex
+	name   string
+	mu     sync.RWMutex
+	format Format
 	// if an attempt to load configuration from a file should error if the file
 	// does not exist.
 	errOnMissingConfFile bool
@@ -130,6 +131,7 @@ type Settings struct {
 func New(name string) *Settings {
 	return &Settings{
 		name:                 name,
+		format:               format,
 		errOnMissingConfFile: true,
 		searchPath:           true,
 		flagSet:              flag.NewFlagSet(name, flag.ContinueOnError),
@@ -281,6 +283,7 @@ func (s *Settings) setFromConfFile() error {
 	if !s.useConfFile || s.confFilename == "" {
 		return nil
 	}
+
 	// get the file's format from the extension
 	f, err := formatFromFilename(s.confFilename)
 	if err != nil {
@@ -486,6 +489,43 @@ func (s *Settings) SearchPath(b bool) {
 	s.mu.Lock()
 	s.searchPath = b
 	s.mu.Unlock()
+}
+
+// GetFormat returns the format to use if the ConfFilename hasn't been
+// explicitly set.
+func (s *Settings) GetFormat() Format {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.format
+}
+
+// SetFormat sets the format to use for the conffile if the ConfFilename hasn't
+// been explicitly set.
+func (s *Settings) SetFormat(f Format) {
+	s.mu.Lock()
+	s.format = f
+	s.mu.Unlock()
+}
+
+// GetFormatString returns the format to use if the ConfFilename hasn't been
+// explicitly set as a string
+func (s *Settings) GetFormatString() string {
+	s.mu.RLock()
+	s.mu.RUnlock()
+	return s.format.String()
+}
+
+// SetFormatString sets the format, using a string, to use for the
+// configuration file if the ConfFilename hasn't been explicitly set. If the
+// string isn't parsable to a supported Format, an UnsupportedFormatError will
+// be returned.
+func (s *Settings) SetFormatString(v string) error {
+	f, err := ParseFormat(v)
+	if err != nil {
+		return err
+	}
+	s.SetFormat(f)
+	return nil
 }
 
 // UseConfFile returns if settings will update its configuration settings from
@@ -817,6 +857,32 @@ func SetCheckExeDir(b bool) { std.SetCheckExeDir(b) }
 // SearchPath sets if the standard settings should use the user's PATH
 // environment variable to check for the configuratiom file.
 func SearchPath(b bool) { std.SearchPath(b) }
+
+// GetFormat returns the standard settings' format to use if the ConfFilename
+// hasn't been explicitly set.
+func GetFormat() Format {
+	return std.GetFormat()
+}
+
+// SetFormat sets the standard settings' format to use for the conffile if the
+// ConfFilename hasn't been explicitly set.
+func SetFormat(f Format) {
+	std.SetFormat(f)
+}
+
+// GetFormatString returns the standard settings' format to use if the
+// ConfFilename hasn't been explicitly set as a string
+func GetFormatString() string {
+	return std.GetFormatString()
+}
+
+// SetFormatString sets the standard settings' format, using a string, to use
+// for the configuration file if the ConfFilename hasn't been explicitly set.
+// If the string isn't parsable to a supported Format, an
+// UnsupportedFormatError will be returned.
+func SetFormatString(v string) error {
+	return std.SetFormatString(v)
+}
 
 // UseConfFile returns if the standard settings will update its configuration
 // settings from a configuration file.
