@@ -331,14 +331,14 @@ func TestIsFuncs(t *testing.T) {
 
 // TestSetCfg, and by proxy UpdateFromEnv
 func TestSetCfg(t *testing.T) {
-	tmpDir, err := ioutil.TempDir(os.TempDir(), "rancher")
+	tmpDir, err := ioutil.TempDir(os.TempDir(), "feedlot")
 	if err != nil {
 		t.Errorf("cannot do tests, %s", err.Error())
 		return
 	}
 	// clean up on exit
 	defer os.RemoveAll(tmpDir)
-	fname := "testcfg.json"
+	fname := filepath.Join(tmpDir, "testcfg.json")
 	tests := []struct {
 		name          string
 		fullPath      string
@@ -353,108 +353,108 @@ func TestSetCfg(t *testing.T) {
 		// 0
 		{"", "", Unsupported, false, false, false, "", nil, ""},
 		{"", "", Unsupported, false, true, false, "", nil, ""},
-		{"", filepath.Join(tmpDir, fname), JSON, false, false, false, "", nil, ""},
-		{"", filepath.Join(tmpDir, fname), JSON, true, false, false, "", nil, ""},
-		{"", filepath.Join(tmpDir, fname), JSON, false, true, false, "", nil, ""},
+		{"", fname, JSON, false, false, false, "", nil, ""},
+		{"", fname, JSON, true, false, false, "", nil, ""},
+		{"", fname, JSON, false, true, false, "", nil, ""},
 		// 5
-		{"", filepath.Join(tmpDir, fname), JSON, true, true, false, "", nil, ""},
-		{"cfgstring", filepath.Join(tmpDir, fname), JSON, false, false, false, "envstring", nil, ""},
-		{"cfgstring", filepath.Join(tmpDir, fname), JSON, true, false, false, "envstring", nil, ""},
-		{"cfgstring", filepath.Join(tmpDir, fname), JSON, false, true, false, "envstring", nil, ""},
-		{"cfgstring", filepath.Join(tmpDir, fname), JSON, true, true, false, "envstring", nil, ""},
+		{"", fname, JSON, true, true, false, "", nil, ""},
+		{"cfgstring", fname, JSON, false, false, false, "envstring", nil, ""},
+		{"cfgstring", fname, JSON, true, false, false, "envstring", nil, ""},
+		{"cfgstring", fname, JSON, false, true, false, "envstring", nil, ""},
+		{"cfgstring", fname, JSON, true, true, false, "envstring", nil, ""},
 		// 10
-		{"cfgbool", filepath.Join(tmpDir, fname), JSON, false, false, false, "true", nil, ""},
-		{"cfgbool", filepath.Join(tmpDir, fname), JSON, true, false, false, "true", nil, ""},
-		{"cfgbool", filepath.Join(tmpDir, fname), JSON, false, true, false, "true", nil, ""},
-		{"cfgbool", filepath.Join(tmpDir, fname), JSON, true, true, false, "true", nil, ""},
-		{"cfgint", filepath.Join(tmpDir, fname), JSON, false, false, false, "55", nil, ""},
+		{"cfgbool", fname, JSON, false, false, false, "true", nil, ""},
+		{"cfgbool", fname, JSON, true, false, false, "true", nil, ""},
+		{"cfgbool", fname, JSON, false, true, false, "true", nil, ""},
+		{"cfgbool", fname, JSON, true, true, false, "true", nil, ""},
+		{"cfgint", fname, JSON, false, false, false, "55", nil, ""},
 		// 15
-		{"cfgint", filepath.Join(tmpDir, fname), JSON, true, false, false, "55", nil, ""},
-		{"cfgint", filepath.Join(tmpDir, fname), JSON, false, true, false, "55", nil, ""},
-		{"cfgint", filepath.Join(tmpDir, fname), JSON, true, true, false, "55", nil, ""},
-		{"cfgint64", filepath.Join(tmpDir, fname), JSON, false, false, false, "5564", nil, ""},
-		{"cfgint64", filepath.Join(tmpDir, fname), JSON, true, false, false, "5564", nil, ""},
+		{"cfgint", fname, JSON, true, false, false, "55", nil, ""},
+		{"cfgint", fname, JSON, false, true, false, "55", nil, ""},
+		{"cfgint", fname, JSON, true, true, false, "55", nil, ""},
+		{"cfgint64", fname, JSON, false, false, false, "5564", nil, ""},
+		{"cfgint64", fname, JSON, true, false, false, "5564", nil, ""},
 		// 20
-		{"cfgint64", filepath.Join(tmpDir, fname), JSON, false, true, false, "5564", nil, ""},
-		{"cfgint64", filepath.Join(tmpDir, fname), JSON, true, true, false, "5564", nil, ""},
-		{"flagstring", filepath.Join(tmpDir, fname), JSON, false, false, false, "envstring", nil, ""},
-		{"flagstring", filepath.Join(tmpDir, fname), JSON, true, false, false, "envstring", nil, ""},
-		{"flagstring", filepath.Join(tmpDir, fname), JSON, false, true, false, "envstring", nil, ""},
+		{"cfgint64", fname, JSON, false, true, false, "5564", nil, ""},
+		{"cfgint64", fname, JSON, true, true, false, "5564", nil, ""},
+		{"flagstring", fname, JSON, false, false, false, "envstring", nil, ""},
+		{"flagstring", fname, JSON, true, false, false, "envstring", nil, ""},
+		{"flagstring", fname, JSON, false, true, false, "envstring", nil, ""},
 		// 25
-		{"flagstring", filepath.Join(tmpDir, fname), JSON, true, true, false, "envstring", nil, ""},
-		{"flagbool", filepath.Join(tmpDir, fname), JSON, false, false, false, "true", nil, ""},
-		{"flagbool", filepath.Join(tmpDir, fname), JSON, true, false, false, "true", nil, ""},
-		{"flagbool", filepath.Join(tmpDir, fname), JSON, false, true, false, "true", nil, ""},
-		{"flagbool", filepath.Join(tmpDir, fname), JSON, true, true, false, "true", nil, ""},
+		{"flagstring", fname, JSON, true, true, false, "envstring", nil, ""},
+		{"flagbool", fname, JSON, false, false, false, "true", nil, ""},
+		{"flagbool", fname, JSON, true, false, false, "true", nil, ""},
+		{"flagbool", fname, JSON, false, true, false, "true", nil, ""},
+		{"flagbool", fname, JSON, true, true, false, "true", nil, ""},
 		// 30
-		{"flagint", filepath.Join(tmpDir, fname), JSON, false, false, false, "22", nil, ""},
-		{"flagint", filepath.Join(tmpDir, fname), JSON, true, false, false, "22", nil, ""},
-		{"flagint", filepath.Join(tmpDir, fname), JSON, false, true, false, "22", nil, ""},
-		{"flagint", filepath.Join(tmpDir, fname), JSON, true, true, false, "22", nil, ""},
-		{"flagint64", filepath.Join(tmpDir, fname), JSON, false, false, false, "5564", nil, ""},
+		{"flagint", fname, JSON, false, false, false, "22", nil, ""},
+		{"flagint", fname, JSON, true, false, false, "22", nil, ""},
+		{"flagint", fname, JSON, false, true, false, "22", nil, ""},
+		{"flagint", fname, JSON, true, true, false, "22", nil, ""},
+		{"flagint64", fname, JSON, false, false, false, "5564", nil, ""},
 		// 35
-		{"flagint64", filepath.Join(tmpDir, fname), JSON, true, false, false, "5564", nil, ""},
-		{"flagint64", filepath.Join(tmpDir, fname), JSON, false, true, false, "5564", nil, ""},
-		{"flagint64", filepath.Join(tmpDir, fname), JSON, true, true, false, "5564", nil, ""},
-		{"cfgnotthere", filepath.Join(tmpDir, fname), JSON, false, false, false, "", nil, ""},
-		{"cfgnotthere", filepath.Join(tmpDir, fname), JSON, true, false, false, "", nil, ""},
+		{"flagint64", fname, JSON, true, false, false, "5564", nil, ""},
+		{"flagint64", fname, JSON, false, true, false, "5564", nil, ""},
+		{"flagint64", fname, JSON, true, true, false, "5564", nil, ""},
+		{"cfgnotthere", fname, JSON, false, false, false, "", nil, ""},
+		{"cfgnotthere", fname, JSON, true, false, false, "", nil, ""},
 		// 40
-		{"cfgnotthere", filepath.Join(tmpDir, fname), JSON, false, true, false, "", nil, ""},
-		{"cfgnotthere", filepath.Join(tmpDir, fname), JSON, true, true, false, "", nil, ""},
-		{"flagnotthere", filepath.Join(tmpDir, fname), JSON, false, false, false, "", nil, ""},
-		{"flagnotthere", filepath.Join(tmpDir, fname), JSON, true, false, false, "", nil, ""},
-		{"flagnotthere", filepath.Join(tmpDir, fname), JSON, false, true, false, "", nil, ""},
+		{"cfgnotthere", fname, JSON, false, true, false, "", nil, ""},
+		{"cfgnotthere", fname, JSON, true, true, false, "", nil, ""},
+		{"flagnotthere", fname, JSON, false, false, false, "", nil, ""},
+		{"flagnotthere", fname, JSON, true, false, false, "", nil, ""},
+		{"flagnotthere", fname, JSON, false, true, false, "", nil, ""},
 		// 45
-		{"flagnotthere", filepath.Join(tmpDir, fname), JSON, true, true, false, "", nil, ""},
-		{"bool", filepath.Join(tmpDir, fname), JSON, false, false, false, "true", nil, ""},
-		{"bool", filepath.Join(tmpDir, fname), JSON, true, false, false, "true", nil, ""},
-		{"bool", filepath.Join(tmpDir, fname), JSON, false, true, false, "true", nil, ""},
-		{"bool", filepath.Join(tmpDir, fname), JSON, true, true, false, "true", nil, ""},
+		{"flagnotthere", fname, JSON, true, true, false, "", nil, ""},
+		{"bool", fname, JSON, false, false, false, "true", nil, ""},
+		{"bool", fname, JSON, true, false, false, "true", nil, ""},
+		{"bool", fname, JSON, false, true, false, "true", nil, ""},
+		{"bool", fname, JSON, true, true, false, "true", nil, ""},
 		// 50
-		{"int", filepath.Join(tmpDir, fname), JSON, false, false, false, "33", nil, ""},
-		{"int", filepath.Join(tmpDir, fname), JSON, true, false, false, "33", nil, ""},
-		{"int", filepath.Join(tmpDir, fname), JSON, false, true, false, "33", nil, ""},
-		{"int", filepath.Join(tmpDir, fname), JSON, true, true, false, "33", nil, ""},
-		{"int64", filepath.Join(tmpDir, fname), JSON, false, false, false, "5564", nil, ""},
+		{"int", fname, JSON, false, false, false, "33", nil, ""},
+		{"int", fname, JSON, true, false, false, "33", nil, ""},
+		{"int", fname, JSON, false, true, false, "33", nil, ""},
+		{"int", fname, JSON, true, true, false, "33", nil, ""},
+		{"int64", fname, JSON, false, false, false, "5564", nil, ""},
 		// 55
-		{"int64", filepath.Join(tmpDir, fname), JSON, true, false, false, "5564", nil, ""},
-		{"int64", filepath.Join(tmpDir, fname), JSON, false, true, false, "5564", nil, ""},
-		{"int64", filepath.Join(tmpDir, fname), JSON, true, true, false, "5564", nil, ""},
-		{"string", filepath.Join(tmpDir, fname), JSON, false, false, false, "envstring", nil, ""},
-		{"string", filepath.Join(tmpDir, fname), JSON, true, false, false, "envstring", nil, ""},
+		{"int64", fname, JSON, true, false, false, "5564", nil, ""},
+		{"int64", fname, JSON, false, true, false, "5564", nil, ""},
+		{"int64", fname, JSON, true, true, false, "5564", nil, ""},
+		{"string", fname, JSON, false, false, false, "envstring", nil, ""},
+		{"string", fname, JSON, true, false, false, "envstring", nil, ""},
 		// 60
-		{"string", filepath.Join(tmpDir, fname), JSON, false, true, false, "envstring", nil, ""},
-		{"string", filepath.Join(tmpDir, fname), JSON, true, true, false, "envstring", nil, ""},
-		{"corebool", filepath.Join(tmpDir, fname), JSON, false, false, false, "true", nil, ""},
-		{"corebool", filepath.Join(tmpDir, fname), JSON, true, false, false, "true", nil, ""},
-		{"corebool", filepath.Join(tmpDir, fname), JSON, false, true, false, "true", nil, ""},
+		{"string", fname, JSON, false, true, false, "envstring", nil, ""},
+		{"string", fname, JSON, true, true, false, "envstring", nil, ""},
+		{"corebool", fname, JSON, false, false, false, "true", nil, ""},
+		{"corebool", fname, JSON, true, false, false, "true", nil, ""},
+		{"corebool", fname, JSON, false, true, false, "true", nil, ""},
 		// 65
-		{"corebool", filepath.Join(tmpDir, fname), JSON, true, true, false, "true", nil, ""},
-		{"coreint", filepath.Join(tmpDir, fname), JSON, false, false, false, "44", nil, ""},
-		{"coreint", filepath.Join(tmpDir, fname), JSON, true, false, false, "44", nil, ""},
-		{"coreint", filepath.Join(tmpDir, fname), JSON, false, true, false, "44", nil, ""},
-		{"coreint", filepath.Join(tmpDir, fname), JSON, true, true, false, "44", nil, ""},
+		{"corebool", fname, JSON, true, true, false, "true", nil, ""},
+		{"coreint", fname, JSON, false, false, false, "44", nil, ""},
+		{"coreint", fname, JSON, true, false, false, "44", nil, ""},
+		{"coreint", fname, JSON, false, true, false, "44", nil, ""},
+		{"coreint", fname, JSON, true, true, false, "44", nil, ""},
 		// 70
-		{"coreint64", filepath.Join(tmpDir, fname), JSON, false, false, false, "5564", nil, ""},
-		{"coreint64", filepath.Join(tmpDir, fname), JSON, true, false, false, "5564", nil, ""},
-		{"coreint64", filepath.Join(tmpDir, fname), JSON, false, true, false, "5564", nil, ""},
-		{"coreint64", filepath.Join(tmpDir, fname), JSON, true, true, false, "5564", nil, ""},
-		{"string", filepath.Join(tmpDir, fname), JSON, false, false, false, "envstring", nil, ""},
+		{"coreint64", fname, JSON, false, false, false, "5564", nil, ""},
+		{"coreint64", fname, JSON, true, false, false, "5564", nil, ""},
+		{"coreint64", fname, JSON, false, true, false, "5564", nil, ""},
+		{"coreint64", fname, JSON, true, true, false, "5564", nil, ""},
+		{"string", fname, JSON, false, false, false, "envstring", nil, ""},
 		// 75
-		{"string", filepath.Join(tmpDir, fname), JSON, true, false, false, "envstring", nil, ""},
-		{"string", filepath.Join(tmpDir, fname), JSON, false, true, false, "envstring", nil, ""},
-		{"string", filepath.Join(tmpDir, fname), JSON, true, true, false, "envstring", nil, ""},
+		{"string", fname, JSON, true, false, false, "envstring", nil, ""},
+		{"string", fname, JSON, false, true, false, "envstring", nil, ""},
+		{"string", fname, JSON, true, true, false, "envstring", nil, ""},
 	}
 	// create temp file names
 	// write the tmp json cfg file
-	err = ioutil.WriteFile(filepath.Join(tmpDir, fname), jsonTest, 0777)
+	err = ioutil.WriteFile(fname, jsonTest, 0777)
 	if err != nil {
 		t.Errorf("cannot do tests, %s", err.Error())
 		return
 	}
 	tstCfg := newTestSettings()
-	tstCfg.name = "rancher"
-	tstCfg.SetConfFilename(filepath.Join(tmpDir, fname))
+	tstCfg.name = "feedlot"
+	tstCfg.SetConfFilename(fname)
 	for i, test := range tests {
 		tstCfg.confFileVarsSet = false
 		tstCfg.useConfFile = test.useCfg
