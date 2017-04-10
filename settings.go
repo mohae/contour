@@ -112,10 +112,9 @@ type Settings struct {
 	checkWD bool
 	// look in the executabledir for the configuration file
 	checkExeDir bool
-	// search the path env var, in addition to wd & executalbe dir, for the conf
-	// file. The path env var is assumed to be NAMEPATH where name is
-	// Settings.name
-	searchPath bool
+	// search the PATH env var, in addition to wd & executalbe dir, for the conf
+	// file.
+	searchPATH bool
 	// If settings should be loaded from environment variables. Environment
 	// variable names will be in the form of NAME_VARNAME where NAME is this
 	// Setting's name.
@@ -146,35 +145,13 @@ func New(name string) *Settings {
 		name:                 name,
 		format:               format,
 		errOnMissingConfFile: true,
-		searchPath:           true,
+		searchPATH:           true,
 		flagSet:              flag.NewFlagSet(name, flag.ContinueOnError),
 		confFileVars:         map[string]struct{}{},
 		flagVars:             map[string]interface{}{},
 		shortFlags:           map[string]string{},
 		settings:             map[string]setting{},
 	}
-}
-
-// SetConfFilename sets the settings' configuration filename and configures
-// settings to use a configuration file. If the filename is empty, an error is
-// returned.
-func (s *Settings) SetConfFilename(v string) error {
-	if v == "" {
-		return fmt.Errorf("configuration filename: set failed: no name provided")
-	}
-	// get the file's format from the extension
-	f, err := formatFromFilename(v)
-	if err != nil {
-		return err
-	}
-
-	// store the key value being used as the configuration setting name by caller
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.confFilename = v
-	s.useConfFile = true
-	s.format = f
-	return nil
 }
 
 // Set updates the settings' configuration from a configuration file and
@@ -409,8 +386,8 @@ func (s *Settings) readConfFile(n string) (b []byte, err error) {
 		errS += "; " + d
 	}
 
-	// search the path, if applicable
-	if s.searchPath {
+	// search the PATH, if applicable
+	if s.searchPATH {
 		v := os.Getenv("PATH")
 		ps = getEnvVarPaths(v)
 		b, err = s.checkPaths(fname, ps)
@@ -441,6 +418,36 @@ func (s *Settings) checkPaths(fname string, paths []string) (b []byte, err error
 	return nil, os.ErrNotExist
 }
 
+// ConfFilename returns the settings' configuration filename.
+func (s *Settings) ConfFilename() string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.confFilename
+}
+
+// SetConfFilename sets the settings' configuration filename and configures
+// settings to use a configuration file. If the filename is empty, an error is
+// returned. If the filename's extension isn't parsable to a supported
+// configuration format, an UnsupportedFormatError is returned.
+func (s *Settings) SetConfFilename(v string) error {
+	if v == "" {
+		return fmt.Errorf("configuration filename: set failed: no name provided")
+	}
+	// get the file's format from the extension
+	f, err := formatFromFilename(v)
+	if err != nil {
+		return err
+	}
+
+	// store the key value being used as the configuration setting name by caller
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.confFilename = v
+	s.useConfFile = true
+	s.format = f
+	return nil
+}
+
 // ErrOnMissingConfFile returns if settings is configured to return an error
 // if the configuration file cannot be located.
 func (s *Settings) ErrOnMissingConfFile() bool {
@@ -457,26 +464,35 @@ func (s *Settings) SetErrOnMissingConfFile(b bool) {
 	s.mu.Unlock()
 }
 
-// ConfFilename returns the settings' configuration filename.
-func (s *Settings) ConfFilename() string {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	return s.confFilename
+// ConfFilePaths returns the paths that settings should check when looking for
+// the configuration file.
+func (s *Settings) ConfFilePaths() []string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.confFilePaths
 }
 
-// ConfFilePaths sets the paths that settings should check when looking for the
-// configuration file. The paths will be checked in the order provided.
-func (s *Settings) ConfFilePaths(paths []string) {
+// SetConfFilePaths sets the paths that settings should check when looking for
+// the configuration file. The paths will be checked in the order provided.
+func (s *Settings) SetConfFilePaths(paths []string) {
 	s.mu.Lock()
 	s.confFilePaths = paths
 	s.mu.Unlock()
 }
 
-// ConfFilePathEnvVars sets the names of the environment variables that have
+// ConfFilePathEnvVars retyrbs the names of the environment variables that have
+// paths that settings should check when looking for the configuration file.
+func (s *Settings) ConfFilePathEnvVars() []string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.confFilePathEnvVars
+}
+
+// SetConfFilePathEnvVars sets the names of the environment variables that have
 // paths that settings should check when looking for the configuration file.
 // The environment variables will be checked in the order provided. The
 // environment variables may contain multiple paths.
-func (s *Settings) ConfFilePathEnvVars(envVars []string) {
+func (s *Settings) SetConfFilePathEnvVars(envVars []string) {
 	s.mu.Lock()
 	s.confFilePathEnvVars = envVars
 	s.mu.Unlock()
@@ -498,8 +514,8 @@ func (s *Settings) SetCheckWD(b bool) {
 	s.mu.Unlock()
 }
 
-// CheckExeDir returns if Settings should check the executable directory for the
-// configuration file.
+// CheckExeDir returns if Settings should check the executable directory for
+// the configuration file.
 func (s *Settings) CheckExeDir() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -514,11 +530,19 @@ func (s *Settings) SetCheckExeDir(b bool) {
 	s.mu.Unlock()
 }
 
-// SearchPath sets if settings should use the user's PATH environment variable
-// to check for the configuratiom file.
-func (s *Settings) SearchPath(b bool) {
+// SearchPATH returns if settings should use the user's PATH environment
+// variable to check for the configuratiom file.
+func (s *Settings) SearchPATH() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.searchPATH
+}
+
+// SetSearchPATH sets if settings should use the user's PATH environment
+// variable to check for the configuratiom file.
+func (s *Settings) SetSearchPATH(b bool) {
 	s.mu.Lock()
-	s.searchPath = b
+	s.searchPATH = b
 	s.mu.Unlock()
 }
 
@@ -789,11 +813,6 @@ func getEnvVarPaths(s string) []string {
 	return p
 }
 
-// SetConfFilename sets the standard settings' configuration filename and
-// configures settings to use a configuration file. If the filename is empty,
-// an error is returned.
-func SetConfFilename(v string) error { return std.SetConfFilename(v) }
-
 // Set updates the standard settings' configuration from a configuration file
 // and environment variables. This is only run once; subsequent calls will
 // result in no changes. Only settings that are of type ConfFileVar or EnvVar
@@ -849,6 +868,15 @@ func SetFromConfFile() error {
 	return std.SetFromConfFile()
 }
 
+// ConfFilename returns the standard settings' configuration filename.
+func ConfFilename() string { return std.ConfFilename() }
+
+// SetConfFilename sets the standard settings' configuration filename and
+// configures settings to use a configuration file. If the filename is empty,
+// an error is returned. If the filename's extension isn't parsable to a
+// supported configuration format, an UnsupportedFormatError is returned.
+func SetConfFilename(v string) { std.SetConfFilename(v) }
+
 // ErrOnMissingConfFile returns if the standard settings is configured to
 // return an error if the configuration file cannot be located.
 func ErrOnMissingConfFile() bool { return std.ErrOnMissingConfFile() }
@@ -857,22 +885,32 @@ func ErrOnMissingConfFile() bool { return std.ErrOnMissingConfFile() }
 // if the confiugration file cannot be located.
 func SetErrOnMissingConfFile(b bool) { std.SetErrOnMissingConfFile(b) }
 
-// ConfFilename returns the standard settings' configuration filename.
-func ConfFilename() string { return std.ConfFilename() }
-
-// ConfFilePaths sets the paths that the standard settings should check when
-// looking for the configuration file. The paths will be checked in the order
-// provided.
-func ConfFilePaths(paths []string) {
-	std.ConfFilePaths(paths)
+// ConfFilePaths returns the paths that the standard settings should check when
+// looking for the configuration file.
+func ConfFilePaths() []string {
+	return std.ConfFilePaths()
 }
 
-// ConfFilePathEnvVars sets the names of the environment variables that have
+// SetConfFilePaths sets the paths that the standard settings should check when
+// looking for the configuration file. The paths will be checked in the order
+// provided.
+func SetConfFilePaths(paths []string) {
+	std.SetConfFilePaths(paths)
+}
+
+// ConfFilePathEnvVars returns the names of the environment variables that have
+// paths that the standard settings should check when looking for the
+// configuration file.
+func ConfFilePathEnvVars() []string {
+	return std.ConfFilePathEnvVars()
+}
+
+// SetConfFilePathEnvVars sets the names of the environment variables that have
 // paths that the standard settings should check when looking for the
 // configuration file. The environment variables will be checked in the order
 // provided. The environment variables may contain multiple paths.
-func ConfFilePathEnvVars(envVars []string) {
-	std.ConfFilePathEnvVars(envVars)
+func SetConfFilePathEnvVars(envVars []string) {
+	std.SetConfFilePathEnvVars(envVars)
 }
 
 // CheckWD returns if settings should check the working directory for the
@@ -891,9 +929,13 @@ func CheckExeDir() bool { return std.CheckExeDir() }
 // directory for the configuration file.
 func SetCheckExeDir(b bool) { std.SetCheckExeDir(b) }
 
-// SearchPath sets if the standard settings should use the user's PATH
+// SearchPATH returns if the standard settings should use the user's PATH
 // environment variable to check for the configuratiom file.
-func SearchPath(b bool) { std.SearchPath(b) }
+func SearchPATH() bool { return std.SearchPATH() }
+
+// SetSearchPATH sets if the standard settings should use the user's PATH
+// environment variable to check for the configuratiom file.
+func SetSearchPATH(b bool) { std.SetSearchPATH(b) }
 
 // GetFormat returns the standard settings' format to use if the ConfFilename
 // hasn't been explicitly set.

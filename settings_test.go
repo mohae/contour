@@ -115,9 +115,10 @@ func TestConfFilePaths(t *testing.T) {
 	}
 	cfg := New("test")
 	for _, v := range tests {
-		cfg.ConfFilePaths(v)
-		if !reflect.DeepEqual(v, cfg.confFilePaths) {
-			t.Errorf("got %v; want %v", cfg.confFilePaths, v)
+		cfg.SetConfFilePaths(v)
+		p := cfg.ConfFilePaths()
+		if !reflect.DeepEqual(v, p) {
+			t.Errorf("got %v; want %v", p, v)
 		}
 	}
 }
@@ -130,9 +131,10 @@ func TestConfFileEnvVars(t *testing.T) {
 	}
 	cfg := New("test")
 	for _, v := range tests {
-		cfg.ConfFilePathEnvVars(v)
-		if !reflect.DeepEqual(v, cfg.confFilePathEnvVars) {
-			t.Errorf("got %v; want %v", cfg.confFilePathEnvVars, v)
+		cfg.SetConfFilePathEnvVars(v)
+		p := cfg.ConfFilePathEnvVars()
+		if !reflect.DeepEqual(v, p) {
+			t.Errorf("got %v; want %v", p, v)
 		}
 	}
 }
