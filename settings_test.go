@@ -27,7 +27,7 @@ func TestSettings(t *testing.T) {
 		if s.UseEnvVars() {
 			t.Errorf("Expected false got %v", s.UseEnvVars())
 		}
-		if !s.UseFlags() {
+		if s.UseFlags() {
 			t.Errorf("Expected false got %v", s.UseFlags())
 		}
 	}

@@ -154,14 +154,14 @@ func TestRegisterEnvVarSettings(t *testing.T) {
 		if tstSettings.IsFlag(test.name) != test.IsFlag {
 			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, tstSettings.IsFlag(test.name))
 		}
-		if !tstSettings.useConfFile {
-			t.Errorf("%d: useConfFile: got %v; want true", i, tstSettings.useConfFile)
+		if !tstSettings.UseConfFile() {
+			t.Errorf("%d: useConfFile: got %v; want true", i, tstSettings.UseConfFile())
 		}
-		if !tstSettings.useEnvVars {
-			t.Errorf("%d: useEnvVars: got %v; want true", i, tstSettings.useEnvVars)
+		if !tstSettings.UseEnvVars() {
+			t.Errorf("%d: useEnvVars: got %v; want true", i, tstSettings.UseEnvVars())
 		}
-		if tstSettings.useFlags {
-			t.Errorf("%d: useFlags: got %v; want false", i, tstSettings.useFlags)
+		if tstSettings.UseFlags() {
+			t.Errorf("%d: useFlags: got %v; want false", i, tstSettings.UseFlags())
 		}
 	}
 }
@@ -234,14 +234,14 @@ func TestRegisterFlagSettings(t *testing.T) {
 		if tstSettings.IsFlag(test.name) != test.IsFlag {
 			t.Errorf("%d expected IsFlag to be %v, got %v", i, test.IsFlag, tstSettings.IsFlag(test.name))
 		}
-		if !tstSettings.useConfFile {
-			t.Errorf("%d: useConfFile: got %v; want true", i, tstSettings.useConfFile)
+		if !tstSettings.UseConfFile() {
+			t.Errorf("%d: useConfFile: got %v; want true", i, tstSettings.UseConfFile())
 		}
-		if !tstSettings.useEnvVars {
-			t.Errorf("%d: useEnvVars: got %v; want true", i, tstSettings.useEnvVars)
+		if !tstSettings.UseEnvVars() {
+			t.Errorf("%d: useEnvVars: got %v; want true", i, tstSettings.UseEnvVars())
 		}
-		if !tstSettings.useFlags {
-			t.Errorf("%d: useFlags: got %v; want true", i, tstSettings.useFlags)
+		if !tstSettings.UseFlags() {
+			t.Errorf("%d: useFlags: got %v; want true", i, tstSettings.UseFlags())
 		}
 	}
 }

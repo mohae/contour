@@ -599,6 +599,14 @@ func (s *Settings) UseEnvVars() bool {
 	return s.useEnvVars
 }
 
+// UseFlags returns if settings has any flags that can be updated using
+// ParseFlags.
+func (s *Settings) UseFlags() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.useFlags
+}
+
 // IsSet returns if settings' configuration settings have been set from all of
 // its configured sources.
 func (s *Settings) IsSet() bool {
@@ -970,6 +978,10 @@ func UseConfFile() bool { return std.UseConfFile() }
 // UseEnvVars returns if the standard settings will update its configuration
 // settings from environment variables.
 func UseEnvVars() bool { return std.useEnvVars }
+
+// UseFlags returns if the standard settings has any flags that can be updated
+// by ParseFlags.
+func UseFlags() bool { return std.useFlags }
 
 // IsSet returns if the standard settings' configuration settings have been set
 // from all of its configured sources.
