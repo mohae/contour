@@ -19,11 +19,43 @@
 // set by either a configuration file or a flag but not by an environment
 // variable, use the Register function.
 //
-// The configuration file, and the format that it is in, can be specified. The
-// supported formats are: JSON, TOML, and YAML. A Contour Settings can also
-// be configured to search the PATH for the configuration file. For situations
-// where the configuration file is optional, contour can be set to not generate
-// an error when it cannot be found.
+// Registering a configuration setting will result in settings being configured
+// to use that setting type's source, along with any lower precedence sources
+// during the Set process, e.g. registering a ConfFileVar will result in
+// settings being configured to use a configuration file and registering a Flag
+// will result in settings being configured to use a configuration file and
+// check environment variables.
+//
+// After registration, settings can be set to ignore certain configuration
+// sources using the SetUseConfFile and SetUseEnvVars methods. Flag parsing is
+// always explicitly done by the caller with the ParseFlags method.
+//
+// The configuration file can be explicitly set, in which case the
+// configuration file format will be inferred from the extension with unknown
+// extensions resulting in an UnsupportedFormatError. If there are
+// configuration settings registered, of any type, and the configuration file
+// has not been set, it will be assumed to be SettingsName.Format where
+// SettingsName is the name of the settings and Format is the configuration
+// file format that settings is set to use, which defaults to JSON. The format
+// can be set using the SetFormat method. This only needs to be done if the
+// configuration file is not explictly set using the SetConfFilename method.
+// The supported configuration formats are: JSON, TOML, and YAML. A settings
+// can also be configured to search for the configuration file until it is
+// found. Where it looks depends on how it has been configured and what
+// additional information the settings has been provided:
+//    configuration filename
+//    paths set with SetConfFilePaths
+//    paths extracted from env vars set by SetConfFilePathEnvVars*
+//    working directory
+//    executable directory
+//    paths extracted from the PATH*
+//
+//    * the env vars may contain multiple paths; each path will be checked
+//
+// By default, a missing configuration file results in an os.PathError with
+// a list of all paths that were checked along with an os.IsNotExist error. A
+// settings can be set to not return an error when the configuration file
+// cannot be found by using the SetErrOnMissingConfFile method.
 //
 // Contour only saves the top level keys of configuration files as settings.
 // For configuration file settings that are arrays, maps, or objects, their

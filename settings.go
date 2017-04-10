@@ -64,6 +64,13 @@ import (
 // for a Settings with the name foo and a setting with the key bar would be
 // FOO_BAR.
 //
+// Registering a ConfFileVar setting will set settings to look for a
+// configuration file during the set process. Registering either an EnvVar or a
+// Flag will set settings to look for a configuration file during the set
+// process and check environment variables. After registering all configuration
+// settings, the settings can be explicitly set to not use a configuration file
+// or environment variables using the SetUseConfFile and SetUseEnvVars methods.
+//
 // Once a Settings has been updated from a configuration file and environment
 // variables, configuration settings cannot be updated again from those
 // sources, subsequent attempts will result in no error and nothing being done.
