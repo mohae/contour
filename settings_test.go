@@ -518,7 +518,7 @@ func TestSetFromConfFile(t *testing.T) {
 		expectedSettings map[string]setting
 	}{
 		{"", false, nil, false, nil, error(&os.PathError{Op: "open file", Path: fmt.Sprintf("abcdef.json: %s", pathVarStr), Err: os.ErrNotExist}), nil},
-		{"contour_test.txt", false, nil, false, nil, UnsupportedFormatError{"txt"}, nil},
+		{"contour_test.yml", false, nil, false, nil, error(&os.PathError{Op: "open file", Path: fmt.Sprintf("%s: %s", filepath.Join(tmpDir, "contour_test.yml"), pathVarStr), Err: os.ErrNotExist}), nil},
 		{"contour_test.json", false, nil, false, nil, error(&os.PathError{Op: "open file", Path: fmt.Sprintf("%s: %s", filepath.Join(tmpDir, "contour_test.json"), pathVarStr), Err: os.ErrNotExist}), nil},
 		{
 			"contour_test.json", true, badJSON, false, nil,
