@@ -412,7 +412,12 @@ func (s *Settings) readConfFile(n string) (b []byte, err error) {
 		errS += "; $PATH"
 	}
 
-	return nil, &os.PathError{Op: "open file", Path: fmt.Sprintf("%s: %s", n, errS[2:len(errS)]), Err: os.ErrNotExist}
+	if len(errS) >= 2 {
+		errS = fmt.Sprintf("%s: %s", n, errS[2:len(errS)])
+	} else {
+		errS = n
+	}
+	return nil, &os.PathError{Op: "open file", Path: errS, Err: os.ErrNotExist}
 }
 
 func (s *Settings) checkPaths(fname string, paths []string) (b []byte, err error) {
