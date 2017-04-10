@@ -596,17 +596,30 @@ func TestSetFromConfFile(t *testing.T) {
 	}
 }
 
-func TestReadConfFile(t *testing.T) {
+func TestSetFromConfFileMissingFile(t *testing.T) {
+	tests := []struct {
+		errOnMissingConfFile bool
+		err                  error
+	}{
+		{false, nil},
+		{true, &os.PathError{Op: "open file", Path: "does.not.exist.json: testpath; another/path; $ABCPATH; $DEFPATH; $PATH", Err: os.ErrNotExist}},
+	}
 	cfg := New("abcdef")
 	cfg.confFilePaths = []string{"testpath", "another/path"}
 	cfg.confFilePathEnvVars = []string{"ABCPATH", "DEFPATH"}
-	_, err := cfg.readConfFile("does.not.exist.json")
-	if err == nil {
-		t.Errorf("expected an error; got none")
-	} else {
-		expected := error(&os.PathError{Op: "open file", Path: "does.not.exist.json: testpath; another/path; $ABCPATH; $DEFPATH; $PATH", Err: os.ErrNotExist})
-		if !reflect.DeepEqual(err, expected) {
-			t.Errorf("got %q; want %q", err, expected)
+	cfg.confFilename = "does.not.exist.json"
+	cfg.useConfFile = true
+	for i, test := range tests {
+		cfg.SetErrOnMissingConfFile(test.errOnMissingConfFile)
+		err := cfg.SetFromConfFile()
+		if err == nil {
+			if test.err != nil {
+				t.Errorf("%d: got nil; want %q", i, test.err)
+			}
+			continue
+		}
+		if !reflect.DeepEqual(err, test.err) {
+			t.Errorf("%d: got %q; want %q", i, err, test.err)
 		}
 	}
 }

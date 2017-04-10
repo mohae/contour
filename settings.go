@@ -314,6 +314,9 @@ func (s *Settings) setFromConfFile() error {
 
 	b, err := s.readConfFile(s.confFilename)
 	if err != nil {
+		if !s.errOnMissingConfFile && os.IsNotExist(err) { // if a missing conf file is ok, swallow the error
+			return nil
+		}
 		return err
 	}
 
