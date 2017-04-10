@@ -454,7 +454,7 @@ func TestSetCfg(t *testing.T) {
 	}
 	tstCfg := newTestSettings()
 	tstCfg.name = "rancher"
-	tstCfg.SetConfFilename(tests[5].fullPath)
+	tstCfg.SetConfFilename(filepath.Join(tmpDir, fname))
 	for i, test := range tests {
 		tstCfg.confFileVarsSet = false
 		tstCfg.useConfFile = test.useCfg

@@ -151,6 +151,7 @@ func (s *Settings) registerStringConfFileVar(k, v string) error {
 }
 
 func (s *Settings) registerConfFileVar(typ dataType, k string, v interface{}, dflt string) error {
+	s.useConfFile = true // registerng a conf file var means use a conf file unless explicitly set not to
 	return s.registerSetting(ConfFileVar, typ, k, "", v, dflt, "", false, true, false, false)
 }
 
@@ -220,6 +221,8 @@ func (s *Settings) registerStringEnvVar(k, v string) error {
 }
 
 func (s *Settings) registerEnvVar(typ dataType, k string, v interface{}, dflt string) error {
+	s.useConfFile = true // registering a conf file var means use a conf file unless explicitly set not to
+	s.useEnvVars = true  // registering an env var means use env vars unless explictly set not to
 	return s.registerSetting(EnvVar, typ, k, "", v, dflt, "", false, true, true, false)
 }
 
@@ -292,6 +295,9 @@ func (s *Settings) registerStringFlag(k, short, v, dflt, usage string) error {
 }
 
 func (s *Settings) registerFlag(typ dataType, k, short string, v interface{}, dflt, usage string) error {
+	s.useConfFile = true // registering a conf file var means use a conf file unless explicitly set not to
+	s.useEnvVars = true  // registering an env var means use env vars unless explictly set not to
+	s.useFlags = true    // registering a flag means use flags unless explictly set not to
 	return s.registerSetting(Flag, typ, k, short, v, dflt, usage, false, true, true, true)
 }
 
