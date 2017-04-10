@@ -153,11 +153,10 @@ func New(name string) *Settings {
 // returned.
 func (s *Settings) SetConfFilename(v string) error {
 	if v == "" {
-		return fmt.Errorf("set configuration filename failed: no name provided")
+		return fmt.Errorf("configuration filename: set failed: no name provided")
 	}
-
 	// get the file's format from the extension
-	f, err := formatFromFilename(s.confFilename)
+	f, err := formatFromFilename(v)
 	if err != nil {
 		return err
 	}
@@ -184,8 +183,6 @@ func (s *Settings) Set() error {
 	// Set.
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	// if this has already been set from env vars and config, don't do it again.
-	// TODO: decide if this should be handled differently to allow for reload.
 	if s.confFileVarsSet && s.envVarsSet {
 		return nil
 	}
@@ -417,6 +414,7 @@ func (s *Settings) readConfFile(n string) (b []byte, err error) {
 	} else {
 		errS = n
 	}
+
 	return nil, &os.PathError{Op: "open file", Path: errS, Err: os.ErrNotExist}
 }
 

@@ -329,8 +329,8 @@ func TestIsFuncs(t *testing.T) {
 	}
 }
 
-// TestSetCfg, and by proxy UpdateFromEnv
-func TestSetCfg(t *testing.T) {
+// TestSet
+func TestSet(t *testing.T) {
 	tmpDir, err := ioutil.TempDir(os.TempDir(), "feedlot")
 	if err != nil {
 		t.Errorf("cannot do tests, %s", err.Error())
@@ -351,8 +351,8 @@ func TestSetCfg(t *testing.T) {
 		err           string
 	}{
 		// 0
-		{"", "", Unsupported, false, false, false, "", nil, ""},
-		{"", "", Unsupported, false, true, false, "", nil, ""},
+		{"", "", Unsupported, false, false, false, "", nil, "configuration filename: set failed: no name provided"},
+		{"", "", Unsupported, false, true, false, "", nil, "configuration filename: set failed: no name provided"},
 		{"", fname, JSON, false, false, false, "", nil, ""},
 		{"", fname, JSON, true, false, false, "", nil, ""},
 		{"", fname, JSON, false, true, false, "", nil, ""},
@@ -454,21 +454,32 @@ func TestSetCfg(t *testing.T) {
 	}
 	tstCfg := newTestSettings()
 	tstCfg.name = "feedlot"
-	tstCfg.SetConfFilename(fname)
 	for i, test := range tests {
+		tstCfg.confFilename = ""
 		tstCfg.confFileVarsSet = false
-		tstCfg.useConfFile = test.useCfg
-		tstCfg.useEnvVars = test.useEnvVars
-		os.Setenv(EnvVarName(test.name), test.envValue)
-		err := tstCfg.SetFromConfFile()
+		tstCfg.envVarsSet = false
+		err := tstCfg.SetConfFilename(test.fullPath)
 		if err != nil {
-			if test.err != err.Error() {
-				t.Errorf("%d: expected %s, got %s", i, test.err, err.Error())
+			if err.Error() != test.err {
+				t.Errorf("%d: setconffilename: got %q want %q", i, err, test.err)
 			}
 			continue
 		}
 		if test.err != "" {
-			t.Errorf("%d expected %s, got nil", i, test.err)
+			t.Errorf("%d: setconffilename: got no error; want %q", i, test.err)
+			continue
+		}
+		tstCfg.useConfFile = test.useCfg
+		tstCfg.useEnvVars = test.useEnvVars
+		err = tstCfg.Set()
+		if err != nil {
+			if test.err != err.Error() {
+				t.Errorf("%d: expected %q, got %q", i, test.err, err.Error())
+			}
+			continue
+		}
+		if test.err != "" {
+			t.Errorf("%d expected %q, got nil", i, test.err)
 			continue
 		}
 	}
