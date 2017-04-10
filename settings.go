@@ -186,15 +186,16 @@ func (s *Settings) Set() error {
 	if s.confFileVarsSet && s.envVarsSet {
 		return nil
 	}
-	err := s.updateFromEnvVars()
+	err := s.setFromConfFile()
+	if err != nil {
+		return fmt.Errorf("setting configuration from file failed: %s", err)
+	}
+
+	err = s.updateFromEnvVars()
 	if err != nil {
 		return fmt.Errorf("setting configuration from env failed: %s", err)
 	}
 
-	err = s.setFromConfFile()
-	if err != nil {
-		return fmt.Errorf("setting configuration from file failed: %s", err)
-	}
 	return nil
 }
 
