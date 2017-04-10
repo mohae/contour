@@ -64,7 +64,7 @@ func (s *Settings) updateBool(typ SettingType, k string, v bool) error {
 	return s.update(typ, k, v)
 }
 
-// UpdateInt updates k with aan int, v. If settings does not have a setting k,
+// UpdateInt updates k with an int, v. If settings does not have a setting k,
 // both a false and a SettingNotFoundError will be returned. If the setting k
 // is not updateable, both a false and either a CoreUpdateError or an
 // UpdateError will be returned.
@@ -91,6 +91,21 @@ func (s *Settings) UpdateInt64(k string, v int64) error {
 
 // this assumes the lock is held by the caller.
 func (s *Settings) updateInt64(typ SettingType, k string, v int64) error {
+	return s.update(typ, k, v)
+}
+
+// UpdateInterface updates k with an interface, v. If settings does not have a
+// setting k, both a false and a SettingNotFoundError will be returned. If the
+// setting k is not updateable, both a false and either a CoreUpdateError or an
+// UpdateError will be returned.
+func (s *Settings) UpdateInterface(k string, v interface{}) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.updateInterface(Basic, k, v)
+}
+
+// this assumes the lock is held by the caller.
+func (s *Settings) updateInterface(typ SettingType, k string, v interface{}) error {
 	return s.update(typ, k, v)
 }
 
@@ -232,6 +247,12 @@ func UpdateInt(k string, v int) error { return std.UpdateInt(k, v) }
 // If the setting k is not updateable, both a false and either a
 // CoreUpdateError or an UpdateError will be returned.
 func UpdateInt64(k string, v int64) error { return std.UpdateInt64(k, v) }
+
+// UpdateInterface updates k with aan int, v. If the standard settings does not
+// have a setting k, both a false and a SettingNotFoundError will be returned.
+// If the setting k is not updateable, both a false and either a
+// CoreUpdateError or an UpdateError will be returned.
+func UpdateInterface(k string, v interface{}) error { return std.UpdateInterface(k, v) }
 
 // UpdateString updates a string setting. If the standard setting k doesn't
 // exist, both a false and a SettingNotFoundError will be returned. If the

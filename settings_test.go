@@ -21,18 +21,14 @@ func TestSettings(t *testing.T) {
 		if s.name != "test" {
 			t.Errorf("Expected test got %s", s.name)
 		}
-		if s.UseEnvVars() != false {
-			t.Errorf("Expected true got %v", s.UseEnvVars())
+		if s.UseConfFile() {
+			t.Errorf("Expected false got %v", s.UseConfFile())
 		}
-	}
-	if std == nil {
-		t.Errorf("global Settings was nil")
-	} else {
-		if std.name != "contour.test" {
-			t.Errorf("Expected contour.test got %s", std.name)
+		if s.UseEnvVars() {
+			t.Errorf("Expected false got %v", s.UseEnvVars())
 		}
-		if std.UseEnvVars() != false {
-			t.Errorf("Expected true got %v", std.UseEnvVars())
+		if !s.UseFlags() {
+			t.Errorf("Expected false got %v", s.UseFlags())
 		}
 	}
 }
@@ -818,7 +814,7 @@ func TestVisited(t *testing.T) {
 		{"flagint-tst", true},
 		{"flagstring-tst", true},
 	}
-
+	tst.useFlags = true
 	_, err := tst.ParseFlags(args)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)

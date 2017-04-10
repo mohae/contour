@@ -1,6 +1,9 @@
 package contour
 
-import "strconv"
+import (
+	"fmt"
+	"strconv"
+)
 
 // RegisterSetting registers a setting. For most settings, the data and setting
 // type specific registration and add functions should be used. The exception
@@ -132,6 +135,22 @@ func (s *Settings) RegisterInt64ConfFileVar(k string, v int64) error {
 // return an error.
 func (s *Settings) registerInt64ConfFileVar(k string, v int64) error {
 	return s.registerConfFileVar(_int64, k, v, strconv.FormatInt(v, 10))
+}
+
+// RegisterInterfaceConfFileVar registers an int setting using k for its key
+// and v for its value. Once registered, the value of this setting can only be
+// updated from a configuration file. If k already exists a SettingExistsError
+// will be returned. If k is empty, an ErrNoSettingName will be returned.
+func (s *Settings) RegisterInterfaceConfFileVar(k string, v interface{}) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.registerInterfaceConfFileVar(k, v)
+}
+
+// assumes the lock has been obtained. Unexported register methods always
+// return an error.
+func (s *Settings) registerInterfaceConfFileVar(k string, v interface{}) error {
+	return s.registerConfFileVar(_int, k, v, fmt.Sprintf("%v", v))
 }
 
 // RegisterStringConfFileVar registers a string setting using k for its key and
@@ -354,6 +373,15 @@ func RegisterIntConfFileVar(k string, v int) error { return std.RegisterIntConfF
 // exists a SettingExistsError will be returned. If k is empty, an
 // ErrNoSettingName will be returned.
 func RegisterInt64ConfFileVar(k string, v int64) error { return std.RegisterInt64ConfFileVar(k, v) }
+
+// RegisterInterfaceConfFileVar registers an int setting with the standard
+// settings using k for its key and v for its value. Once registered, the value
+// of this setting can only be updated from a configuration file. If k already
+// exists a SettingExistsError will be returned. If k is empty, an
+// ErrNoSettingName will be returned.
+func RegisterInterfaceConfFileVar(k string, v interface{}) error {
+	return std.RegisterInterfaceConfFileVar(k, v)
+}
 
 // RegisterStringConfFileVar registers a string setting with the standard
 // settings using k for its key and v for its value. Once registered, the value

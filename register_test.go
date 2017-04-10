@@ -18,32 +18,36 @@ func TestRegisterCfgSettings(t *testing.T) {
 		IsFlag        bool
 	}{
 		{"", _bool, true, true, "no setting name provided", false, false, false, false, false},
-		{"cfgbool", _bool, true, true, "", true, false, true, false, false},
-		{"cfgbool", _bool, false, true, "cfgbool: configuration file var setting exists", true, false, true, false, false},
+		{"xx_cfgbool", _bool, true, true, "", true, false, true, false, false},
+		{"xx_cfgbool", _bool, false, true, "xx_cfgbool: configuration file var setting exists", true, false, true, false, false},
 		{"", _int, 42, 42, "no setting name provided", false, false, false, false, false},
-		{"cfgint", _int, 42, 42, "", true, false, true, false, false},
+		{"xx_cfgint", _int, 42, 42, "", true, false, true, false, false},
 
-		{"cfgint", _int, 84, 42, "cfgint: configuration file var setting exists", true, false, true, false, false},
+		{"xx_cfgint", _int, 84, 42, "xx_cfgint: configuration file var setting exists", true, false, true, false, false},
 		{"", _int64, int64(42), int64(42), "no setting name provided", false, false, false, false, false},
-		{"cfgint64", _int64, int64(42), int64(42), "", true, false, true, false, false},
-		{"cfgint64", _int64, int64(84), int64(42), "cfgint64: configuration file var setting exists", true, false, true, false, false},
-		{"", _string, "bar", "bar", "no setting name provided", false, false, false, false, false},
+		{"xx_cfgint64", _int64, int64(42), int64(42), "", true, false, true, false, false},
+		{"xx_cfgint64", _int64, int64(84), int64(42), "xx_cfgint64: configuration file var setting exists", true, false, true, false, false},
+		{"", _interface, 42, 42, "no setting name provided", false, false, false, false, false},
 
-		{"cfgstring", _string, "bar", "bar", "", true, false, true, false, false},
-		{"cfgstring", _string, "baz", "bar", "cfgstring: configuration file var setting exists", true, false, true, false, false},
+		{"xx_cfginterface", _interface, 42, 42, "", true, false, true, false, false},
+		{"xx_cfginterface", _interface, 84, 42, "xx_cfginterface: configuration file var setting exists", true, false, true, false, false},
+		{"", _string, "bar", "bar", "no setting name provided", false, false, false, false, false},
+		{"xx_cfgstring", _string, "bar", "bar", "", true, false, true, false, false},
+		{"xx_cfgstring", _string, "baz", "bar", "xx_cfgstring: configuration file var setting exists", true, false, true, false, false},
 	}
-	tstSettings := New("test register")
 	var err error
 	for i, test := range tests {
 		switch test.typ {
 		case _bool:
-			err = tstSettings.RegisterBoolConfFileVar(test.name, test.value.(bool))
+			err = RegisterBoolConfFileVar(test.name, test.value.(bool))
 		case _int:
-			err = tstSettings.RegisterIntConfFileVar(test.name, test.value.(int))
+			err = RegisterIntConfFileVar(test.name, test.value.(int))
 		case _int64:
-			err = tstSettings.RegisterInt64ConfFileVar(test.name, test.value.(int64))
+			err = RegisterInt64ConfFileVar(test.name, test.value.(int64))
 		case _string:
-			err = tstSettings.RegisterStringConfFileVar(test.name, test.value.(string))
+			err = RegisterStringConfFileVar(test.name, test.value.(string))
+		case _interface:
+			err = RegisterInterfaceConfFileVar(test.name, test.value)
 		default:
 			t.Errorf("%d: unsupported typ: %s", i, test.typ)
 			continue
@@ -56,29 +60,29 @@ func TestRegisterCfgSettings(t *testing.T) {
 		if !test.checkValues {
 			continue
 		}
-		if tstSettings.Get(test.name) != test.expected {
-			t.Errorf("%d: expected %v got %v", i, test.expected, tstSettings.Get(test.name))
+		if Get(test.name) != test.expected {
+			t.Errorf("%d: expected %v got %v", i, test.expected, Get(test.name))
 		}
-		if tstSettings.IsCore(test.name) != test.IsCore {
-			t.Errorf("%d: expected IsCore to be %v, got %v", i, test.IsCore, tstSettings.IsCore(test.name))
+		if IsCore(test.name) != test.IsCore {
+			t.Errorf("%d: expected IsCore to be %v, got %v", i, test.IsCore, IsCore(test.name))
 		}
-		if tstSettings.IsConfFileVar(test.name) != test.IsConfFileVar {
-			t.Errorf("%d: expected IsConfFileVar to be %v, got %v", i, test.IsConfFileVar, tstSettings.IsConfFileVar(test.name))
+		if IsConfFileVar(test.name) != test.IsConfFileVar {
+			t.Errorf("%d: expected IsConfFileVar to be %v, got %v", i, test.IsConfFileVar, IsConfFileVar(test.name))
 		}
-		if tstSettings.IsEnvVar(test.name) != test.IsEnvVar {
-			t.Errorf("%d: expected IsEnvVar to be %v, got %v", i, test.IsEnvVar, tstSettings.IsEnvVar(test.name))
+		if IsEnvVar(test.name) != test.IsEnvVar {
+			t.Errorf("%d: expected IsEnvVar to be %v, got %v", i, test.IsEnvVar, IsEnvVar(test.name))
 		}
-		if tstSettings.IsFlag(test.name) != test.IsFlag {
-			t.Errorf("%d: expected IsFlag to be %v, got %v", i, test.IsFlag, tstSettings.IsFlag(test.name))
+		if IsFlag(test.name) != test.IsFlag {
+			t.Errorf("%d: expected IsFlag to be %v, got %v", i, test.IsFlag, IsFlag(test.name))
 		}
-		if !tstSettings.useConfFile {
-			t.Errorf("%d: useConfFile: got %v; want true", i, tstSettings.useConfFile)
+		if !UseConfFile() {
+			t.Errorf("%d: useConfFile: got %v; want true", i, UseConfFile())
 		}
-		if tstSettings.useEnvVars {
-			t.Errorf("%d: useEnvVars: got %v; want false", i, tstSettings.useEnvVars)
+		if UseEnvVars() {
+			t.Errorf("%d: useEnvVars: got %v; want false", i, UseEnvVars())
 		}
-		if tstSettings.useFlags {
-			t.Errorf("%d: useFlags: got %v; want false", i, tstSettings.useFlags)
+		if UseFlags() {
+			t.Errorf("%d: useFlags: got %v; want false", i, UseFlags())
 		}
 	}
 }

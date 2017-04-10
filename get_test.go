@@ -45,6 +45,19 @@ func TestGetsE(t *testing.T) {
 			t.Errorf("Expected 42, got %d", ri)
 		}
 	}
+	rinf, err := tstSettings.InterfaceE("coreslice")
+	if err != nil {
+		t.Errorf("Expected error to be nil, got %q", err.Error())
+	} else {
+		inf, ok := rinf.([]string)
+		if !ok {
+			t.Errorf("coreinterface: assertion to []string failed: %#v", rinf)
+		} else {
+			if len(inf) != 0 {
+				t.Errorf("Expected slice to have 0 len; was %d: %v", len(inf), inf)
+			}
+		}
+	}
 	rs, err := tstSettings.StringE("corestring")
 	if err != nil {
 		t.Errorf("Expected error to be nil, got %q", err.Error())
@@ -56,8 +69,7 @@ func TestGetsE(t *testing.T) {
 }
 
 func TestGets(t *testing.T) {
-	tstSettings := newTestSettings()
-	r := tstSettings.Get("corebool")
+	r := Get("corebool")
 	var b bool
 	switch r.(type) {
 	case bool:
@@ -66,21 +78,30 @@ func TestGets(t *testing.T) {
 		b = *r.(*bool)
 	}
 	if !b {
-		t.Errorf("Expected \"true\", got %t", r)
+		t.Errorf("Expected \"true\", got %v", r)
 	}
-	rb := tstSettings.Bool("corebool")
+	rb := Bool("corebool")
 	if !rb {
 		t.Errorf("Expected true, got %t", rb)
 	}
-	ri := tstSettings.Int("coreint")
+	ri := Int("coreint")
 	if ri != 42 {
 		t.Errorf("Expected 42, got %d", ri)
 	}
-	ri64 := tstSettings.Int64("coreint64")
+	ri64 := Int64("coreint64")
 	if ri64 != int64(42) {
 		t.Errorf("Expected 42, got %d", ri)
 	}
-	rs := tstSettings.String("corestring")
+	rinf := Interface("coreslice")
+	inf, ok := rinf.([]string)
+	if !ok {
+		t.Errorf("coreinterface: assertion of interface{} to []string failed: got %#v", rinf)
+	} else {
+		if len(inf) != 0 {
+			t.Errorf("Expected len to be 0; got %d: %v", len(inf), inf)
+		}
+	}
+	rs := String("corestring")
 	if rs != "a core string" {
 		t.Errorf("Expected \"a core string\", got %q", rs)
 	}

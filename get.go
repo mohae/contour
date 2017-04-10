@@ -130,6 +130,21 @@ func (s *Settings) Int64(k string) int64 {
 	return v
 }
 
+// InterfaceE returns the settings' value for k as an interface{}. A
+// SettingNotFoundError is returned if k doesn't exist.
+func (s *Settings) InterfaceE(k string) (interface{}, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.get(k)
+}
+
+// Interface returns the settings' value for k as an interface{}. A nil will be
+// returned if k doesn't exist.
+func (s *Settings) Interface(k string) interface{} {
+	v, _ := s.InterfaceE(k)
+	return v
+}
+
 // StringE returns the settings value for k as a string. A SettingNotFoundError
 // is returned if k doesn't exist. A DataTypeError will be returned if the
 // value is not a string.
@@ -194,6 +209,14 @@ func Int(k string) int { return std.Int(k) }
 // SettingNotFoundError is returned if k doesn't exist in. A DataTypeError will
 // be returned if the value is neither an int64 nor an int.
 func Int64E(k string) (int64, error) { return std.Int64E(k) }
+
+// InterfaceE returns the standard settings' value for k as an interface{}. A
+// SettingNotFoundError is returned if k doesn't exist.
+func InterfaceE(k string) (interface{}, error) { return std.InterfaceE(k) }
+
+// Interface returns the standard settings' value for k as an interface{}. A nil
+// will be returned if k doesn't exist.
+func Interface(k string) interface{} { return std.Interface(k) }
 
 // Int64 returns the standard settings' value for k as an int64. A 0 will be
 // returned if k doesn't exist or if its value is neither an int64 nor an int

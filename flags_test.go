@@ -25,12 +25,11 @@ func TestGetBoolFilter(t *testing.T) {
 	}
 	_ = tests
 	appCfg := newTestSettings()
-	appCfg.name = "rancher-test"
+	appCfg.useFlags = true
 	// check that an unfiltered boolflag's var is nil
 	if appCfg.flagVars["flagbool-tst"] != nil {
 		t.Errorf("flags that weren't present in the args should be nil, flagbool-test wasn't")
 	}
-
 	args, err := appCfg.ParseFlags([]string{"cmdname", "-flagbool=false", "-fake", "command"})
 	if err != nil {
 		if !strings.HasPrefix(err.Error(), "parse of command-line arguments failed: flag provided but not defined: -fake") {
@@ -38,7 +37,7 @@ func TestGetBoolFilter(t *testing.T) {
 		}
 	}
 	appCfg = newTestSettings()
-	appCfg.name = "rancher-test"
+	appCfg.useFlags = true
 	args, err = appCfg.ParseFlags([]string{"-flagbool=false", "fake", "command"})
 	if err != nil {
 		t.Errorf("expected no error, got %q", err.Error())
@@ -84,6 +83,7 @@ func TestGetBoolFilter(t *testing.T) {
 
 func TestParseFlags(t *testing.T) {
 	tst := newTestSettings()
+	tst.useFlags = true
 	args := []string{"-b=false", "-i=1999", "-flagbool-tst=false", "-flagint-tst=11", "-flagstring-tst=updated", "cmd"}
 	expected := map[string]string{
 		"b":              "false",
@@ -119,6 +119,7 @@ func TestParseFlags(t *testing.T) {
 
 func TestParsedFlags(t *testing.T) {
 	tst := newTestSettings()
+	tst.useFlags = true
 	args := []string{"-b=false", "-i=1999", "-flagbool-tst=false", "-flagint-tst=11", "-flagstring-tst=updated", "cmd"}
 	expected := []string{"flagbool", "flagint", "flagbool-tst", "flagint-tst", "flagstring-tst"}
 

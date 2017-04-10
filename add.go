@@ -1,6 +1,9 @@
 package contour
 
-import "strconv"
+import (
+	"fmt"
+	"strconv"
+)
 
 // Core settings are not overridable via a configuration file, env vars, or
 // command-line flags. They cannot be modified in any way once they have been
@@ -51,6 +54,20 @@ func (s *Settings) addInt64Core(k string, v int64) error {
 	return s.addCoreSetting(_int64, k, v, strconv.FormatInt(v, 10))
 }
 
+// AddInterfaceCore adds a Core interface{} setting to the settings with the
+// key k and value v. The value of this setting cannot be changed once it is
+// added. If a setting with the same name, k, exists, a SettingExistsErr will
+// be returned. If k is empty, an ErrNoSettingName will be returned.
+func (s *Settings) AddInterfaceCore(k string, v interface{}) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.addInterfaceCore(k, v)
+}
+
+func (s *Settings) addInterfaceCore(k string, v interface{}) error {
+	return s.addCoreSetting(_interface, k, v, fmt.Sprintf("%v", v))
+}
+
 // AddStringCore adds a Core string setting to the settings with the key k and
 // value v. The value of this setting cannot be changed once it is added. If a
 // setting with the same name, k, exists, a SettingExistsErr will be returned.
@@ -69,10 +86,10 @@ func (s *Settings) addCoreSetting(typ dataType, k string, v interface{}, dflt st
 	return s.registerSetting(Core, typ, k, "", v, dflt, "", true, false, false, false)
 }
 
-// AddBool adds a bool setting to the settings with they key k and value f.
-// This can be only be updated using the Update functions. If a setting with
-// the same name, k, exists, a SettingExistsErr will be returned. If k is
-// empty, an ErrNoSettingName will be returned
+// AddBool adds a bool setting to the settings with the key k and value f. This
+// can be only be updated using the Update functions. If a setting with the
+// same name, k, exists, a SettingExistsErr will be returned. If k is empty, an
+// ErrNoSettingName will be returned
 func (s *Settings) AddBool(k string, v bool) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -84,7 +101,7 @@ func (s *Settings) addBool(k string, v bool) error {
 	return s.addSetting(_bool, k, v, strconv.FormatBool(v))
 }
 
-// AddInt adds an int setting to the settings with they key k and value f. This
+// AddInt adds an int setting to the settings with the key k and value f. This
 // can be only be updated using the Update functions. If a setting with the
 // same name, k, exists, a SettingExistsErr will be returned. If k is empty,
 // an ErrNoSettingName will be returned
@@ -99,7 +116,7 @@ func (s *Settings) addInt(k string, v int) error {
 	return s.addSetting(_int, k, v, strconv.Itoa(v))
 }
 
-// AddInt64 adds an int64 setting to the settings with they key k and value f.
+// AddInt64 adds an int64 setting to the settings with the key k and value f.
 // This can be only updated using the Update functions. If a setting with the
 // same name, k, exists, a SettingExistsErr will be returned. If k is empty, an
 // ErrNoSettingName will be returned
@@ -114,7 +131,22 @@ func (s *Settings) addInt64(k string, v int64) error {
 	return s.addSetting(_int64, k, v, strconv.FormatInt(v, 10))
 }
 
-// AddString adds a string setting to the settings with they key k and value f.
+// AddInterface adds an interface{} setting to the settings with the key k and
+// value v. This can be updated using the Update functions. If a setting with
+// the same name, k, exists, a SettingExistsErr will be returned. If k is
+// empty, an ErrNoSettingName will be returned
+func (s *Settings) AddInterface(k string, v interface{}) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.addInterface(k, v)
+}
+
+// assumes the lock has been obtained.
+func (s *Settings) addInterface(k string, v interface{}) error {
+	return s.addSetting(_interface, k, v, fmt.Sprintf("%v", v))
+}
+
+// AddString adds a string setting to the settings with the key k and value f.
 // This can be updated using the Update functions. If a setting with the same
 // name, k, exists, a SettingExistsErr will be returned. If k is empty, an
 // ErrNoSettingName will be returned
@@ -151,31 +183,43 @@ func AddIntCore(k string, v int) error { return std.AddIntCore(k, v) }
 // returned. If k is empty, an ErrNoSettingName will be returned.
 func AddInt64Core(k string, v int64) error { return std.AddInt64Core(k, v) }
 
+// AddInterfaceCore adds a Core interface setting to the standard settings with
+// the key k and value v. The value of this setting cannot be changed once it
+// is added. If a setting with the same name, k, exists, a SettingExistsErr
+// will be returned. If k is empty, an ErrNoSettingName will be returned.
+func AddInterfaceCore(k string, v interface{}) error { return std.AddInterfaceCore(k, v) }
+
 // AddStringCore adds a Core string setting to the standard settings with the
 // key k and value v. The value of this setting cannot be changed once it is
 // added. If a setting with the same name, k, exists, a SettingExistsErr will
 // be returned. If k is empty, an ErrNoSettingName will be returned.
 func AddStringCore(k, v string) error { return std.AddStringCore(k, v) }
 
-// AddBool adds a bool setting to the standard settings with they key k and
+// AddBool adds a bool setting to the standard settings with the key k and
 // value f. This can be only be updated using the Update functions. If a
 // setting with the same name, k, exists, a SettingExistsErr will be returned.
 // If k is empty, an ErrNoSettingName will be returned
 func AddBool(k string, v bool) error { return std.AddBool(k, v) }
 
-// AddInt adds an int setting to the standard settings with they key k and
+// AddInt adds an int setting to the standard settings with the key k and
 // value f. This can be only be updated using the Update functions. If a
 // setting with the same name, k, exists, a SettingExistsErr will be returned.
 // If k is empty, an ErrNoSettingName will be returned
 func AddInt(k string, v int) error { return std.AddInt(k, v) }
 
-// AddInt64 adds an int64 setting to the standard settings with they key k and
+// AddInt64 adds an int64 setting to the standard settings with the key k and
 // value f. This can be only updated using the Update functions. If a setting
 // with the same name, k, exists, a SettingExistsErr will be returned. If k is
 // empty, an ErrNoSettingName will be returned
 func AddInt64(k string, v int64) error { return std.AddInt64(k, v) }
 
-// AddString adds a string setting to the standard settings with they key k and
+// AddInterface adds an interface setting to the standard settings with the key
+// k and value f. This can be updated using the Update functions. If a setting
+// with the same name, k, exists, a SettingExistsErr will be returned. If k is
+// empty, an ErrNoSettingName will be returned
+func AddInterface(k string, v interface{}) error { return std.AddInterface(k, v) }
+
+// AddString adds a string setting to the standard settings with the key k and
 // value f. This can be updated using the Update functions. If a setting with
 // the same name, k, exists, a SettingExistsErr will be returned. If k is
 // empty, an ErrNoSettingName will be returned
