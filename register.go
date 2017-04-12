@@ -51,6 +51,15 @@ func (s *Settings) registerSetting(sTyp SettingType, typ dataType, name, short s
 		return SettingExistsError{typ: sTyp, k: name}
 	}
 
+	// mapping shortcodes make lookup easier
+	if short != "" && IsFlag {
+		v, ok := s.shortFlags[short]
+		if ok {
+			return ShortFlagExistsError{k: name, short: short, shortName: v}
+		}
+		s.shortFlags[short] = name
+	}
+
 	// Add the setting
 	s.settings[name] = setting{
 		Type:          typ,
@@ -67,14 +76,6 @@ func (s *Settings) registerSetting(sTyp SettingType, typ dataType, name, short s
 	// if it's a conf file setting, add it to the confFileVars map
 	if IsConfFileVar {
 		s.confFileVars[name] = struct{}{}
-	}
-	// mapping shortcodes make lookup easier
-	if short != "" && IsFlag {
-		v, ok := s.shortFlags[short]
-		if ok {
-			return ShortFlagExistsError{k: name, short: short, shortName: v}
-		}
-		s.shortFlags[short] = name
 	}
 	if IsEnvVar {
 		s.useEnvVars = IsEnvVar

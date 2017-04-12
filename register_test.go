@@ -220,6 +220,10 @@ func TestRegisterFlagSettings(t *testing.T) {
 			if err.Error() != test.expectedErr {
 				t.Errorf("%d error: expected %s got %s", i, test.expectedErr, err.Error())
 			}
+			// don't do any additional comparisions for short flag errors
+			if _, ok := err.(ShortFlagExistsError); ok {
+				continue
+			}
 		}
 		if !test.checkValues {
 			continue
