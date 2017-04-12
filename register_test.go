@@ -183,17 +183,22 @@ func TestRegisterFlagSettings(t *testing.T) {
 		{"", "", _bool, true, true, "no setting name provided", false, false, false, false, false},
 		{"flagbool", "b", _bool, true, true, "", true, false, true, true, true},
 		{"flagbool", "", _bool, false, true, "flagbool: flag setting exists", true, false, true, true, true},
+		{"flagboolz", "b", _bool, true, true, "flagboolz: short flag \"b\" already exists for \"flagbool\"", true, false, true, true, true},
 		{"", "", _int, 42, 42, "no setting name provided", false, false, false, false, false},
-		{"flagint", "i", _int, 42, 42, "", true, false, true, true, true},
 
+		{"flagint", "i", _int, 42, 42, "", true, false, true, true, true},
 		{"flagint", "", _int, 84, 42, "flagint: flag setting exists", true, false, true, true, true},
+		{"flagintz", "i", _int, 42, 42, "flagintz: short flag \"i\" already exists for \"flagint\"", true, false, true, true, true},
 		{"", "", _int64, int64(42), int64(42), "no setting name provided", false, false, false, false, false},
 		{"flagint64", "6", _int64, int64(42), int64(42), "", true, false, true, true, true},
-		{"flagint64", "", _int64, int64(84), int64(42), "flagint64: flag setting exists", true, false, true, true, true},
-		{"", "", _string, "bar", "bar", "no setting name provided", false, false, false, false, false},
 
+		{"flagint64", "", _int64, int64(84), int64(42), "flagint64: flag setting exists", true, false, true, true, true},
+		{"flagint64z", "6", _int64, int64(42), int64(42), "flagint64z: short flag \"6\" already exists for \"flagint64\"", true, false, true, true, true},
+		{"", "", _string, "bar", "bar", "no setting name provided", false, false, false, false, false},
 		{"flagstring", "s", _string, "bar", "bar", "", true, false, true, true, true},
 		{"flagstring", "", _string, "baz", "bar", "flagstring: flag setting exists", true, false, true, true, true},
+
+		{"flagstringz", "s", _string, "bar", "bar", "flagstringz: short flag \"s\" already exists for \"flagstring\"", true, false, true, true, true},
 	}
 	tstSettings := New("test register")
 	var err error
