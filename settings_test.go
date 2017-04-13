@@ -834,21 +834,31 @@ func TestVisited(t *testing.T) {
 
 func TestGetEnvVarPaths(t *testing.T) {
 	tests := []struct {
-		parts    []string
+		value    string
 		expected []string
 	}{
-		{[]string{""}, nil},
-		{[]string{"path"}, []string{"path"}},
-		{[]string{"path", "another/path"}, []string{"path", "another/path"}},
-		{[]string{"path", "another/path", "yellow/brick/road"}, []string{"path", "another/path", "yellow/brick/road"}},
+		{"", []string{}},
+		{"path", []string{"path"}},
+		{strings.Join([]string{"path", filepath.Join("another", "path")}, string(os.PathListSeparator)), []string{"path", filepath.Join("another", "path")}},
+		{strings.Join([]string{"path", filepath.Join("$TCONTOURPATHT", "another", "path")}, string(os.PathListSeparator)), []string{"path", filepath.Join("abc", "another", "path")}},
+		{strings.Join([]string{"path", filepath.Join("another", "path"), filepath.Join("yellow", "brick", "road")}, string(os.PathListSeparator)), []string{"path", filepath.Join("another", "path"), filepath.Join("yellow", "brick", "road")}},
 	}
-
+	FeedlotPath := "TESTCONTOURPATH"
+	os.Setenv("TCONTOURPATHT", "abc")
+	// test empty key case first
+	v := GetEnvVarPaths("")
+	if v != nil {
+		t.Errorf("got %#v; want nil", v)
+	}
 	for _, test := range tests {
-		v := strings.Join(test.parts, string(os.PathListSeparator))
-		p := getEnvVarPaths(v)
+		err := os.Setenv(FeedlotPath, test.value)
+		if err != nil {
+			t.Fatal(err)
+		}
+		p := GetEnvVarPaths(FeedlotPath)
 		if !reflect.DeepEqual(p, test.expected) {
-			t.Errorf("got %v; want %v", p, test.expected)
+			t.Errorf("got %#v; want %#v", p, test.expected)
 		}
 	}
-
+	os.Unsetenv("TCONTOURPATHT")
 }

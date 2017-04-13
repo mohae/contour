@@ -343,8 +343,7 @@ func (s *Settings) readConfFile(n string) (b []byte, err error) {
 
 	if len(s.confFilePathEnvVars) > 0 {
 		for _, v := range s.confFilePathEnvVars {
-			p := os.Getenv(v)
-			tmp := getEnvVarPaths(p)
+			tmp := GetEnvVarPaths(v)
 			if len(tmp) == 0 {
 				continue
 			}
@@ -388,8 +387,7 @@ func (s *Settings) readConfFile(n string) (b []byte, err error) {
 
 	// search the PATH, if applicable
 	if s.searchPATH {
-		v := os.Getenv("PATH")
-		ps = getEnvVarPaths(v)
+		ps = GetEnvVarPaths("PATH")
 		b, err = s.checkPaths(fname, ps)
 		if err == nil {
 			return b, nil
@@ -807,14 +805,21 @@ func unmarshalConfBytes(f Format, buff []byte) (interface{}, error) {
 	}
 }
 
-// get the value of an env var that is assumed to have path info; split it
-// into its path elements and expand them.
-func getEnvVarPaths(s string) []string {
-	if s == "" {
+// GetEnvVarPaths gets the value of an environment variable, that is assumed to
+// have path info, splits it into its path elements, and expands them,
+// returning a list of paths.
+//
+// If key is empty, a nil is returned. If the environment variable for the key
+// is either not set or is empty, an empty slice will be returned.
+func GetEnvVarPaths(key string) []string {
+	if key == "" {
 		return nil
 	}
-
-	p := strings.Split(s, string(os.PathListSeparator))
+	v := os.Getenv(key)
+	if v == "" {
+		return []string{}
+	}
+	p := strings.Split(v, string(os.PathListSeparator))
 	for i := range p {
 		p[i] = os.ExpandEnv(p[i])
 	}
