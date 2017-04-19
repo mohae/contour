@@ -1,9 +1,14 @@
 package contour
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"math/rand"
+	"os"
+	"path/filepath"
+	"reflect"
+	"sort"
 	"testing"
 	"time"
 )
@@ -615,5 +620,38 @@ func TestParseFilename(t *testing.T) {
 		if format != test.format {
 			t.Errorf("%s: got %s; want %s", test.name, format, test.format)
 		}
+	}
+}
+
+func TestPathsFromEnvVar(t *testing.T) {
+	ps := string(os.PathListSeparator)
+	tests := []struct {
+		k        string
+		v        string
+		expected []string
+	}{
+		{"", "", nil},
+		{"FEEDTEST_1", "", nil},
+		{"FEEDTEST_2", "x", []string{"x"}},
+		{"FEEDTEST_3", fmt.Sprintf("a%[1]sb", ps), []string{"a", "b"}},
+		{"FEEDTEST_4", fmt.Sprintf("a%[1]sb%[1]sc", ps), []string{"a", "b", "c"}},
+		{"FEEDTEST_5", fmt.Sprintf("a%[1]sb%[1]s%[2]s", ps, filepath.Join("y", "$FEEDTEST_2")), []string{"a", "b", filepath.Join("y", "x")}},
+	}
+	for _, test := range tests {
+		os.Setenv(test.k, test.v)
+		v := PathsFromEnvVar(test.k)
+		if len(v) != len(test.expected) {
+			t.Errorf("%s: got %d elements; want %d", test.k, len(v), len(test.expected))
+			continue
+		}
+		sort.Strings(v)
+		sort.Strings(test.expected)
+		if !reflect.DeepEqual(v, test.expected) {
+			t.Errorf("%s: got %v; want %v", test.k, v, test.expected)
+		}
+	}
+
+	for _, test := range tests {
+		os.Unsetenv(test.k)
 	}
 }

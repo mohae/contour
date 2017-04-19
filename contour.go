@@ -85,6 +85,7 @@ package contour
 import (
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -322,4 +323,22 @@ func (e UnsupportedFormatError) Error() string {
 // s.
 func NewUnsupportedFormatError(s string) UnsupportedFormatError {
 	return UnsupportedFormatError{s}
+}
+
+// PathsFromEnvVars returns a list of expanded paths found in the environemnt
+// variable s. If nothing was found, or the environment variable was empty, a
+// nil will be returned.
+func PathsFromEnvVar(s string) []string {
+	if s == "" {
+		return nil
+	}
+	v := os.Getenv(s)
+	if v == "" {
+		return nil
+	}
+	paths := strings.Split(v, string(os.PathListSeparator))
+	for i := range paths {
+		paths[i] = os.ExpandEnv(paths[i])
+	}
+	return paths
 }
