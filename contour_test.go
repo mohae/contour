@@ -285,7 +285,7 @@ func newTestSettings() *Settings {
 		},
 		"envbool": setting{
 			Type:          _bool,
-			Name:          "cfgbool",
+			Name:          "envbool",
 			Value:         true,
 			Short:         "",
 			IsConfFileVar: true,
@@ -293,22 +293,22 @@ func newTestSettings() *Settings {
 		},
 		"envint": setting{
 			Type:          _int,
-			Name:          "cfgint",
+			Name:          "envint",
 			Value:         42,
 			IsConfFileVar: true,
 			IsEnvVar:      true,
 		},
 		"envint64": setting{
 			Type:          _int64,
-			Name:          "cfgint64",
+			Name:          "envint64",
 			Value:         int64(42),
 			IsConfFileVar: true,
 			IsEnvVar:      true,
 		},
 		"envstring": setting{
 			Type:          _string,
-			Name:          "cfgstring",
-			Value:         "a cfg string",
+			Name:          "envstring",
+			Value:         "an env string",
 			Short:         "",
 			IsConfFileVar: true,
 			IsEnvVar:      true,
@@ -316,7 +316,7 @@ func newTestSettings() *Settings {
 		"envslice": setting{
 			//Type:  "string-slice",
 			Type:          _interface,
-			Name:          "cfgslice",
+			Name:          "envslice",
 			Value:         []string{},
 			Short:         "",
 			IsConfFileVar: true,
@@ -325,7 +325,7 @@ func newTestSettings() *Settings {
 		"envmap": setting{
 			//Type:  "map",
 			Type:          _interface,
-			Name:          "cfgmap",
+			Name:          "envmap",
 			Value:         map[string]interface{}{},
 			Short:         "",
 			IsConfFileVar: true,

@@ -19,11 +19,20 @@ func (s *Settings) GetE(k string) (interface{}, error) {
 // it does not need to end with E to signify it returns an error as it can be
 // assumed it does.
 func (s *Settings) get(k string) (interface{}, error) {
-	_, ok := s.settings[k]
+	v, ok := s.settings[k]
 	if !ok {
 		return nil, SettingNotFoundError{k: k}
 	}
-	return s.settings[k].Value, nil
+	// if this is a flag see if it was parsed; if so return the parsed value
+	if v.IsFlag {
+		for _, x := range s.parsedFlags {
+			if x == v.Name {
+				return s.flagVars[k], nil
+			}
+		}
+	}
+
+	return v.Value, nil
 }
 
 // Get returns the settings' value for k as an interface{}. A nil is returned

@@ -77,7 +77,6 @@ func (s *Settings) parseFlags(args []string) ([]string, error) {
 	cmdArgs := s.flagSet.Args()
 
 	s.flagsParsed = true
-
 	return cmdArgs, nil
 }
 
